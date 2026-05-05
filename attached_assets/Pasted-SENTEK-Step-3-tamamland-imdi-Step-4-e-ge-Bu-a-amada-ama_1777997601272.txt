@@ -1,0 +1,386 @@
+SENTEK Step 3 tamamlandı. Şimdi Step 4’e geç.
+
+Bu aşamada amaç:
+Mevcut mobil saha uygulaması + web yönetim panelini mock demo seviyesinden daha gerçek MVP seviyesine yaklaştırmak.
+
+Step 4’te backend API’ye geçme. Express/PostgreSQL gibi gerçek backend altyapısını şimdilik kurma. Önce mobil saha kullanımı, offline kayıt, QR/barkod tarama, PDF rapor, harita ve analitik ekranlarını güçlendir.
+
+Step 4 ana hedefleri:
+1. Gerçek offline storage altyapısı
+2. Gerçek QR / barkod tarama altyapısı
+3. Gerçek PDF rapor üretimi
+4. Harita / lokasyon görünümü
+5. Raporlar ve analitik ekranını güçlendirme
+6. Mobil PWA hissini artırma
+7. Veri kalıcılığını mock state seviyesinden daha güvenilir hale getirme
+8. Demo sunuma uygun profesyonel kalite kontrol
+
+Çok önemli:
+- Sistem personel testi değildir.
+- Biyolojik test, idrar, tükürük, kan, sürücü testi gibi hiçbir ifade kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, numune sevki ve laboratuvar doğrulama sürecidir.
+- Gerçek kurum adı kullanma.
+- Demo veriler hayali olsun.
+- Arayüz tamamen Türkçe olsun.
+- Mevcut proje yapısını bozma.
+- Step 1, Step 2 ve Step 3’te kurulan yapıyı genişlet.
+- Kod temiz, modüler ve gerçek backend’e taşınabilir olmalı.
+
+1. Gerçek Offline Storage — IndexedDB / Dexie.js
+
+Mevcut offline/senkron mantığı şu an UI simülasyonu. Bunu daha gerçekçi hale getir.
+
+Dexie.js veya uygun bir IndexedDB çözümü kullan.
+
+Amaç:
+Mobil saha personeli çevrimdışıyken test kaydı, fotoğraf bilgisi, lab sevk ön kaydı ve işlem log’u oluşturabilsin. Bağlantı geldiğinde bu kayıtlar senkron kuyruğuna alınmış gibi yönetilsin.
+
+IndexedDB’de tutulacak temel tablolar:
+- testKayitlari
+- labSevkKayitlari
+- stokHareketleri
+- auditLog
+- bildirimler
+- senkronKuyrugu
+
+Offline kayıt durumları:
+- Yerel Kayıt
+- Senkron Bekliyor
+- Senkronize Edildi
+- Senkron Hatası
+
+Mobil üst barda göster:
+- Çevrimiçi / Çevrimdışı
+- Senkron bekleyen kayıt sayısı
+- Son senkron zamanı
+- Manuel Senkronize Et butonu
+
+Senkronizasyon mantığı:
+- Çevrimdışıyken oluşturulan test kayıtları IndexedDB’ye yazılsın
+- Çevrimdışıyken oluşturulan lab sevk kayıtları IndexedDB’ye yazılsın
+- Online olunca kullanıcı “Senkronize Et” diyebilsin
+- Senkron sonrası kayıt durumu “Senkronize Edildi” olsun
+- Bildirim ve audit log oluşsun
+
+Bu aşamada gerçek sunucuya gönderim yoksa bile senkron süreci gerçekçi çalışmalı.
+
+2. Gerçek QR / Barkod Tarama
+
+Step 3’te QR görseli mock olarak eklendi. Şimdi mobilde gerçek kamera ile QR/barkod tarama altyapısını ekle.
+
+Tercih:
+- zxing-js/browser
+veya projeye daha uygun güvenilir bir QR/barkod tarama kütüphanesi.
+
+Mobilde eklenecek ekran:
+QR / Barkod Tara
+
+Kullanım alanları:
+- Test kiti seri no tarama
+- Numune takip no tarama
+- Delil poşeti no tarama
+- Mühür / etiket no tarama
+- Test kayıt QR kodu ile kayıt açma
+
+Tarama ekranında:
+- Kamera önizleme alanı
+- Tarama çerçevesi
+- Fener / ışık simülasyonu veya butonu varsa ekle
+- Manuel giriş alternatifi
+- Son taranan kod bilgisi
+- İlgili kayıt bulunduysa kayıt detayına yönlendirme
+- Bulunamadıysa “Kayıt bulunamadı” mesajı
+
+Önemli:
+Kamera izni hata mesajı düzgün olsun.
+Kamera çalışmazsa manuel giriş alanı mutlaka olsun.
+Mobil performansı bozma.
+
+3. QR / Barkod Üretimini Güçlendir
+
+Mock QR kod görseli yerine mümkünse gerçek QR üretimi kullan.
+
+Kütüphane:
+- qrcode
+veya uygun hafif bir QR oluşturma çözümü.
+
+QR içeriği JSON değil, kısa referans kodu olmalı.
+
+Örnek:
+SENTEK:TEST:TR-040
+SENTEK:LAB:SNT-LAB-2026-000004
+SENTEK:KIT:SN-2026-001928
+
+QR detay ekranında:
+- QR görseli
+- Referans kod
+- İlgili kayıt türü
+- Kopyala
+- Yazdır
+- Etiket oluştur
+
+4. Gerçek PDF Rapor Üretimi
+
+Step 3’te rapor önizleme / mock yapı varsa bunu gerçek PDF export seviyesine getir.
+
+Tercih:
+- @react-pdf/renderer
+veya projeye daha uygun güvenilir bir PDF üretim çözümü.
+
+PDF rapor türleri:
+1. Test Kayıt Raporu
+2. Lab Sevk ve Numune Takip Raporu
+3. Stok / Seri No Kullanım Raporu
+
+Test Kayıt Raporu içeriği:
+- Rapor No
+- Operasyon No
+- Test Kayıt No
+- Tarih / Saat
+- Lokasyon
+- Kontrol Noktası
+- Numune Türü
+- Şüpheli Materyal Açıklaması
+- Test Kiti Seri No
+- Test Kiti SKT
+- Test Fotoğrafı
+- Kit Analizi Özeti
+- Sonuç
+- Güven Skoru
+- Manuel Doğrulama
+- Testi Yapan Kullanıcı
+- Notlar
+- QR referansı
+
+Lab Sevk Raporu içeriği:
+- Numune Takip No
+- Operasyon No
+- Ön Tarama Sonucu
+- Numune Türü
+- Numune Fotoğrafı
+- Paketleme Fotoğrafı
+- Mühür / Etiket No
+- Delil Poşeti No
+- Sevk Eden Birim
+- Tahmini Varış
+- Teslim Alma Bilgileri
+- Ambalaj Bütünlüğü
+- Mühür Kontrolü
+- Analiz Durumu
+- Laboratuvar Sonucu
+- Rapor Durumu
+- Timeline
+- QR referansı
+
+Stok / Seri No Raporu içeriği:
+- Ürün adı
+- Panel tipi
+- Lot / Seri No
+- SKT
+- Depo / Birim
+- Durum
+- Kullanıldığı Operasyon
+- Kullanıldığı Personel
+- Kullanım Tarihi
+- Stok hareket özeti
+
+Butonlar:
+- PDF Önizle
+- PDF İndir
+- Yazdır
+
+PDF tasarım:
+- Resmi
+- Temiz
+- Siyah-beyaz baskıya uygun
+- Gereksiz görsel efekt yok
+- Kurumsal rapor hissi
+- QR referansı görünür
+
+5. Harita / Lokasyon Görünümü
+
+Web panelde harita tabanlı operasyon görünümü ekle.
+
+Tercih:
+- Leaflet
+- react-leaflet
+veya projeye uygun hafif bir harita çözümü.
+
+Menü adı:
+Operasyon Haritası
+
+Haritada gösterilecek:
+- Lokasyon noktaları
+- Test sayısı
+- Pozitif test sayısı
+- Lab sevk sayısı
+- Kritik stok uyarısı
+- Son işlem zamanı
+
+Lokasyonlar hayali olsun.
+
+Örnek lokasyon tipleri:
+- Sınır Kapısı
+- Liman Kontrol Noktası
+- Antrepo Bölgesi
+- Mobil Saha Ekibi
+- Araç Arama Noktası
+
+Harita popup içeriği:
+- Lokasyon adı
+- Bugünkü test
+- Pozitif sonuç
+- Lab sevk
+- Kritik stok
+- Detaylara git
+
+Haritanın yanında özet panel:
+- En yoğun lokasyon
+- En yüksek pozitif oranı
+- En çok lab sevk yapılan lokasyon
+- Kritik stok bulunan lokasyonlar
+
+Eğer harita kütüphanesi sorun çıkarırsa, SVG/tabanlı premium operasyon haritası görünümü oluştur; ama mümkünse gerçek harita komponenti kullan.
+
+6. Raporlar ve Analitik Ekranını Güçlendir
+
+Mevcut raporlar ekranını gerçek dashboard gibi geliştir.
+
+Recharts kullanılabilir.
+
+Rapor ekranları:
+- Test Analitiği
+- Pozitif Sonuç Analitiği
+- Lab Sevk Analitiği
+- Stok / Seri No Analitiği
+- SKT Risk Analizi
+- Lokasyon Analitiği
+- Personel İşlem Analitiği
+
+Grafikler:
+- Tarih bazlı test yoğunluğu
+- Pozitif / negatif / geçersiz dağılımı
+- Numune türüne göre pozitiflik
+- Lokasyon bazlı test sayısı
+- Lokasyon bazlı pozitif oranı
+- Lab sevk durum dağılımı
+- Ortalama sevk süresi
+- Ortalama analiz süresi
+- SKT yaklaşan stok sayısı
+- Kritik stok trendi
+- Panel tipine göre kullanım
+
+Filtreler:
+- Tarih aralığı
+- Lokasyon
+- Numune türü
+- Sonuç
+- Personel
+- Panel tipi
+- Lab sevk durumu
+- Stok durumu
+
+Analitik ekranı premium dark UI ile tutarlı olsun.
+Tablolar okunabilir olsun.
+Grafikler gereksiz kalabalık olmasın.
+
+7. Mobil PWA Hissini Güçlendir
+
+Mobil uygulama gerçek saha uygulaması gibi hissettirmeli.
+
+Eklenecekler:
+- PWA manifest
+- Uygulama adı: SENTEK
+- Tema rengi dark
+- Mobil tarayıcıda app-like görünüm
+- Offline fallback ekranı
+- Ana ekranda bağlantı durumu
+- Alt navigasyon iyileştirme
+- Kamera / QR / Yeni Test hızlı aksiyonları
+- Tek elle kullanım için büyük butonlar
+
+Mobil ana ekran hızlı aksiyonları:
+- Yeni Test
+- QR Tara
+- Senkronize Et
+- Sevklerim
+
+8. Fotoğraf Veri Yönetimini İyileştir
+
+Fotoğraf alanlarında gerçek dosya önizleme ve base64/local object URL mantığı düzgün çalışsın.
+
+Fotoğraf alanları:
+- Test Fotoğrafı
+- Numune Fotoğrafı
+- Paketleme Fotoğrafı
+- Teslim Alma Fotoğrafı
+
+Her alanda:
+- Fotoğraf çek / yükle
+- Önizle
+- Değiştir
+- Sil
+- Kalite uyarısı
+- Dosya boyutu kontrolü
+
+Fotoğraf kalite uyarıları:
+- Görüntü bulanık olabilir
+- Işık yetersiz
+- Test kaseti kadraj dışında olabilir
+- Manuel kontrol önerilir
+
+Bu uyarılar simüle edilebilir ama UI gerçekçi görünmeli.
+
+9. Veri Kalıcılığı
+
+Şu an React state kayboluyorsa bunu iyileştir.
+
+Seçenekler:
+- IndexedDB
+- localStorage backup
+- Dexie.js
+
+Amaç:
+Sayfa yenilendiğinde en azından demo veri ve son oluşturulan kayıtlar kaybolmasın.
+
+Kalıcı tutulacaklar:
+- Test kayıtları
+- Lab sevk kayıtları
+- Stok verisi
+- Audit log
+- Bildirimler
+- Offline/senkron kuyruk
+
+10. Kalite Kontrol
+
+Bu aşamada kod şişirmeden kaliteyi yükselt.
+
+Kontrol et:
+- Mobilde tüm ana akış çalışıyor mu?
+- QR tarama ekranı kamera izin hatasını doğru yönetiyor mu?
+- PDF üretimi çalışıyor mu?
+- Offline kayıt IndexedDB’ye yazılıyor mu?
+- Senkron bekleyen kayıtlar görünüyor mu?
+- Harita ekranı düzgün açılıyor mu?
+- Raporlar ekranında grafikler doğru görünüyor mu?
+- Rol/yetki kontrolleri bozulmadı mı?
+- Test kayıt akışı bozulmadı mı?
+- Lab sevk akışı bozulmadı mı?
+- Stok düşüm mantığı bozulmadı mı?
+- Türkçe olmayan veya yanlış algı oluşturan metin var mı?
+
+11. Step 4 Sonunda Rapor Ver
+
+İş sonunda şunları açıkça listele:
+- IndexedDB / Dexie.js eklendi mi?
+- Offline kayıt gerçek storage’a yazılıyor mu?
+- QR / barkod tarama eklendi mi?
+- QR üretimi mock’tan gerçek üretime geçti mi?
+- PDF rapor üretimi eklendi mi?
+- Harita ekranı eklendi mi?
+- Raporlar / analitik ekranı nasıl geliştirildi?
+- PWA manifest eklendi mi?
+- Mobil deneyim nasıl iyileştirildi?
+- Hangi veriler kalıcı tutuluyor?
+- Hangi özellikler gerçek, hangileri hâlâ simülasyon?
+- Step 5’te backend/database için önerilen mimari ne olmalı?
