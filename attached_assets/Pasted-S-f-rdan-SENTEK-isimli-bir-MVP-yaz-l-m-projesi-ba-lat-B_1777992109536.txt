@@ -1,0 +1,512 @@
+Sıfırdan SENTEK isimli bir MVP yazılım projesi başlat.
+
+Bu proje bir tanıtım sayfası değildir. Çalışan bir mobil saha uygulaması + web yönetim paneli MVP’si olmalıdır.
+
+Amaç:
+SENTEK, gümrük, narkotik ve saha operasyonlarında şüpheli materyaller üzerinde yapılan doğrudan madde testlerini dijital kayıt, fotoğraflı test analizi, seri no/SKT takibi, stok kontrolü, pozitif numune sevki, laboratuvar ön bildirimi ve kurumsal dashboard ile yöneten bir güvenlik teknolojisi yazılımıdır.
+
+Ürün adı:
+SENTEK
+
+Açılım:
+Saha Entegre Narkotik Test Yazılımı
+
+Bu Step 1’de yapılacak ana hedef:
+- Mobil-first saha uygulaması temelini kur
+- Web yönetim paneli temelini kur
+- Rol bazlı demo giriş oluştur
+- Ortak mock data yapısını oluştur
+- Test kayıt akışını çalışır hale getir
+- Pozitif test sonucundan laboratuvar sevk akışına geçişin temelini oluştur
+- Dashboard, stok/seri no ve lab sevk modüllerinin temel ekranlarını hazırla
+- Kod mimarisini sonraki aşamalarda gerçek backend, kamera, QR/barkod, AI analiz ve PDF rapor üretimine hazır kur
+
+Çok önemli kurallar:
+- Bu sistem personel testi değildir.
+- Biyolojik test, idrar testi, tükürük testi, kan testi veya sürücü testi gibi kurgulanmamalıdır.
+- Kişinin madde kullanımıyla ilgili bir yazılım değildir.
+- Konu tamamen şüpheli materyal, kaçakçılık, doğrudan madde testi, saha operasyonu, numune sevki ve laboratuvar doğrulama sürecidir.
+- Herhangi bir kurum adı kullanma.
+- Gerçek kişi, gerçek kurum ve gerçek operasyon verisi kullanma.
+- Arayüz tamamen Türkçe olsun.
+- Demo veriler gerçekçi ama hayali olsun.
+- Tasarım klasik admin panel gibi değil, premium güvenlik teknolojisi yazılımı gibi görünmeli.
+
+Teknik yaklaşım:
+- Replit üzerinde hızlı çalışacak, sürdürülebilir ve geliştirilebilir bir yapı kur.
+- İlk MVP için mobil-first PWA + web yönetim paneli yaklaşımını kullan.
+- React / Vite / TypeScript / Tailwind CSS tercih edilebilir.
+- shadcn/ui veya benzeri modern component yapısı kullanılabilir.
+- Framer Motion kullanılabilir ama sadece kontrollü, performansı bozmayan animasyonlar için.
+- Veri başlangıçta mock data veya local state ile çalışabilir.
+- Kod yapısı ileride gerçek database, gerçek backend, mobil uygulama, API, kamera, QR/barkod ve AI analiz entegrasyonuna hazır olmalı.
+- Mobil saha ekranları ve web panel ekranları ayrı component yapısında tasarlansın.
+- Ortak veri modelleri, tipler ve mock data merkezi tutulmalı.
+
+Uygulama mimarisi:
+1. Mobil Saha Uygulaması
+Saha personelinin asıl kullanacağı arayüzdür.
+
+2. Web Yönetim Paneli
+Merkez yönetici, bölge yetkilisi, laboratuvar kullanıcısı ve sistem yöneticisinin kullanacağı paneldir.
+
+Rol yapısı:
+Demo kullanıcı rolleri oluştur:
+
+1. Sistem Yöneticisi
+- Web panel kullanır
+- Kullanıcılar, roller, tanımlar, stok ve sistem ayarlarını yönetir
+
+2. Merkez Yönetici
+- Web panel kullanır
+- Tüm dashboard, raporlar, stok, laboratuvar süreçleri ve performans verilerini görür
+
+3. Bölge Yetkilisi
+- Web panel kullanır
+- Kendi bölgesindeki testleri, stokları ve sevkleri görür
+- Saha ekiplerini takip eder
+
+4. Saha Personeli
+- Mobil uygulamayı kullanır
+- Test kaydı oluşturur
+- Test fotoğrafı ekler
+- Sonuç doğrular
+- Pozitif numune sevki başlatır
+- Kendi kayıtlarını ve sevk durumlarını görür
+
+5. Laboratuvar Kullanıcısı
+- Web panel kullanır
+- Gelecek numuneleri görür
+- Teslim alma ve analiz süreci temel ekranlarını görür
+- Rapor durumlarını takip eder
+
+Demo login:
+Bir login ekranı oluştur.
+Rol seçerek veya demo kullanıcılarla giriş yapılabilsin.
+Giriş sonrası kullanıcı rolüne göre uygun arayüz açılsın.
+
+Örnek demo kullanıcılar:
+- admin@sentek.local / admin123 / Sistem Yöneticisi
+- merkez@sentek.local / merkez123 / Merkez Yönetici
+- bolge@sentek.local / bolge123 / Bölge Yetkilisi
+- saha@sentek.local / saha123 / Saha Personeli
+- lab@sentek.local / lab123 / Laboratuvar Kullanıcısı
+
+Mobil saha uygulaması ekranları:
+
+1. Mobil Giriş / Saha Ana Ekranı
+Saha personeli giriş yaptığında mobil-first bir ana ekran görmeli.
+
+Ana ekranda:
+- Yeni Test Başlat
+- Test Kayıtlarım
+- Sevk Edilen Numunelerim
+- Bekleyen İşlemler
+- Bildirimler
+- Bugünkü test sayısı
+- Pozitif kayıt sayısı
+- Lab sevk bekleyen kayıt sayısı
+
+Mobil tasarım:
+- Büyük dokunmatik butonlar
+- Koyu tema
+- Sade ama premium görünüm
+- Kamera/fotoğraf odaklı kullanım
+- Eldivenle kullanılabilecek netlikte büyük alanlar
+- Karanlık ortamda okunabilir yapı
+
+2. Yeni Test Kaydı Akışı
+
+Adım adım mobil form oluştur.
+
+Akış:
+1. Yeni Test Başlat
+2. Lokasyon / kontrol noktası seç
+3. Numune türü seç
+4. Şüpheli materyal açıklaması gir
+5. Test kiti seri no alanı gir
+6. Test kiti SKT seç/gir
+7. Test fotoğrafı yükle alanı
+8. Kit analizi önizleme ekranı
+9. Sonucu seç/doğrula: Pozitif / Negatif / Geçersiz
+10. Tespit edilen madde / panel alanı
+11. Not ekle
+12. Kaydı tamamla
+13. Sonuç pozitifse “Laboratuvara Sevk Et” seçeneği göster
+
+Form alanları:
+- Operasyon No
+- Test Lokasyonu
+- Kontrol Noktası
+- Numune Türü
+- Şüpheli Materyal Açıklaması
+- Test Kiti Seri No
+- Test Kiti SKT
+- Test Fotoğrafı
+- Test Sonucu
+- Tespit Edilen Madde / Panel
+- Notlar
+
+Numune türleri:
+- Tır yedek yakıt deposu
+- Emdirilmiş kumaş
+- Emdirilmiş kağıt
+- Emdirilmiş pamuk
+- Sıvı numune
+- Toz madde
+- Araç içi yüzey sürüntüsü
+- Paket / koli içeriği
+- Konteyner yüzeyi
+- Bagaj / eşya içi numune
+- Diğer
+
+3. Fotoğraftan Kit Analizi Demo Ekranı
+
+Bu Step 1’de gerçek AI analizi yapma.
+Ama test fotoğrafı yüklendiğinde gerçek analiz sistemi gibi görünen bir demo paneli göster.
+
+Panelde:
+- Test görüntüsü önizleme alanı
+- Algılanan panel
+- Kontrol çizgisi durumu
+- Test çizgisi durumu
+- Önerilen sonuç: Pozitif / Negatif / Geçersiz
+- Güven skoru
+- Manuel doğrulama alanı
+- Yetkili onay durumu
+
+Not:
+Analiz sonucu simüle edilebilir. UI gelecekte gerçek görüntü işleme/AI analiz entegrasyonuna hazır olmalı.
+
+4. Pozitif Sonuçtan Lab Sevk Başlatma
+
+Test sonucu pozitif seçilirse mobil ekranda:
+“Laboratuvara Sevk Et” aksiyonu görünsün.
+
+Bu Step 1’de lab sevk formunun temel hali oluşturulsun.
+
+Lab sevk formu alanları:
+- Otomatik Numune Takip No
+- Operasyon No
+- Test Kayıt No
+- Numune Türü
+- Ön Tarama Sonucu
+- Tespit Edilen Madde / Panel
+- Test Fotoğrafı
+- Numune Fotoğrafı
+- Paketleme Fotoğrafı
+- Mühür / Etiket No
+- Delil Poşeti No
+- Sevk Eden Birim
+- Gönderim Yöntemi
+- Tahmini Varış Tarihi
+- Notlar
+
+Numune takip no formatı:
+SNT-LAB-2026-000001
+
+Lab sevk durumları:
+- Pozitif Tespit Edildi
+- Sevk Kaydı Oluşturuldu
+- Numune Paketlendi
+- Laboratuvara Yolda
+- Laboratuvara Ulaştı
+- Teslim Alındı
+- Analiz Sırasında
+- Rapor Yüklendi
+- Dosya Kapatıldı
+
+Bu Step 1’de tüm durumlar tamamen fonksiyonel olmak zorunda değil; ancak timeline yapısı ve temel kayıt akışı görünür olmalı.
+
+5. Test Kayıtlarım Ekranı
+
+Saha personeli kendi test kayıtlarını listeleyebilsin.
+
+Liste kartlarında:
+- Operasyon No
+- Tarih / Saat
+- Lokasyon
+- Numune türü
+- Sonuç rozeti: Pozitif / Negatif / Geçersiz
+- Test kiti seri no
+- Lab sevk durumu
+
+6. Sevk Edilen Numunelerim Ekranı
+
+Saha personeli kendi sevk ettiği pozitif numuneleri takip edebilsin.
+
+Kartlarda:
+- Numune Takip No
+- Operasyon No
+- Numune türü
+- Ön tarama sonucu
+- Mevcut durum
+- Tahmini varış
+- Timeline özeti
+
+Web yönetim paneli ekranları:
+
+1. Web Dashboard
+
+Merkez yönetici için dashboard oluştur.
+
+Kartlar:
+- Bugünkü toplam test
+- Pozitif test sayısı
+- Negatif test sayısı
+- Geçersiz test sayısı
+- Laboratuvara sevk edilen numune sayısı
+- Analiz bekleyen numune sayısı
+- Stokta kalan test sayısı
+- SKT yaklaşan kit sayısı
+- En yoğun lokasyon
+- En çok pozitif çıkan numune türü
+
+Grafik/analitik alanları:
+- Son 7 gün test yoğunluğu
+- Pozitif / negatif dağılımı
+- Numune türüne göre test dağılımı
+- Lokasyon bazlı test yoğunluğu
+- Laboratuvar sevk durumları
+
+Grafikler gerçek data olmasa da mock data ile anlamlı görünmeli.
+
+2. Test Kayıtları Ekranı
+
+Tablo ve kart görünümü olsun.
+
+Kolonlar:
+- Operasyon No
+- Tarih
+- Lokasyon
+- Kontrol Noktası
+- Numune Türü
+- Testi Yapan Personel
+- Test Kiti Seri No
+- Sonuç
+- Lab Sevk Durumu
+- Detay
+
+Filtreler:
+- Tarih
+- Lokasyon
+- Numune türü
+- Sonuç
+- Personel
+- Seri no
+- Lab sevk durumu
+
+3. Stok / Seri No / SKT Temel Ekranı
+
+Bu Step 1’de temel stok ekranı kur.
+
+Alanlar:
+- Ürün adı
+- Panel tipi
+- Lot / Seri no
+- Giriş miktarı
+- Kullanılan miktar
+- Kalan miktar
+- SKT
+- Depo / Birim
+- Kritik stok seviyesi
+- Durum
+
+Özellikler:
+- SKT yaklaşan ürünler uyarı rozetiyle görünsün
+- Kritik stok uyarısı olsun
+- Seri no bazlı kullanım geçmişi için detay alanı hazırlansın
+- Test kaydı ile seri no ilişkisi mock düzeyde kurulabilsin
+
+4. Lab Sevk Takibi Ekranı
+
+Pozitif numunelerin sevk sürecini göster.
+
+Tablo/kartlar:
+- Numune Takip No
+- Operasyon No
+- Gönderen Birim
+- Numune Türü
+- Ön Tarama Sonucu
+- Gönderim Tarihi
+- Tahmini Varış
+- Mevcut Durum
+- Detay
+
+5. Laboratuvar Ekranı
+
+Laboratuvar kullanıcısı için temel ekran oluştur.
+
+Başlık:
+Gelecek Numuneler
+
+Kartlar/tablo:
+- Numune Takip No
+- Gönderen Birim
+- Tahmini Varış
+- Numune Türü
+- Ön Tarama Sonucu
+- Test Fotoğrafı
+- Durum
+- Öncelik
+
+Detay ekranı veya modal içinde:
+- Teslim alma alanı
+- Analiz durumu alanı
+- Rapor durumu alanı
+
+Bu Step 1’de tam laboratuvar süreci çalışmak zorunda değil; ama ekranlar gerçek modüle dönüşmeye hazır olmalı.
+
+6. Raporlar Temel Ekranı
+
+Raporlar için temel ekran oluştur.
+
+Rapor kartları:
+- Test kayıtları raporu
+- Pozitif testler raporu
+- Lab sevk raporu
+- Stok / seri no raporu
+- SKT yaklaşan ürünler raporu
+- Lokasyon bazlı test raporu
+- Numune türü bazlı test raporu
+
+Bu Step 1’de raporlar temel mock veri ile gösterilebilir.
+
+7. Kullanıcılar / Roller Temel Ekranı
+
+Demo kullanıcılar ve roller gösterilsin.
+
+Roller:
+- Sistem Yöneticisi
+- Merkez Yönetici
+- Bölge Yetkilisi
+- Saha Personeli
+- Laboratuvar Kullanıcısı
+
+Bu aşamada tam yetki yönetimi şart değil; ama rol mantığı temeli görülsün.
+
+Navigasyon:
+
+Mobil menü:
+- Ana Ekran
+- Yeni Test
+- Test Kayıtlarım
+- Sevklerim
+- Bildirimler
+- Profil / Çıkış
+
+Web panel menüsü:
+- Dashboard
+- Test Kayıtları
+- Stok / Seri No
+- Lab Sevk Takibi
+- Laboratuvar
+- Raporlar
+- Kullanıcılar
+- Ayarlar
+
+Demo data:
+
+Gerçekçi ama hayali demo veriler oluştur.
+
+Örnek lokasyonlar:
+- Sınır Kapısı A
+- Liman Kontrol Noktası
+- Antrepo Bölgesi
+- Mobil Saha Ekibi
+- Araç Arama Noktası
+
+Örnek personel isimleri gerçek kişileri çağrıştırmasın.
+Örnek test kayıtları oluştur.
+Örnek pozitif / negatif / geçersiz kayıtlar oluştur.
+Örnek seri no ve SKT kayıtları oluştur.
+Örnek lab sevk kayıtları oluştur.
+Örnek stok kayıtları oluştur.
+
+UI / UX beklentisi:
+
+Genel:
+- Premium dark UI
+- Güvenlik teknolojisi hissi
+- Siyah, koyu lacivert, füme, beyaz
+- Cyan / elektrik mavisi / güvenlik yeşili vurgular
+- Soft glow
+- İnce grid background
+- Glassmorphism kartlar
+- Dashboard kartları
+- Durum rozetleri
+- Timeline
+- Tablo + kart görünümü
+- Mobilde kullanılabilir ekranlar
+- Gerçek SaaS / operasyon platformu hissi
+
+Mobil:
+- Büyük butonlar
+- Hızlı işlem akışı
+- Kamera / fotoğraf alanı ön planda
+- Adım adım kayıt
+- Gereksiz metin kalabalığı yok
+- Eldivenle kullanılabilir sade yapı
+- Karanlık ortamda okunabilir görünüm
+
+Web:
+- Kurumsal dashboard hissi
+- Sol menü veya temiz üst menü
+- Geniş ekranlarda güçlü veri görünümü
+- Tablo ve kart karışımı
+- Filtre alanları
+- Detay modal/drawer yapıları
+
+Framer Motion:
+Kullanılabilirse kontrollü şekilde kullan.
+- Dashboard kartlarının yumuşak giriş animasyonu
+- Timeline adımlarının aktifleşmesi
+- Modal ve panel geçişleri
+- Button hover/tap animasyonları
+- Durum rozetlerinde hafif pulse
+- Ağır ve gereksiz animasyon kullanma
+- Mobil performansı bozma
+- prefers-reduced-motion desteği ekle
+
+Kalite ve güvenlik:
+- Form validasyonları olsun
+- Boş alan kontrolleri olsun
+- Hata ve başarı bildirimleri olsun
+- Silme/güncelleme işlemlerinde onay mantığı olsun
+- Kod temiz olsun
+- Component yapısı modüler olsun
+- Mock data ile çalışsa bile gerçek backend’e taşınabilir mimaride olsun
+- Demo veriler gerçek kişi/kurum verisi içermesin
+- Sayfa ve ekranlarda biyolojik/personel testi algısı oluşturan hiçbir ifade bulunmasın
+
+Sonraki aşamalara hazırlık:
+Kod yapısını ileride şu geliştirmelere hazır olacak şekilde kur:
+- Gerçek kamera entegrasyonu
+- QR / barkod okuma
+- Gerçek görüntü işleme / AI kit analizi
+- PDF rapor üretimi
+- Kullanıcı yetkilendirme
+- Gerçek database
+- API entegrasyonu
+- Mobil PWA geliştirme
+- React Native / Expo mobil uygulamaya geçiş
+- Laboratuvar rapor dosyası yükleme
+- E-posta/SMS/bildirim sistemi
+- Offline kayıt ve sonra senkronizasyon
+
+Step 1 sonunda rapor ver:
+- Kullanılan teknoloji yapısı
+- Kurulan proje yapısı
+- Eklenen sayfalar
+- Eklenen mobil ekranlar
+- Eklenen web panel ekranları
+- Demo kullanıcı bilgileri
+- Rol bazlı giriş çalışıyor mu?
+- Test kayıt akışı çalışıyor mu?
+- Pozitiften lab sevk akışı temel düzeyde çalışıyor mu?
+- Stok/seri no/SKT ekranı hazır mı?
+- Laboratuvar ekranı hazır mı?
+- Hangi kısımlar mock/simülasyon?
+- Mobil uyum durumu
+- Framer Motion kullanıldı mı?
+- Step 2’de hangi modüller geliştirilmeli?
