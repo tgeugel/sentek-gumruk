@@ -2,10 +2,7 @@ import { useLocation, Link } from 'wouter';
 import { Home, Plus, ClipboardList, Truck, User, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { NotificationBell } from '../components/sentek/NotificationBell';
-
-interface MobileLayoutProps {
-  children: React.ReactNode;
-}
+import { OfflineBar } from '../components/sentek/OfflineBar';
 
 const NAV_ITEMS = [
   { path: '/mobile', label: 'Ana Ekran', icon: Home, exact: true },
@@ -14,17 +11,20 @@ const NAV_ITEMS = [
   { path: '/mobile/sevklerim', label: 'Sevklerim', icon: Truck },
 ];
 
-export default function MobileLayout({ children }: MobileLayoutProps) {
+export default function MobileLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { kullanici, cikisYap } = useAuth();
 
   const isActive = (path: string, exact?: boolean) => {
     if (exact) return location === path;
-    return location.startsWith(path) && (path !== '/mobile' || location === '/mobile');
+    return location === path || (location.startsWith(path) && path !== '/mobile');
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto relative">
+      {/* Offline Status Bar */}
+      <OfflineBar />
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -36,9 +36,6 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />
-          <div className="text-right hidden xs:block">
-            <p className="text-xs font-medium text-foreground">{kullanici?.ad}</p>
-          </div>
           <button
             onClick={cikisYap}
             data-testid="button-logout-mobile"
@@ -59,6 +56,7 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
         <div className="flex items-center justify-around px-2 py-2">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.path, item.exact);
+            const isYeniTest = item.path === '/mobile/yeni-test';
             return (
               <Link key={item.path} href={item.path}>
                 <button
@@ -69,15 +67,19 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                   }`}
                 >
-                  {item.path === '/mobile/yeni-test' ? (
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${active ? 'bg-primary text-primary-foreground shadow-[0_0_16px_rgba(0,212,255,0.4)]' : 'bg-primary/20 text-primary'}`}>
+                  {isYeniTest ? (
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-[0_0_16px_rgba(0,212,255,0.4)]'
+                        : 'bg-primary/20 text-primary'
+                    }`}>
                       <item.icon className="w-5 h-5" />
                     </div>
                   ) : (
-                    <item.icon className={`w-5 h-5 ${active ? 'text-primary' : ''}`} />
-                  )}
-                  {item.path !== '/mobile/yeni-test' && (
-                    <span className="text-xs font-medium">{item.label}</span>
+                    <>
+                      <item.icon className={`w-5 h-5 ${active ? 'text-primary' : ''}`} />
+                      <span className="text-xs font-medium">{item.label}</span>
+                    </>
                   )}
                 </button>
               </Link>

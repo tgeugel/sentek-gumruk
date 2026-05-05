@@ -1,0 +1,400 @@
+SENTEK Step 2 tamamlandı. Şimdi Step 3’e geç.
+
+Bu aşamada amaç:
+Mevcut mobil saha uygulaması + web yönetim panelini daha gerçek, daha kurumsal ve sahada kullanılabilir bir MVP seviyesine yükseltmek.
+
+Step 2’de şu yapı kuruldu:
+- 25 test kaydı
+- 8 pozitif kayıt
+- 9 lab sevk kaydı
+- 20 stok kalemi
+- Bildirim sistemi
+- 10 adımlı mobil test wizard
+- AI analiz demo ekranı
+- Stoktan kit seçimi ve stok düşüm
+- Web dashboard
+- Laboratuvar teslim alma / analiz / rapor akışı
+
+Step 3 hedefleri:
+1. QR / barkod etiket mantığı
+2. Numune ve test için yazdırılabilir etiket ekranı
+3. PDF rapor üretimi veya PDF rapor mock yapısı
+4. Offline kayıt ve senkronizasyon mantığı
+5. Rol/yetki kontrollerini güçlendirme
+6. Test ve lab sevk detay ekranlarını profesyonelleştirme
+7. Kamera / fotoğraf alanını daha gerçekçi hale getirme
+8. Audit log / işlem geçmişi ekleme
+9. Mobil saha kullanımını daha pratik hale getirme
+10. Demo sunuma uygun “Canlı Operasyon İzleme” ekranı oluşturma
+
+Çok önemli:
+- Sistem personel testi değildir.
+- Biyolojik test, idrar, tükürük, kan, sürücü testi gibi hiçbir ifade kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, numune sevki ve laboratuvar doğrulama sürecidir.
+- Gerçek kurum adı kullanma.
+- Demo veriler hayali olsun.
+- Arayüz tamamen Türkçe olsun.
+- Mevcut mimariyi bozma.
+- Step 1 ve Step 2’de kurulan yapıyı genişlet.
+
+1. QR / Barkod Takip Mantığı
+
+Sisteme QR / barkod takip altyapısı ekle.
+
+Amaç:
+Her test kaydı, her lab sevk numunesi ve her stok/seri no kaydı QR veya barkod ile izlenebilir görünsün.
+
+Bu Step 3’te gerçek kamera ile QR okuma zorunlu değil.
+Ancak UI ve veri modeli buna hazır olmalı.
+
+Eklenecek alanlar:
+- Test Kaydı QR Kodu
+- Numune Takip QR Kodu
+- Kit Seri No Barkodu
+- Delil Poşeti QR / Barkod No
+- Mühür / Etiket QR No
+
+Ekranlarda şu aksiyonlar olsun:
+- QR Oluştur
+- QR Görüntüle
+- Etiket Yazdır
+- QR ile Kayıt Aç
+- Barkod / Seri No Tara simülasyonu
+
+QR/Barkod simülasyon ekranı:
+Mobilde “QR / Barkod Tara” butonu olsun.
+Tıklayınca mock tarama modalı açılsın.
+Kullanıcı örnek seri no veya numune takip no seçerek ilgili kaydı açabilsin.
+
+2. Numune Etiketi ve Test Etiketi Ekranı
+
+Pozitif numune sevk ekranına “Etiket Oluştur” aksiyonu ekle.
+
+Etiket içeriği:
+- Numune Takip No
+- Operasyon No
+- Numune Türü
+- Ön Tarama Sonucu
+- Sevk Tarihi
+- Gönderen Birim
+- Mühür / Etiket No
+- QR / Barkod alanı
+
+Etiket tasarımı:
+- Küçük, yazdırılabilir, ciddi ve kurumsal görünmeli
+- Siyah/beyaz yazdırmaya uygun alternatif de olsun
+- Mobilde önizlenebilir
+- Web panelde yazdırılabilir
+
+Test kaydı için de mini etiket oluştur:
+- Test Kayıt No
+- Operasyon No
+- Test Kiti Seri No
+- Test Sonucu
+- Tarih / Saat
+- QR / Barkod alanı
+
+Bu aşamada gerçek yazıcı entegrasyonu gerekmez.
+“Yazdır” butonu browser print veya mock print olarak çalışabilir.
+
+3. PDF Rapor Mantığı
+
+Test kaydı detayına “Rapor Oluştur” aksiyonu ekle.
+
+Lab sonucu olan pozitif numunelerde “Lab Süreç Raporu Oluştur” aksiyonu olsun.
+
+PDF gerçek üretilemiyorsa bile güçlü bir rapor önizleme ekranı oluştur.
+Mümkünse client-side PDF export için uygun bir yapı kur.
+
+Test Raporu içeriği:
+- Rapor No
+- Operasyon No
+- Test Kayıt No
+- Tarih / Saat
+- Lokasyon
+- Kontrol Noktası
+- Numune Türü
+- Şüpheli Materyal Açıklaması
+- Test Kiti Seri No
+- Test Kiti SKT
+- Test Fotoğrafı
+- Kit Analizi Özeti
+- Sonuç: Pozitif / Negatif / Geçersiz
+- Manuel Doğrulama
+- Testi Yapan Kullanıcı
+- Notlar
+- QR / Barkod referansı
+
+Lab Sevk Raporu içeriği:
+- Numune Takip No
+- Operasyon No
+- Ön Tarama Sonucu
+- Numune Fotoğrafı
+- Paketleme Fotoğrafı
+- Mühür / Etiket No
+- Delil Poşeti No
+- Sevk Eden Birim
+- Tahmini Varış
+- Teslim Alma Bilgileri
+- Ambalaj Bütünlüğü
+- Mühür Kontrolü
+- Analiz Durumu
+- Laboratuvar Sonucu
+- Rapor Durumu
+- Timeline
+- QR / Barkod referansı
+
+Rapor ekranı premium ama resmi görünmeli.
+“PDF Önizle”, “PDF İndir”, “Yazdır” butonları olsun.
+
+4. Offline Kayıt ve Senkronizasyon Mantığı
+
+Mobil saha uygulaması için offline çalışmaya uygun demo mantığı ekle.
+
+Amaç:
+Saha personeli bağlantı yokken test kaydı oluşturabilsin, bağlantı geldiğinde senkronize edilecek gibi görünsün.
+
+Bu Step 3’te gerçek offline database zorunlu değil.
+Ancak UI ve state mantığı hazır olmalı.
+
+Mobilde eklenecek alanlar:
+- Bağlantı Durumu: Çevrimiçi / Çevrimdışı
+- Senkron Bekleyen Kayıtlar
+- Son Senkron Zamanı
+- Manuel Senkronize Et butonu
+
+Offline senaryo:
+- Kullanıcı test kaydı oluşturduğunda kayıt “Senkron Bekliyor” durumuna düşebilir
+- Online olunca “Senkronize Edildi” yapılabilir
+- Lab sevk kaydı offline oluşturulursa “Sevk Ön Kaydı” olarak işaretlenebilir
+- Dashboard’da senkron bekleyen kayıt sayısı görünsün
+
+Bildirim örnekleri:
+- 3 kayıt senkron bekliyor
+- Bağlantı geri geldi
+- Kayıt başarıyla senkronize edildi
+- Lab sevk kaydı merkeze aktarıldı
+
+5. Rol / Yetki Kontrolünü Güçlendir
+
+Rollere göre menü ve aksiyon görünürlüğünü düzenle.
+
+Saha Personeli:
+- Mobil uygulama ekranlarını görür
+- Kendi test kayıtlarını görür
+- Yeni test oluşturur
+- Pozitif kayıt için lab sevk başlatır
+- Kendi sevklerini takip eder
+- Web dashboard görmemeli veya sınırlı görmeli
+
+Bölge Yetkilisi:
+- Web panelde kendi bölge verilerini görür
+- Test kayıtlarını izler
+- Stok durumunu izler
+- Lab sevkleri izler
+- Kullanıcı yönetimini görmemeli
+
+Merkez Yönetici:
+- Tüm dashboard ve raporları görür
+- Tüm test ve lab sevk kayıtlarını görür
+- Stok ve raporları görür
+- Kullanıcı yönetimini sınırlı görebilir
+
+Laboratuvar Kullanıcısı:
+- Laboratuvar ekranlarını görür
+- Gelecek numune, teslim alma, analiz, rapor durumlarını yönetir
+- Stok ve kullanıcı yönetimini görmemeli
+
+Sistem Yöneticisi:
+- Tüm ekranları görür
+- Kullanıcılar, roller, ayarlar, stok ve sistem tanımlarını yönetir
+
+Yetkisiz ekran açılmaya çalışıldığında:
+- “Bu ekran için yetkiniz bulunmamaktadır” mesajı göster.
+
+6. Test Detay ve Lab Sevk Detay Ekranlarını Geliştir
+
+Test detay ekranı daha profesyonel olsun.
+
+Test detay bölümleri:
+- Genel Bilgiler
+- Test Fotoğrafı
+- Kit Analizi
+- Sonuç ve Doğrulama
+- Seri No / SKT Bilgisi
+- Stok Kullanım Bağlantısı
+- Lab Sevk Durumu
+- Raporlar
+- İşlem Geçmişi
+
+Lab sevk detay bölümleri:
+- Numune Bilgisi
+- Sevk Bilgisi
+- Fotoğraflar
+- Mühür / Etiket Bilgisi
+- Teslim Alma
+- Analiz Süreci
+- Rapor Durumu
+- Timeline
+- İşlem Geçmişi
+- QR / Barkod Etiketi
+
+Detay ekranları drawer/modal yerine gerekirse tam sayfa route olarak da yapılabilir.
+Demo sunumda rahat gösterilecek kadar düzenli olmalı.
+
+7. Kamera / Fotoğraf Deneyimini Güçlendir
+
+Mobilde fotoğraf yükleme alanları daha gerçekçi görünsün.
+
+Alanlar:
+- Test Fotoğrafı
+- Numune Fotoğrafı
+- Paketleme Fotoğrafı
+- Teslim Alma Fotoğrafı
+
+Her fotoğraf alanında:
+- Fotoğraf çek
+- Galeriden yükle
+- Önizle
+- Değiştir
+- Sil
+- Fotoğraf kalitesi uyarısı
+
+Gerçek kamera entegrasyonu zorunlu değil.
+Ama mobil UI kamera öncelikli saha uygulaması gibi görünmeli.
+
+8. Audit Log / İşlem Geçmişi
+
+Her kritik işlem için işlem geçmişi oluştur.
+
+Kayıt altına alınacak olaylar:
+- Test kaydı oluşturuldu
+- Fotoğraf eklendi
+- AI analiz simülasyonu yapıldı
+- Sonuç manuel doğrulandı
+- Stoktan kit düşüldü
+- Lab sevk oluşturuldu
+- Etiket oluşturuldu
+- Numune teslim alındı
+- Analiz başlatıldı
+- Rapor yüklendi
+- Dosya kapatıldı
+- Kullanıcı kayıt görüntüledi
+- Kayıt güncellendi
+
+Audit log alanları:
+- İşlem tipi
+- İşlem tarihi / saati
+- Kullanıcı
+- Rol
+- Açıklama
+- İlgili kayıt no
+
+Test detay, lab sevk detay ve sistem yönetici ekranında audit log göster.
+
+9. Canlı Operasyon İzleme Ekranı
+
+Web panelde yeni bir ekran oluştur:
+
+Menü adı:
+Canlı Operasyon
+
+Amaç:
+Demo sunumda etkileyici görünmesi için saha operasyonlarının canlı izleniyormuş gibi gösterilmesi.
+
+İçerik:
+- Aktif test kayıtları
+- Son pozitif kayıtlar
+- Lab’a yolda olan numuneler
+- Kritik stok uyarıları
+- SKT yaklaşan kitler
+- Düşük güvenli analizler
+- Lokasyon bazlı yoğunluk kartları
+- Son işlem akışı
+
+Bu ekran gerçek zamanlı gibi görünebilir.
+Mock data ile canlı akış simülasyonu yapılabilir.
+
+Örnek canlı akış:
+- “Araç Arama Noktası — yeni test kaydı oluşturuldu”
+- “Sınır Kapısı A — pozitif ön tarama kaydedildi”
+- “Mobil Saha Ekibi — numune sevk kaydı oluşturdu”
+- “Laboratuvar — SNT-LAB-2026-000004 teslim alındı”
+- “Stok — kritik seviyeye düşen panel var”
+
+Tasarım:
+- Premium dark UI
+- Büyük dashboard hissi
+- Hafif animasyonlu akış
+- Durum rozetleri
+- Timeline / feed görünümü
+- Demo sunumda etkileyici olmalı ama abartılı olmamalı
+
+10. Mobil UX İyileştirmeleri
+
+Mobil uygulamayı saha kullanımına daha uygun hale getir.
+
+İyileştirmeler:
+- Yeni Test Başlat butonu her zaman kolay erişilebilir olsun
+- Wizard adımları daha kısa ve net olsun
+- Fotoğraf adımı daha belirgin olsun
+- Pozitif sonuç seçildiğinde kullanıcıyı lab sevk akışına net yönlendirsin
+- Alt mobil navigasyon daha kullanışlı olsun
+- Bildirimler mobilde kolay okunmalı
+- Offline/senkron durumu üstte küçük ama net görünsün
+- Büyük dokunmatik alanlar korunsun
+
+11. Demo Verileri Genişlet
+
+Mock data daha zengin hale gelsin.
+
+Ekle:
+- 40 test kaydı
+- 12 pozitif kayıt
+- 12 lab sevk kaydı
+- 35 stok/seri no kaydı
+- 15 audit log kaydı
+- 10 bildirim daha
+- 5 düşük güvenli analiz kaydı
+- 5 SKT yaklaşan stok
+- 3 kritik stok
+- 3 senkron bekleyen mobil kayıt
+
+Veriler hayali ve gerçekçi olsun.
+Gerçek kurum/kişi adı kullanma.
+
+12. UI / Motion Kalite Kontrol
+
+Framer Motion varsa kontrollü devam et.
+
+Kullanılacak yerler:
+- Canlı operasyon feed
+- Timeline geçişleri
+- Dashboard kart girişleri
+- Modal/drawer açılışları
+- Wizard adım geçişleri
+- Bildirim dropdown
+- QR/etiket önizleme
+
+Kurallar:
+- Mobil performansı bozma
+- Aşırı animasyon kullanma
+- prefers-reduced-motion desteğini koru
+- Tasarım ciddi, premium ve kurumsal kalsın
+
+13. Step 3 Sonunda Rapor Ver
+
+İş sonunda şunları açıkça listele:
+- QR / barkod mantığı eklendi mi?
+- Etiket oluşturma ekranı hazır mı?
+- PDF rapor / rapor önizleme hazır mı?
+- Offline/senkron demo mantığı eklendi mi?
+- Rol/yetki kontrolleri güçlendirildi mi?
+- Test detay ekranı geliştirildi mi?
+- Lab sevk detay ekranı geliştirildi mi?
+- Fotoğraf/kamera alanları iyileştirildi mi?
+- Audit log eklendi mi?
+- Canlı operasyon ekranı oluşturuldu mu?
+- Mobil UX nasıl iyileştirildi?
+- Hangi kısımlar gerçek, hangi kısımlar mock/simülasyon?
+- Step 4 için önerilen geliştirmeler neler?

@@ -22,13 +22,25 @@ import Laboratory from "./pages/web/Laboratory";
 import Reports from "./pages/web/Reports";
 import Users from "./pages/web/Users";
 import Settings from "./pages/web/Settings";
+import LiveOps from "./pages/web/LiveOps";
+
+import { UnauthorizedPage } from "./components/sentek/UnauthorizedPage";
+import { Role } from "./types";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, mobileOnly, webOnly }: {
+function ProtectedRoute({
+  children,
+  mobileOnly,
+  webOnly,
+  allowedRoles,
+  screenName,
+}: {
   children: React.ReactNode;
   mobileOnly?: boolean;
   webOnly?: boolean;
+  allowedRoles?: Role[];
+  screenName?: string;
 }) {
   const { kullanici, loading } = useAuth();
 
@@ -44,6 +56,14 @@ function ProtectedRoute({ children, mobileOnly, webOnly }: {
 
   if (mobileOnly && kullanici.rol !== 'Saha Personeli') return <Redirect to="/panel/dashboard" />;
   if (webOnly && kullanici.rol === 'Saha Personeli') return <Redirect to="/mobile" />;
+
+  if (allowedRoles && !allowedRoles.includes(kullanici.rol)) {
+    return (
+      <WebPanelLayout>
+        <UnauthorizedPage ekranAdi={screenName} />
+      </WebPanelLayout>
+    );
+  }
 
   return <>{children}</>;
 }
@@ -69,122 +89,111 @@ function Router() {
       <Route path="/" component={AppRoot} />
       <Route path="/login" component={Login} />
 
-      {/* Mobile Routes */}
+      {/* ── Mobile Routes ── */}
       <Route path="/mobile">
         {() => (
-          <ProtectedRoute>
-            <MobileLayout>
-              <MobileHome />
-            </MobileLayout>
+          <ProtectedRoute mobileOnly>
+            <MobileLayout><MobileHome /></MobileLayout>
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/mobile/yeni-test">
         {() => (
-          <ProtectedRoute>
-            <MobileLayout>
-              <NewTest />
-            </MobileLayout>
+          <ProtectedRoute mobileOnly>
+            <MobileLayout><NewTest /></MobileLayout>
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/mobile/kayitlarim">
         {() => (
-          <ProtectedRoute>
-            <MobileLayout>
-              <MyRecords />
-            </MobileLayout>
+          <ProtectedRoute mobileOnly>
+            <MobileLayout><MyRecords /></MobileLayout>
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/mobile/sevklerim">
         {() => (
-          <ProtectedRoute>
-            <MobileLayout>
-              <MyShipments />
-            </MobileLayout>
+          <ProtectedRoute mobileOnly>
+            <MobileLayout><MyShipments /></MobileLayout>
           </ProtectedRoute>
         )}
       </Route>
 
-      {/* Web Panel Routes */}
+      {/* ── Web Panel Routes ── */}
       <Route path="/panel/dashboard">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Dashboard />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Dashboard">
+            <WebPanelLayout><Dashboard /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
+      <Route path="/panel/canli-ops">
+        {() => (
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Canlı Operasyon">
+            <WebPanelLayout><LiveOps /></WebPanelLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+
       <Route path="/panel/test-kayitlari">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <TestRecords />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı']} screenName="Test Kayıtları">
+            <WebPanelLayout><TestRecords /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/stok">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Inventory />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Stok / Seri No">
+            <WebPanelLayout><Inventory /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/lab-sevk">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <LabShipments />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı']} screenName="Lab Sevk Takibi">
+            <WebPanelLayout><LabShipments /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/laboratuvar">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Laboratory />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Laboratuvar Kullanıcısı', 'Merkez Yönetici']} screenName="Laboratuvar">
+            <WebPanelLayout><Laboratory /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/raporlar">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Reports />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Raporlar">
+            <WebPanelLayout><Reports /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/kullanicilar">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Users />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici']} screenName="Kullanıcılar">
+            <WebPanelLayout><Users /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
+
       <Route path="/panel/ayarlar">
         {() => (
-          <ProtectedRoute webOnly>
-            <WebPanelLayout>
-              <Settings />
-            </WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi']} screenName="Ayarlar">
+            <WebPanelLayout><Settings /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
 
       {/* Fallback */}
-      <Route>
-        {() => <Redirect to="/" />}
-      </Route>
+      <Route>{() => <Redirect to="/" />}</Route>
     </Switch>
   );
 }

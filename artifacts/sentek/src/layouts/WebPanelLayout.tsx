@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, LayoutDashboard, ClipboardList, Package,
   Truck, FlaskConical, FileBarChart, Users, Settings,
-  ChevronLeft, ChevronRight, LogOut, User, Menu
+  ChevronLeft, ChevronRight, LogOut, User, Menu, Radio
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
@@ -19,6 +19,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/panel/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Merkez Yönetici', 'Bölge Yetkilisi'] },
+  { path: '/panel/canli-ops', label: 'Canlı Operasyon', icon: Radio, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'] },
   { path: '/panel/test-kayitlari', label: 'Test Kayıtları', icon: ClipboardList, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'] },
   { path: '/panel/stok', label: 'Stok / Seri No', icon: Package, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'] },
   { path: '/panel/lab-sevk', label: 'Lab Sevk Takibi', icon: Truck, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'] },
@@ -28,11 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/panel/ayarlar', label: 'Ayarlar', icon: Settings, roles: ['Sistem Yöneticisi'] },
 ];
 
-interface WebPanelLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
+export default function WebPanelLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
@@ -46,25 +43,22 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
       <div className={`p-4 border-b border-sidebar-border flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(0,212,255,0.15)]">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
           <Shield className="w-4 h-4 text-primary" />
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm font-bold leading-tight">
-              SEN<span className="text-primary">TEK</span>
-            </p>
+            <p className="text-sm font-bold leading-tight">SEN<span className="text-primary">TEK</span></p>
             <p className="text-xs text-muted-foreground leading-tight">Operasyon Paneli</p>
           </div>
         )}
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {filteredNav.map(item => {
           const active = isActive(item.path);
+          const isCanli = item.path === '/panel/canli-ops';
           return (
             <Link key={item.path} href={item.path} onClick={() => setMobileOpen(false)}>
               <motion.div
@@ -72,11 +66,16 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
                 data-testid={`nav-web-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
                   active
-                    ? 'bg-primary/10 border border-primary/20 text-primary shadow-[0_0_12px_rgba(0,212,255,0.08)]'
+                    ? 'bg-primary/10 border border-primary/20 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                 } ${collapsed ? 'justify-center' : ''}`}
               >
-                <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-primary' : ''}`} />
+                <div className="relative flex-shrink-0">
+                  <item.icon className={`w-4 h-4 ${active ? 'text-primary' : ''}`} />
+                  {isCanli && !active && (
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  )}
+                </div>
                 {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
                 {!collapsed && active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
               </motion.div>
@@ -85,7 +84,6 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
         })}
       </nav>
 
-      {/* User */}
       <div className="p-3 border-t border-sidebar-border">
         <div className={`flex items-center gap-2 ${collapsed ? 'justify-center flex-col' : ''}`}>
           <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
@@ -121,27 +119,23 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
         <SidebarContent />
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors z-10"
+          className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-foreground z-10"
         >
           {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
         </button>
       </motion.aside>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
               className="md:hidden fixed inset-0 bg-black/60 z-40"
             />
             <motion.aside
-              initial={{ x: -240 }}
-              animate={{ x: 0 }}
-              exit={{ x: -240 }}
+              initial={{ x: -240 }} animate={{ x: 0 }} exit={{ x: -240 }}
               transition={{ type: 'tween', duration: 0.2 }}
               className="md:hidden fixed left-0 top-0 bottom-0 w-60 bg-sidebar border-r border-sidebar-border z-50 flex flex-col"
             >
@@ -153,13 +147,8 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header (desktop + mobile) */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3">
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="md:hidden p-1.5 rounded-lg hover:bg-secondary transition-colors"
-          >
+          <button onClick={() => setMobileOpen(true)} className="md:hidden p-1.5 rounded-lg hover:bg-secondary transition-colors">
             <Menu className="w-5 h-5" />
           </button>
           <div className="md:hidden flex items-center gap-2">
@@ -167,7 +156,6 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
             <span className="font-bold text-sm">SEN<span className="text-primary">TEK</span></span>
           </div>
           <div className="flex-1" />
-          {/* Right side: notification + user info */}
           <div className="flex items-center gap-2">
             <NotificationBell />
             <div className="hidden md:block text-right">

@@ -11,6 +11,7 @@ export interface Kullanici {
 }
 
 export type TestSonucu = 'Pozitif' | 'Negatif' | 'Geçersiz';
+export type SyncDurumu = 'Senkronize Edildi' | 'Senkron Bekliyor';
 
 export interface TestKaydi {
   id: string;
@@ -32,6 +33,8 @@ export interface TestKaydi {
   labSevkId?: string;
   analizGuvenSkoru?: number;
   stokId?: string;
+  syncDurumu?: SyncDurumu;
+  qrKodu?: string;
 }
 
 export type LabSevkDurumu =
@@ -81,6 +84,7 @@ export interface LabSevk {
   oncelik: 'Yüksek' | 'Normal' | 'Düşük';
   olaylar?: LabSevkOlay[];
   teslimAlma?: TeslimAlmaFormu;
+  qrKodu?: string;
 }
 
 export interface Stok {
@@ -97,7 +101,7 @@ export interface Stok {
   durum: 'Normal' | 'Kritik' | 'SKT Yaklaşıyor' | 'Tükendi';
 }
 
-export type BildirimTur = 'pozitif' | 'stok' | 'lab' | 'analiz' | 'rapor' | 'sistem';
+export type BildirimTur = 'pozitif' | 'stok' | 'lab' | 'analiz' | 'rapor' | 'sistem' | 'sync';
 
 export interface Bildirim {
   id: string;
@@ -107,4 +111,30 @@ export interface Bildirim {
   okundu: boolean;
   operasyonNo?: string;
   link?: string;
+}
+
+export type AuditIslemTipi =
+  | 'Test Oluşturuldu' | 'Fotoğraf Eklendi' | 'AI Analiz' | 'Sonuç Doğrulandı'
+  | 'Stok Düşüldü' | 'Lab Sevk Oluşturuldu' | 'Teslim Alındı' | 'Analiz Başlatıldı'
+  | 'Rapor Yüklendi' | 'Dosya Kapatıldı' | 'QR Etiket Oluşturuldu' | 'Etiket Yazdırıldı'
+  | 'Kullanıcı Girişi' | 'Kayıt Güncellendi' | 'Stok Güncellendi' | 'Senkronize Edildi'
+  | 'Rapor Oluşturuldu' | 'Detay Görüntülendi';
+
+export interface AuditLog {
+  id: string;
+  islemTipi: AuditIslemTipi;
+  tarih: string;
+  kullanici: string;
+  rol: Role;
+  aciklama: string;
+  kayitNo?: string;
+  ipAdresi?: string;
+}
+
+export interface OfflineSyncKaydi {
+  id: string;
+  tur: 'test' | 'labSevk';
+  aciklama: string;
+  tarih: string;
+  durum: SyncDurumu;
 }
