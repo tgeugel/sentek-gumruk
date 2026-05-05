@@ -147,7 +147,7 @@ function AnalysisVisual({ guven, sonuc }: { guven: number; sonuc: TestSonucu | '
 
 export default function NewTest() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { kullanici } = useAuth();
   const { testKaydiEkle, labSevkEkle, stoklar } = useData();
 
   const [adim, setAdim] = useState(0);
@@ -201,8 +201,8 @@ export default function NewTest() {
     }, 2400);
   };
 
-  const handleKaydet = () => {
-    const yeniTest = testKaydiEkle({
+  const handleKaydet = async () => {
+    const yeniTest = await testKaydiEkle({
       operasyonNo: form.operasyonNo,
       tarih: new Date().toISOString(),
       lokasyon: form.lokasyon,
@@ -215,13 +215,13 @@ export default function NewTest() {
       testSonucu: form.testSonucu as TestSonucu,
       tespitEdilenMadde: form.tespitEdilenMadde || undefined,
       notlar: form.notlar || undefined,
-      personelAdi: user?.ad || 'Saha Personeli',
+      personelAdi: kullanici?.ad || 'Saha Personeli',
       analizGuvenSkoru: form.analizGuven,
       stokId: form.seciliStokId || undefined,
-    } as any, form.seciliStokId || undefined);
+    }, form.seciliStokId || undefined);
 
     if (form.labSevkIstiyor && form.testSonucu === 'Pozitif') {
-      labSevkEkle({
+      await labSevkEkle({
         operasyonNo: form.operasyonNo,
         testKaydiId: yeniTest.id,
         numuneTuru: form.numuneTuru,
@@ -337,7 +337,7 @@ export default function NewTest() {
                   {[
                     { icon: Hash, label: 'Operasyon No', val: form.operasyonNo, cls: 'font-mono text-primary font-bold' },
                     { icon: Clock, label: 'Tarih / Saat', val: new Date().toLocaleString('tr-TR'), cls: '' },
-                    { icon: Shield, label: 'Personel', val: user?.ad || 'Saha Personeli', cls: '' },
+                    { icon: Shield, label: 'Personel', val: kullanici?.ad || 'Saha Personeli', cls: '' },
                   ].map(({ icon: Icon, label, val, cls }) => (
                     <div key={label} className="flex items-center gap-3 py-3">
                       <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, LayoutDashboard, ClipboardList, Package,
   Truck, FlaskConical, FileBarChart, Users, Settings,
-  ChevronLeft, ChevronRight, LogOut, User, Menu, Radio
+  ChevronLeft, ChevronRight, LogOut, User, Menu, Radio, Map
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
@@ -20,6 +20,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { path: '/panel/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Merkez Yönetici', 'Bölge Yetkilisi'] },
   { path: '/panel/canli-ops', label: 'Canlı Operasyon', icon: Radio, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'] },
+  { path: '/panel/harita', label: 'Operasyon Haritası', icon: Map, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'] },
   { path: '/panel/test-kayitlari', label: 'Test Kayıtları', icon: ClipboardList, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'] },
   { path: '/panel/stok', label: 'Stok / Seri No', icon: Package, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'] },
   { path: '/panel/lab-sevk', label: 'Lab Sevk Takibi', icon: Truck, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'] },

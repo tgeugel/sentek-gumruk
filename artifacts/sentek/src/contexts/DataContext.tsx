@@ -1,6 +1,9 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { TestKaydi, LabSevk, LabSevkDurumu, Stok, Kullanici, Bildirim, BildirimTur, TeslimAlmaFormu, AuditLog, AuditIslemTipi, OfflineSyncKaydi } from '../types';
-import { mockTestRecords, mockLabShipments, mockInventory, mockUsers, mockBildirimler, mockAuditLogs, mockOfflineSyncKayitlari } from '../data/mockData';
+import { mockTestRecords, mockLabShipments, mockInventory, mockUsers, mockBildirimler, mockAuditLogs } from '../data/mockData';
+import { db } from '../lib/db';
+import { useSyncManager } from '../hooks/useSyncManager';
 
 interface DataContextType {
   testKayitlari: TestKaydi[];
@@ -13,18 +16,19 @@ interface DataContextType {
   cevrimici: boolean;
   okunmamisSayisi: number;
   senkronBekleyenSayisi: number;
-  testKaydiEkle: (kayit: Omit<TestKaydi, 'id'>, stokId?: string) => TestKaydi;
-  labSevkEkle: (sevk: Omit<LabSevk, 'id' | 'numuneTakipNo'>) => LabSevk;
-  labSevkDurumGuncelle: (id: string, durum: LabSevkDurumu, kullanici?: string, aciklama?: string) => void;
-  labSevkTeslimAlmaKaydet: (id: string, form: TeslimAlmaFormu) => void;
-  bildirimOku: (id: string) => void;
-  tumunuOku: () => void;
-  bildirimEkle: (mesaj: string, tur: BildirimTur, operasyonNo?: string) => void;
-  stokDus: (stokId: string, adet?: number) => void;
+  sonSenkron: string | null;
+  testKaydiEkle: (kayit: Omit<TestKaydi, 'id'>, stokId?: string) => Promise<TestKaydi>;
+  labSevkEkle: (sevk: Omit<LabSevk, 'id' | 'numuneTakipNo'>) => Promise<LabSevk>;
+  labSevkDurumGuncelle: (id: string, durum: LabSevkDurumu, kullanici?: string, aciklama?: string) => Promise<void>;
+  labSevkTeslimAlmaKaydet: (id: string, form: TeslimAlmaFormu) => Promise<void>;
+  bildirimOku: (id: string) => Promise<void>;
+  tumunuOku: () => Promise<void>;
+  bildirimEkle: (mesaj: string, tur: BildirimTur, operasyonNo?: string) => Promise<void>;
+  stokDus: (stokId: string, adet?: number) => Promise<void>;
   kitSeriNoKontrol: (seriNo: string) => { kullanilmis: boolean; sktGecmis: boolean; sktYaklasan: boolean };
-  auditLogEkle: (islemTipi: AuditIslemTipi, kullanici: string, rol: string, aciklama: string, kayitNo?: string) => void;
+  auditLogEkle: (islemTipi: AuditIslemTipi, kullanici: string, rol: string, aciklama: string, kayitNo?: string) => Promise<void>;
   setCevrimici: (durum: boolean) => void;
-  senkronizeEt: () => void;
+  senkronizeEt: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -33,22 +37,54 @@ function generateTakipNo(index: number) {
   return `SNT-LAB-2026-${String(index).padStart(6, '0')}`;
 }
 
+let dbSeeded = false;
+
+async function seedDB() {
+  if (dbSeeded) return;
+  dbSeeded = true;
+  const count = await db.testKayitlari.count();
+  if (count > 0) return;
+
+  await db.transaction('rw', [db.testKayitlari, db.labSevkKayitlari, db.stokHareketleri, db.bildirimler, db.auditLog], async () => {
+    await db.testKayitlari.bulkAdd(mockTestRecords);
+    await db.labSevkKayitlari.bulkAdd(mockLabShipments);
+    await db.stokHareketleri.bulkAdd(mockInventory);
+    await db.bildirimler.bulkAdd(mockBildirimler);
+    await db.auditLog.bulkAdd(mockAuditLogs);
+  });
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [testKayitlari, setTestKayitlari] = useState<TestKaydi[]>(mockTestRecords);
-  const [labSevkler, setLabSevkler] = useState<LabSevk[]>(mockLabShipments);
-  const [stoklar, setStoklar] = useState<Stok[]>(mockInventory);
+  const { cevrimici, setCevrimici, bekleyenSayisi, sonSenkron, senkronizeEt: syncManagerSenkronizeEt } = useSyncManager();
+
   const [kullanicilar] = useState<Kullanici[]>(mockUsers);
-  const [bildirimler, setBildirimler] = useState<Bildirim[]>(mockBildirimler);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs);
-  const [offlineSyncKayitlari, setOfflineSyncKayitlari] = useState<OfflineSyncKaydi[]>(mockOfflineSyncKayitlari);
-  const [cevrimici, setCevrimici] = useState(true);
+  const [seeded, setSeeded] = useState(false);
 
-  const okunmamisSayisi = bildirimler.filter(b => !b.okundu).length;
-  const senkronBekleyenSayisi = offlineSyncKayitlari.filter(s => s.durum === 'Senkron Bekliyor').length;
+  useEffect(() => {
+    seedDB().then(() => setSeeded(true));
+  }, []);
 
-  const auditLogEkle = (islemTipi: AuditIslemTipi, kullanici: string, rol: string, aciklama: string, kayitNo?: string) => {
-    const yeni: AuditLog = {
-      id: `AUD-${Date.now()}`,
+  const testKayitlari = useLiveQuery(() => db.testKayitlari.orderBy('tarih').reverse().toArray(), [], []) as TestKaydi[];
+  const labSevkler = useLiveQuery(() => db.labSevkKayitlari.orderBy('id').reverse().toArray(), [], []) as LabSevk[];
+  const stoklar = useLiveQuery(() => db.stokHareketleri.toArray(), [], []) as Stok[];
+  const bildirimler = useLiveQuery(() => db.bildirimler.orderBy('tarih').reverse().toArray(), [], []) as Bildirim[];
+  const auditLogs = useLiveQuery(() => db.auditLog.orderBy('tarih').reverse().toArray(), [], []) as AuditLog[];
+  const senkronKuyrugu = useLiveQuery(() => db.senkronKuyrugu.toArray(), [], []);
+
+  const offlineSyncKayitlari: OfflineSyncKaydi[] = (senkronKuyrugu || []).map(k => ({
+    id: k.id,
+    tur: k.tur as 'test' | 'labSevk',
+    aciklama: k.aciklama,
+    tarih: k.tarih,
+    durum: k.durum === 'Senkronize Edildi' ? 'Senkronize Edildi' : 'Senkron Bekliyor',
+  }));
+
+  const okunmamisSayisi = (bildirimler || []).filter(b => !b.okundu).length;
+  const senkronBekleyenSayisi = bekleyenSayisi;
+
+  const auditLogEkle = async (islemTipi: AuditIslemTipi, kullanici: string, rol: string, aciklama: string, kayitNo?: string) => {
+    await db.auditLog.add({
+      id: `AUD-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       islemTipi,
       tarih: new Date().toISOString(),
       kullanici,
@@ -56,51 +92,52 @@ export function DataProvider({ children }: { children: ReactNode }) {
       aciklama,
       kayitNo,
       ipAdresi: '10.0.2.' + Math.floor(Math.random() * 200 + 50),
-    };
-    setAuditLogs(prev => [yeni, ...prev]);
+    });
   };
 
-  const bildirimEkle = (mesaj: string, tur: BildirimTur, operasyonNo?: string) => {
-    const yeni: Bildirim = {
-      id: `BLD-${Date.now()}`,
+  const bildirimEkle = async (mesaj: string, tur: BildirimTur, operasyonNo?: string) => {
+    await db.bildirimler.add({
+      id: `BLD-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mesaj,
       tur,
       tarih: new Date().toISOString(),
       okundu: false,
       operasyonNo,
-    };
-    setBildirimler(prev => [yeni, ...prev]);
+    });
   };
 
-  const bildirimOku = (id: string) => {
-    setBildirimler(prev => prev.map(b => b.id === id ? { ...b, okundu: true } : b));
+  const bildirimOku = async (id: string) => {
+    await db.bildirimler.update(id, { okundu: true });
   };
 
-  const tumunuOku = () => {
-    setBildirimler(prev => prev.map(b => ({ ...b, okundu: true })));
+  const tumunuOku = async () => {
+    await db.bildirimler.toCollection().modify({ okundu: true });
   };
 
-  const stokDus = (stokId: string, adet = 1) => {
-    setStoklar(prev => prev.map(s => {
-      if (s.id !== stokId) return s;
-      const yeniKalan = Math.max(0, s.kalanAdedi - adet);
-      const yeniKullanilan = s.kullanilanAdedi + adet;
-      let yeniDurum: Stok['durum'] = s.durum;
-      if (yeniKalan === 0) yeniDurum = 'Tükendi';
-      else if (yeniKalan <= s.kritikSeviye) yeniDurum = 'Kritik';
-      if (yeniKalan <= s.kritikSeviye && yeniKalan > 0 && s.durum !== 'Kritik') {
-        bildirimEkle(
-          `${s.urunAdi} (${s.lotSeriNo}) kritik stok seviyesine düştü — ${yeniKalan} adet kaldı.`,
-          'stok'
-        );
-      }
-      return { ...s, kalanAdedi: yeniKalan, kullanilanAdedi: yeniKullanilan, durum: yeniDurum };
-    }));
+  const stokDus = async (stokId: string, adet = 1) => {
+    const stok = await db.stokHareketleri.get(stokId);
+    if (!stok) return;
+    const yeniKalan = Math.max(0, stok.kalanAdedi - adet);
+    const yeniKullanilan = stok.kullanilanAdedi + adet;
+    let yeniDurum: Stok['durum'] = stok.durum;
+    if (yeniKalan === 0) yeniDurum = 'Tükendi';
+    else if (yeniKalan <= stok.kritikSeviye) yeniDurum = 'Kritik';
+    if (yeniKalan <= stok.kritikSeviye && yeniKalan > 0 && stok.durum !== 'Kritik') {
+      await bildirimEkle(
+        `${stok.urunAdi} (${stok.lotSeriNo}) kritik stok seviyesine düştü — ${yeniKalan} adet kaldı.`,
+        'stok'
+      );
+    }
+    await db.stokHareketleri.update(stokId, {
+      kalanAdedi: yeniKalan,
+      kullanilanAdedi: yeniKullanilan,
+      durum: yeniDurum,
+    });
   };
 
   const kitSeriNoKontrol = (seriNo: string) => {
-    const kullanilmis = testKayitlari.some(t => t.kitSeriNo === seriNo);
-    const stok = stoklar.find(s => seriNo.startsWith(s.lotSeriNo));
+    const kullanilmis = (testKayitlari || []).some(t => t.kitSeriNo === seriNo);
+    const stok = (stoklar || []).find(s => seriNo.startsWith(s.lotSeriNo));
     const now = new Date();
     const sktTarih = stok ? new Date(stok.skt) : null;
     const sktGecmis = sktTarih ? sktTarih < now : false;
@@ -108,56 +145,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return { kullanilmis, sktGecmis, sktYaklasan };
   };
 
-  const senkronizeEt = () => {
-    const bekleyenler = offlineSyncKayitlari.filter(s => s.durum === 'Senkron Bekliyor');
-    if (bekleyenler.length === 0) return;
-
-    setOfflineSyncKayitlari(prev =>
-      prev.map(s => s.durum === 'Senkron Bekliyor' ? { ...s, durum: 'Senkronize Edildi' as const } : s)
-    );
-    setTestKayitlari(prev =>
-      prev.map(t => t.syncDurumu === 'Senkron Bekliyor' ? { ...t, syncDurumu: 'Senkronize Edildi' as const } : t)
-    );
-    bekleyenler.forEach(s => {
-      bildirimEkle(`${s.aciklama} — merkeze başarıyla aktarıldı.`, 'sync');
-      auditLogEkle('Senkronize Edildi', 'Sistem', 'Sistem Yöneticisi', `Offline kayıt merkeze aktarıldı: ${s.aciklama}`, s.id);
-    });
+  const senkronizeEt = async () => {
+    await syncManagerSenkronizeEt();
   };
 
-  const testKaydiEkle = (kayit: Omit<TestKaydi, 'id'>, stokId?: string): TestKaydi => {
+  const testKaydiEkle = async (kayit: Omit<TestKaydi, 'id'>, stokId?: string): Promise<TestKaydi> => {
     const syncDurumu = cevrimici ? 'Senkronize Edildi' as const : 'Senkron Bekliyor' as const;
     const yeni: TestKaydi = { ...kayit, id: `TR-${Date.now()}`, syncDurumu };
-    setTestKayitlari(prev => [yeni, ...prev]);
+    await db.testKayitlari.add(yeni);
 
-    if (stokId) stokDus(stokId);
+    if (stokId) await stokDus(stokId);
 
     if (!cevrimici) {
-      const syncKaydi: OfflineSyncKaydi = {
+      await db.senkronKuyrugu.add({
         id: `SYNC-${Date.now()}`,
         tur: 'test',
         aciklama: `${yeni.id} — ${kayit.lokasyon}, ${kayit.numuneTuru}`,
         tarih: new Date().toISOString(),
         durum: 'Senkron Bekliyor',
-      };
-      setOfflineSyncKayitlari(prev => [syncKaydi, ...prev]);
-      bildirimEkle('Yeni offline test kaydı — bağlantı geldiğinde senkronize edilecek.', 'sync');
+      });
+      await bildirimEkle('Yeni offline test kaydı — bağlantı geldiğinde senkronize edilecek.', 'sync');
     } else {
       if (kayit.testSonucu === 'Pozitif') {
-        bildirimEkle(
+        await bildirimEkle(
           `Pozitif test — ${kayit.operasyonNo}, ${kayit.lokasyon}.${kayit.tespitEdilenMadde ? ` Tespit: ${kayit.tespitEdilenMadde}.` : ''}`,
           'pozitif', kayit.operasyonNo
         );
       } else if (kayit.testSonucu === 'Geçersiz' && (kayit.analizGuvenSkoru || 100) < 50) {
-        bildirimEkle(`Düşük güven skorlu geçersiz test — ${kayit.operasyonNo}. Manuel kontrol önerilir.`, 'analiz', kayit.operasyonNo);
+        await bildirimEkle(`Düşük güven skorlu geçersiz test — ${kayit.operasyonNo}. Manuel kontrol önerilir.`, 'analiz', kayit.operasyonNo);
       }
     }
 
-    auditLogEkle('Test Oluşturuldu', kayit.personelAdi, 'Saha Personeli', `Yeni test kaydı oluşturuldu. Sonuç: ${kayit.testSonucu}.`, yeni.id);
+    await auditLogEkle('Test Oluşturuldu', kayit.personelAdi, 'Saha Personeli', `Yeni test kaydı oluşturuldu. Sonuç: ${kayit.testSonucu}.`, yeni.id);
     return yeni;
   };
 
-  const labSevkEkle = (sevk: Omit<LabSevk, 'id' | 'numuneTakipNo'>): LabSevk => {
-    const sayac = labSevkler.length + 1;
+  const labSevkEkle = async (sevk: Omit<LabSevk, 'id' | 'numuneTakipNo'>): Promise<LabSevk> => {
+    const sayac = (labSevkler || []).length + 1;
     const yeni: LabSevk = {
       ...sevk,
       id: `LS-${Date.now()}`,
@@ -167,48 +191,60 @@ export function DataProvider({ children }: { children: ReactNode }) {
         { durum: 'Sevk Kaydı Oluşturuldu', tarih: new Date().toISOString(), kullanici: 'Saha Personeli', aciklama: 'Sevk kaydı sisteme girildi.' },
       ],
     };
-    setLabSevkler(prev => [yeni, ...prev]);
-    bildirimEkle(`Yeni lab sevk — ${yeni.numuneTakipNo}, ${sevk.sevkEdenBirim}.`, 'lab', sevk.operasyonNo);
-    auditLogEkle('Lab Sevk Oluşturuldu', 'Saha Personeli', 'Saha Personeli', `Lab sevk kaydı oluşturuldu.`, yeni.id);
+    await db.labSevkKayitlari.add(yeni);
+    await bildirimEkle(`Yeni lab sevk — ${yeni.numuneTakipNo}, ${sevk.sevkEdenBirim}.`, 'lab', sevk.operasyonNo);
+    await auditLogEkle('Lab Sevk Oluşturuldu', 'Saha Personeli', 'Saha Personeli', `Lab sevk kaydı oluşturuldu.`, yeni.id);
     return yeni;
   };
 
-  const labSevkDurumGuncelle = (id: string, durum: LabSevkDurumu, kullanici = 'Sistem', aciklama?: string) => {
-    setLabSevkler(prev => prev.map(s => {
-      if (s.id !== id) return s;
-      const yeniOlay = { durum, tarih: new Date().toISOString(), kullanici, aciklama };
-      return { ...s, durum, olaylar: [...(s.olaylar || []), yeniOlay] };
-    }));
-    const sevk = labSevkler.find(s => s.id === id);
-    if (durum === 'Laboratuvara Ulaştı') bildirimEkle(`${sevk?.numuneTakipNo} laboratuvara ulaştı.`, 'lab', sevk?.operasyonNo);
-    else if (durum === 'Rapor Yüklendi') bildirimEkle(`${sevk?.numuneTakipNo} için rapor yüklendi.`, 'rapor', sevk?.operasyonNo);
-    else if (durum === 'Teslim Alındı') bildirimEkle(`${sevk?.numuneTakipNo} teslim alındı.`, 'lab', sevk?.operasyonNo);
-    auditLogEkle(
+  const labSevkDurumGuncelle = async (id: string, durum: LabSevkDurumu, kullanici = 'Sistem', aciklama?: string) => {
+    const sevk = await db.labSevkKayitlari.get(id);
+    if (!sevk) return;
+    const yeniOlay = { durum, tarih: new Date().toISOString(), kullanici, aciklama };
+    await db.labSevkKayitlari.update(id, {
+      durum,
+      olaylar: [...(sevk.olaylar || []), yeniOlay],
+    });
+    if (durum === 'Laboratuvara Ulaştı') await bildirimEkle(`${sevk.numuneTakipNo} laboratuvara ulaştı.`, 'lab', sevk.operasyonNo);
+    else if (durum === 'Rapor Yüklendi') await bildirimEkle(`${sevk.numuneTakipNo} için rapor yüklendi.`, 'rapor', sevk.operasyonNo);
+    else if (durum === 'Teslim Alındı') await bildirimEkle(`${sevk.numuneTakipNo} teslim alındı.`, 'lab', sevk.operasyonNo);
+    await auditLogEkle(
       durum === 'Analiz Sırasında' ? 'Analiz Başlatıldı' : durum === 'Rapor Yüklendi' ? 'Rapor Yüklendi' : durum === 'Dosya Kapatıldı' ? 'Dosya Kapatıldı' : 'Teslim Alındı',
       kullanici, 'Laboratuvar Kullanıcısı', `Durum güncellendi: ${durum}`, id
     );
   };
 
-  const labSevkTeslimAlmaKaydet = (id: string, form: TeslimAlmaFormu) => {
-    setLabSevkler(prev => prev.map(s => {
-      if (s.id !== id) return s;
-      const yeniOlay = {
-        durum: 'Teslim Alındı' as LabSevkDurumu,
-        tarih: new Date().toISOString(),
-        kullanici: form.teslimAlanPersonel,
-        aciklama: `Kabul: ${form.kabulDurumu} — Ambalaj: ${form.ambalajButunlugu}`,
-      };
-      return { ...s, durum: 'Teslim Alındı' as LabSevkDurumu, teslimAlma: form, olaylar: [...(s.olaylar || []), yeniOlay] };
-    }));
-    const sevk = labSevkler.find(s => s.id === id);
-    bildirimEkle(`${sevk?.numuneTakipNo || id} teslim alındı — ${form.kabulDurumu}.`, 'lab', sevk?.operasyonNo);
-    auditLogEkle('Teslim Alındı', form.teslimAlanPersonel, 'Laboratuvar Kullanıcısı', `Numune teslim alındı. Kabul: ${form.kabulDurumu}.`, id);
+  const labSevkTeslimAlmaKaydet = async (id: string, form: TeslimAlmaFormu) => {
+    const sevk = await db.labSevkKayitlari.get(id);
+    if (!sevk) return;
+    const yeniOlay = {
+      durum: 'Teslim Alındı' as LabSevkDurumu,
+      tarih: new Date().toISOString(),
+      kullanici: form.teslimAlanPersonel,
+      aciklama: `Kabul: ${form.kabulDurumu} — Ambalaj: ${form.ambalajButunlugu}`,
+    };
+    await db.labSevkKayitlari.update(id, {
+      durum: 'Teslim Alındı' as LabSevkDurumu,
+      teslimAlma: form,
+      olaylar: [...(sevk.olaylar || []), yeniOlay],
+    });
+    await bildirimEkle(`${sevk.numuneTakipNo || id} teslim alındı — ${form.kabulDurumu}.`, 'lab', sevk.operasyonNo);
+    await auditLogEkle('Teslim Alındı', form.teslimAlanPersonel, 'Laboratuvar Kullanıcısı', `Numune teslim alındı. Kabul: ${form.kabulDurumu}.`, id);
   };
 
   return (
     <DataContext.Provider value={{
-      testKayitlari, labSevkler, stoklar, kullanicilar, bildirimler, auditLogs, offlineSyncKayitlari,
-      cevrimici, okunmamisSayisi, senkronBekleyenSayisi,
+      testKayitlari: testKayitlari || [],
+      labSevkler: labSevkler || [],
+      stoklar: stoklar || [],
+      kullanicilar,
+      bildirimler: bildirimler || [],
+      auditLogs: auditLogs || [],
+      offlineSyncKayitlari,
+      cevrimici,
+      okunmamisSayisi,
+      senkronBekleyenSayisi,
+      sonSenkron,
       testKaydiEkle, labSevkEkle, labSevkDurumGuncelle, labSevkTeslimAlmaKaydet,
       bildirimOku, tumunuOku, bildirimEkle, stokDus, kitSeriNoKontrol,
       auditLogEkle, setCevrimici, senkronizeEt,

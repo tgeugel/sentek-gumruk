@@ -13,6 +13,7 @@ import MobileHome from "./pages/mobile/Home";
 import MyRecords from "./pages/mobile/MyRecords";
 import MyShipments from "./pages/mobile/MyShipments";
 import NewTest from "./pages/mobile/NewTest";
+import QRTara from "./pages/mobile/QRTara";
 
 import Dashboard from "./pages/web/Dashboard";
 import TestRecords from "./pages/web/TestRecords";
@@ -23,6 +24,7 @@ import Reports from "./pages/web/Reports";
 import Users from "./pages/web/Users";
 import Settings from "./pages/web/Settings";
 import LiveOps from "./pages/web/LiveOps";
+import OperasyonHaritasi from "./pages/web/OperasyonHaritasi";
 
 import { UnauthorizedPage } from "./components/sentek/UnauthorizedPage";
 import { Role } from "./types";
@@ -118,6 +120,13 @@ function Router() {
           </ProtectedRoute>
         )}
       </Route>
+      <Route path="/mobile/qr-tara">
+        {() => (
+          <ProtectedRoute mobileOnly>
+            <MobileLayout><QRTara /></MobileLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
 
       {/* ── Web Panel Routes ── */}
       <Route path="/panel/dashboard">
@@ -132,6 +141,14 @@ function Router() {
         {() => (
           <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Canlı Operasyon">
             <WebPanelLayout><LiveOps /></WebPanelLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+
+      <Route path="/panel/harita">
+        {() => (
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Operasyon Haritası">
+            <WebPanelLayout><OperasyonHaritasi /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>

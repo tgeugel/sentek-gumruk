@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, AlertTriangle, Package, FlaskConical, Activity, FileText, Settings, CheckCheck } from 'lucide-react';
+import { Bell, AlertTriangle, Package, FlaskConical, Activity, FileText, Settings, CheckCheck, RefreshCw } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { BildirimTur } from '../../types';
 
@@ -22,6 +22,7 @@ const TUR_IKON: Record<BildirimTur, typeof Bell> = {
   analiz: Activity,
   rapor: FileText,
   sistem: Settings,
+  sync: RefreshCw,
 };
 
 const TUR_RENK: Record<BildirimTur, string> = {
@@ -31,6 +32,7 @@ const TUR_RENK: Record<BildirimTur, string> = {
   analiz: 'text-violet-400 bg-violet-500/10',
   rapor: 'text-emerald-400 bg-emerald-500/10',
   sistem: 'text-slate-400 bg-slate-500/10',
+  sync: 'text-emerald-400 bg-emerald-500/10',
 };
 
 export function NotificationBell() {

@@ -1,0 +1,19 @@
+{
+  "name": "SENTEK Operasyon",
+  "short_name": "SENTEK",
+  "description": "SENTEK Saha Operasyon ve Takip Sistemi",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0A0F1E",
+  "theme_color": "#00D4FF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}

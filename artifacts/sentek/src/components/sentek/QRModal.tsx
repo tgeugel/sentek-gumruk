@@ -1,68 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Download, QrCode } from 'lucide-react';
-import { useState } from 'react';
-
-function MockQR({ value }: { value: string }) {
-  const N = 25;
-  let seed = 0;
-  for (let i = 0; i < value.length; i++) {
-    seed = ((seed << 5) - seed + value.charCodeAt(i)) | 0;
-  }
-
-  const cells: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false) as boolean[]);
-
-  const drawFinder = (row: number, col: number) => {
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        const isBorder = r === 0 || r === 6 || c === 0 || c === 6;
-        const isCore = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-        if ((row + r < N) && (col + c < N)) {
-          cells[row + r][col + c] = isBorder || isCore;
-        }
-      }
-    }
-  };
-
-  drawFinder(0, 0);
-  drawFinder(0, N - 7);
-  drawFinder(N - 7, 0);
-
-  // Timing pattern
-  for (let i = 8; i < N - 8; i++) {
-    cells[6][i] = i % 2 === 0;
-    cells[i][6] = i % 2 === 0;
-  }
-
-  // Data area
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      const isFinder = (r < 9 && c < 9) || (r < 9 && c >= N - 8) || (r >= N - 8 && c < 9);
-      const isTiming = r === 6 || c === 6;
-      if (!isFinder && !isTiming) {
-        let s = seed;
-        s ^= s << 13; s ^= s >> 7; s ^= s << 17;
-        s ^= (r * 31 + c * 37 + r * c);
-        seed = s;
-        cells[r][c] = (Math.abs(s) % 3) < 2;
-      }
-    }
-  }
-
-  return (
-    <div className="inline-block p-3 bg-white rounded-lg">
-      {cells.map((row, r) => (
-        <div key={r} className="flex">
-          {row.map((filled, c) => (
-            <div
-              key={c}
-              className={`w-2 h-2 ${filled ? 'bg-gray-900' : 'bg-white'}`}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
+import { X, Copy, Download, QrCode, Printer } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 
 interface QRModalProps {
   title: string;
@@ -73,11 +12,55 @@ interface QRModalProps {
 
 export function QRModal({ title, value, subtitle, onClose }: QRModalProps) {
   const [kopyalandi, setKopyalandi] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    const qrValue = `SENTEK:${value}`;
+    QRCode.toDataURL(qrValue, {
+      width: 200,
+      margin: 2,
+      color: { dark: '#0A0F1E', light: '#FFFFFF' },
+      errorCorrectionLevel: 'M',
+    }).then(url => {
+      setQrDataUrl(url);
+    }).catch(() => {});
+  }, [value]);
 
   const kopyala = () => {
-    navigator.clipboard.writeText(value).catch(() => {});
+    navigator.clipboard.writeText(`SENTEK:${value}`).catch(() => {});
     setKopyalandi(true);
     setTimeout(() => setKopyalandi(false), 2000);
+  };
+
+  const yazdir = () => {
+    const w = window.open('', '_blank');
+    if (!w || !qrDataUrl) return;
+    w.document.write(`
+      <html><head><title>SENTEK QR — ${value}</title>
+      <style>body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui;background:#fff;}
+      img{width:200px;height:200px;}
+      .title{font-size:16px;font-weight:700;margin-top:12px;}
+      .sub{font-size:12px;color:#666;margin-top:4px;}
+      .code{font-family:monospace;font-size:11px;margin-top:8px;color:#333;}
+      </style></head>
+      <body onload="window.print();window.close()">
+        <img src="${qrDataUrl}" alt="QR Kodu"/>
+        <div class="title">${title}</div>
+        ${subtitle ? `<div class="sub">${subtitle}</div>` : ''}
+        <div class="code">SENTEK:${value}</div>
+        <div class="sub">${new Date().toLocaleDateString('tr-TR')}</div>
+      </body></html>
+    `);
+    w.document.close();
+  };
+
+  const indir = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `SENTEK-QR-${value}.png`;
+    a.click();
   };
 
   return (
@@ -107,12 +90,18 @@ export function QRModal({ title, value, subtitle, onClose }: QRModalProps) {
           </div>
 
           <div className="p-6 flex flex-col items-center gap-4">
-            <div className="shadow-xl rounded-xl overflow-hidden ring-4 ring-white/10">
-              <MockQR value={value} />
+            <div className="shadow-xl rounded-xl overflow-hidden ring-4 ring-white/10 bg-white p-3">
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt="QR Kodu" className="w-[180px] h-[180px]" />
+              ) : (
+                <div className="w-[180px] h-[180px] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                </div>
+              )}
             </div>
 
             <div className="text-center">
-              <p className="text-xs font-mono font-bold text-primary tracking-wider">{value}</p>
+              <p className="text-xs font-mono font-bold text-primary tracking-wider">SENTEK:{value}</p>
               {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             </div>
 
@@ -127,11 +116,18 @@ export function QRModal({ title, value, subtitle, onClose }: QRModalProps) {
                 {kopyalandi ? 'Kopyalandı!' : 'Kopyala'}
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={yazdir}
+                className="flex-1 py-2.5 rounded-xl border border-border text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-secondary transition-all"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Yazdır
+              </button>
+              <button
+                onClick={indir}
                 className="flex-1 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-primary/20 transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
-                Yazdır
+                İndir
               </button>
             </div>
 
