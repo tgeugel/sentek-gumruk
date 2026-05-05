@@ -1,0 +1,433 @@
+SENTEK Step 4’e geçiyoruz.
+
+Bu aşamada amaç:
+Mevcut SENTEK mobil saha uygulaması + web yönetim panelini daha stabil, daha profesyonel, daha premium ve daha ürünleşmiş hale getirmek.
+
+Bu step’in ana hedefi:
+- kritik hata düzeltmeleri
+- rol/yetki ve routing stabilizasyonu
+- görsel kaliteyi yükseltme
+- premium efektler ve hareket dili
+- mobil/PWA deneyimini güçlendirme
+- raporlar/analitik ekranını profesyonelleştirme
+- stok/seri no/SKT ekranını ürün seviyesine çıkarma
+- PDF / QR / offline tarafını gerçek MVP’ye yaklaştırma
+
+Çok önemli:
+- Mevcut çalışan modülleri bozma.
+- Baştan yazma, mevcut yapıyı geliştir.
+- Önce mevcut kod yapısını analiz et, sonra adım adım ilerle.
+- Arayüz tamamen Türkçe olsun.
+- Sistem personel testi değildir.
+- Biyolojik test, idrar, tükürük, kan, sürücü testi gibi ifadeler hiçbir yerde kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, stok/seri no takibi, numune sevki ve laboratuvar doğrulama sürecidir.
+- Gerçek kurum adı kullanma.
+- Demo veriler hayali kalsın.
+- Tasarım klasik admin panel değil; premium güvenlik teknolojisi platformu gibi görünmeli.
+
+Öncelik sırası:
+1. kritik hata düzeltmeleri
+2. görsel kalite ve tasarım sistemi
+3. mobil saha deneyimi
+4. offline / QR / PDF / analitik
+5. kalite kontrol ve demo güvenilirliği
+
+1) KRİTİK HATA DÜZELTMELERİ
+
+Önce aşağıdaki sorunları tespit et ve düzelt:
+
+A. Sistem Yöneticisi yetki sorunu
+Sistem Yöneticisi rolüyle giriş yapıldığında hiçbir ana yönetim ekranında yanlış şekilde “Erişim Yetkisi Yok” görünmemeli.
+Sistem Yöneticisi tüm ekranlara erişebilmeli.
+
+Kontrol et:
+- App.tsx route allowedRoles tanımları
+- rol enum/string eşleşmeleri
+- UnauthorizedPage yönlendirmesi
+- demo kullanıcı rol değerleri
+- menu görünürlüğü ile route guard uyumu
+
+Beklenen:
+Sistem Yöneticisi tüm ekranları görebilsin:
+- Dashboard
+- Canlı Operasyon
+- Test Kayıtları
+- Stok / Seri No
+- Lab Sevk Takibi
+- Laboratuvar
+- Raporlar
+- Kullanıcılar
+- Ayarlar
+
+B. NotificationBell runtime hatası
+NotificationBell içinde import/export veya undefined component kaynaklı hata çıkmayacak şekilde düzelt.
+Dropdown açılıp kapanırken uygulama çökmesin.
+Fallback icon mantığı kur.
+Bildirim listesi boşsa güvenli boş durum göster.
+
+C. Route / refresh kontrolü
+Sayfa yenilenince veya direkt URL açılınca uygulama bozulmasın.
+Özellikle şu route’ları kontrol et:
+- /login
+- /panel/dashboard
+- /panel/canli-ops
+- /panel/test-kayitlari
+- /panel/stok
+- /panel/lab-sevk
+- /panel/laboratuvar
+- /panel/raporlar
+- /panel/kullanicilar
+- /panel/ayarlar
+
+2) GÖRSEL TASARIM SİSTEMİ VE PREMIUM KALİTE
+
+Bu aşamada SENTEK’in görsel dilini daha rafine hale getir.
+
+Amaç:
+Sistem “AI ile yapılmış demo panel” gibi değil, “premium operasyon yazılımı” gibi görünmeli.
+
+Tasarım dili:
+- premium dark UI
+- çok koyu lacivert / siyah ana arka plan
+- koyu füme kartlar
+- vurgu rengi olarak cyan / elektrik mavisi
+- yardımcı vurgu olarak yeşil, amber, kırmızı
+- kontrollü soft glow
+- hafif glassmorphism
+- ince grid background
+- net tipografi
+- daha fazla boşluk ve hizalama disiplini
+- gereksiz gradient ve parlama azaltılsın
+
+Renk sistemi tutarlı olsun:
+- Pozitif: kırmızı
+- Negatif: yeşil
+- Geçersiz: amber / sarı
+- Laboratuvar süreçleri: mavi / mor
+- Kritik stok: kırmızı
+- SKT yaklaşan: amber
+- Bilgi / analiz: cyan
+
+Tipografi:
+- sayfa başlıkları daha güçlü olsun
+- alt açıklamalar daha küçük ve sakin olsun
+- tablo yazıları okunabilir büyüklükte olsun
+- kart başlıkları tutarlı olsun
+
+Kart sistemi:
+- üst KPI kartları aynı yükseklikte olsun
+- hover durumları sade ama premium olsun
+- kart içinde gereksiz bilgi kalabalığı azaltılsın
+- okunabilirlik ve görsel hiyerarşi artsın
+
+3) EFEKTLER VE HAREKET DİLİ
+
+Framer Motion veya mevcut motion altyapısını kontrollü şekilde kullan.
+
+Amaç:
+Sayfa oyuncak gibi değil, premium ve canlı görünsün.
+
+Kullan:
+- sayfa giriş animasyonları
+- kart reveal animasyonları
+- tab geçişleri
+- drawer/modal açılışları
+- timeline adım geçişleri
+- canlı operasyon feed akışı
+- wizard step geçişleri
+- button hover/tap feedback
+- durum badge’lerinde çok hafif pulse
+
+Kullanma:
+- aşırı glow
+- sürekli dönen animasyonlar
+- gereksiz büyük hareketler
+- performansı bozan efektler
+
+Mutlaka:
+- prefers-reduced-motion desteği korunsun
+- mobil performans bozulmasın
+
+4) MOBİL SAHA DENEYİMİNİ GÜÇLENDİR
+
+Mobil saha uygulaması sistemin kalbi.
+Gerçek saha uygulaması gibi hissettirmeli.
+
+Mobil ana ekranda 4 büyük hızlı aksiyon:
+- Yeni Test
+- QR / Barkod Tara
+- Senkronize Et
+- Sevklerim
+
+Mobil üst bar:
+- Çevrimiçi / Çevrimdışı
+- Senkron bekleyen kayıt sayısı
+- Son senkron zamanı
+
+Mobil wizard sadeleştirilsin.
+Kullanıcıya 6 ana adım gibi göster:
+1. Lokasyon
+2. Numune
+3. Kit
+4. Fotoğraf
+5. Sonuç
+6. Sevk
+
+Mevcut detaylı mantık içeride korunabilir ama kullanıcı akışı sade görünmeli.
+
+Mobil kalite beklentileri:
+- büyük dokunmatik butonlar
+- tek elle kullanım
+- hızlı veri girişi
+- kamera/fotoğraf alanı belirgin
+- pozitif sonuçtan lab sevke net yönlendirme
+- alt navigasyon daha güçlü
+- sayfalar web sitesi gibi değil, mobil app gibi görünmeli
+
+5) GERÇEK OFFLINE STORAGE
+
+Şu an offline mantığı varsa bunu gerçek MVP seviyesine yaklaştır.
+
+Dexie.js veya uygun IndexedDB çözümü kullan.
+
+Tablolar:
+- testKayitlari
+- labSevkKayitlari
+- stokHareketleri
+- auditLog
+- bildirimler
+- senkronKuyrugu
+
+Offline durumları:
+- Yerel Kayıt
+- Senkron Bekliyor
+- Senkronize Edildi
+- Senkron Hatası
+
+Beklenen:
+- çevrimdışıyken oluşturulan test kaydı IndexedDB’ye yazılsın
+- çevrimdışıyken oluşturulan lab sevk kaydı IndexedDB’ye yazılsın
+- online olunca “Senkronize Et” ile kayıtlar senkronize edilmiş gibi işaretlensin
+- bildirim oluşsun
+- audit log oluşsun
+- sayfa yenilense bile kayıtlar kaybolmasın
+
+6) QR / BARKOD TARAFINI GÜÇLENDİR
+
+A. Gerçek QR üretimi
+Mock SVG yerine mümkünse gerçek QR üretimine geç.
+Kısa referans kodları üret:
+- SENTEK:TEST:TR-001
+- SENTEK:LAB:SNT-LAB-2026-000001
+- SENTEK:KIT:LOT-2026-A1-K045
+
+QR modalında:
+- QR görseli
+- referans kod
+- kopyala
+- yazdır
+- etiket oluştur
+
+B. QR / barkod tarama
+Mobilde “QR / Barkod Tara” ekranı oluştur veya geliştir.
+
+Kullanım alanları:
+- test kiti seri no tarama
+- numune takip no tarama
+- delil poşeti no tarama
+- mühür / etiket no tarama
+- test kayıt QR kodu ile kayıt açma
+
+Özellikler:
+- kamera önizleme alanı
+- tarama çerçevesi
+- manuel giriş alternatifi
+- kayıt bulunduysa ilgili detaya git
+- bulunamazsa hata mesajı
+
+Kamera izni yoksa uygulama çökmesin.
+Manuel giriş alternatifi mutlaka olsun.
+
+7) GERÇEK PDF RAPOR ÜRETİMİ
+
+PDF rapor üretimini gerçek hale getir.
+
+Tercih:
+- @react-pdf/renderer
+veya uygun güvenilir çözüm
+
+PDF türleri:
+1. Test Kayıt Raporu
+2. Lab Sevk / Numune Takip Raporu
+3. Stok / Seri No Kullanım Raporu
+
+Beklenen butonlar:
+- PDF Önizle
+- PDF İndir
+- Yazdır
+
+PDF tasarım:
+- resmi
+- temiz
+- siyah-beyaz baskıya uygun
+- gereksiz efekt yok
+- kurumsal rapor hissi
+- QR referansı görünür
+
+8) RAPORLAR / ANALİTİK EKRANINI PROFESYONELLEŞTİR
+
+Raporlar ekranı kart listesinden daha ileri taşınsın.
+
+Yeni yapı:
+- rapor kartları
+- analitik dashboard
+- filtre paneli
+- grafik alanı
+- dışa aktarım aksiyonları
+
+Recharts kullanılabilir.
+
+Grafikler:
+- tarih bazlı test yoğunluğu
+- pozitif / negatif / geçersiz dağılımı
+- numune türüne göre pozitiflik
+- lokasyon bazlı test sayısı
+- lokasyon bazlı pozitif oranı
+- lab sevk durum dağılımı
+- ortalama sevk süresi
+- ortalama analiz süresi
+- SKT yaklaşan stok sayısı
+- kritik stok trendi
+- panel tipine göre kullanım
+
+Filtreler:
+- tarih aralığı
+- lokasyon
+- numune türü
+- sonuç
+- personel
+- panel tipi
+- lab sevk durumu
+- stok durumu
+
+Amaç:
+Karar verici biri açtığında sistem “raporlama gücü olan yazılım” gibi görünmeli.
+
+9) STOK / SERİ NO / SKT EKRANINI ÜRÜNLEŞTİR
+
+Stok ekranı sadece tablo gibi görünmesin.
+
+Üst KPI kartları:
+- Toplam Stok
+- Kullanılabilir Kit
+- Bugün Kullanılan
+- Kritik Stok
+- SKT Yaklaşan
+- Kullanılmış Seri No
+
+Görsel akış:
+Merkez Depo → Bölge / Birim → Saha Kullanımı → Test Kaydı
+
+Filtreler:
+- seri no arama
+- panel tipi
+- depo / birim
+- durum
+- SKT durumu
+
+Her stok satırında detay açılabilsin.
+Detay içeriği:
+- seri no / lot
+- SKT
+- depo
+- kullanım geçmişi
+- bağlı operasyon
+- bağlı test kaydı
+- kullanıcı
+- tarih
+
+Kritik stok ve SKT uyarıları daha okunabilir hale getirilsin.
+
+10) CANLI OPERASYON EKRANINI RAFİNE ET
+
+Canlı Operasyon ekranı güçlü ama daha dengeli görünmeli.
+
+İyileştir:
+- harita marker tooltipleri
+- legend okunabilirliği
+- canlı akış satırlarının hizası
+- KPI kartlarının eşitliği
+- olay metinlerinin kısa ve resmi olması
+- kritik stok / son pozitif / düşük güven / SKT yaklaşan panellerinin dengeli görünmesi
+- animasyonların yormaması
+
+Amaç:
+Demo sunumda çok etkileyici ama aynı zamanda ciddi görünmesi.
+
+11) TEST DETAY EKRANINI PROFESYONELLEŞTİR
+
+Sekmeler:
+- Genel
+- Kit / Analiz
+- Lab Sevk
+- İşlem Geçmişi
+
+İyileştir:
+- test fotoğrafı alanı daha premium görünsün
+- placeholder’lar profesyonel hale getirilsin
+- QR, Etiket, Rapor butonları “İzlenebilirlik Aksiyonları” altında toplansın
+- Lab Sevk timeline daha okunaklı olsun
+- İşlem geçmişi tasarımı güçlensin
+- audit log satırları daha profesyonel görünmeli
+
+12) KULLANICI VE OTURUM DENEYİMİ
+
+Sağ üst kullanıcı alanı geliştirilsin.
+
+Menü:
+- Profil
+- Rol bilgisi
+- Bildirim tercihleri
+- Oturumu kapat
+
+Oturumu kapat düzgün çalışsın.
+Login ekranındaki demo kullanıcı hızlı girişleri korunabilir.
+
+13) GENEL UI / QA KONTROLÜ
+
+Kontrol et:
+- tüm sayfalarda başlık hiyerarşisi tutarlı mı
+- kart boşlukları dengeli mi
+- yazılar küçük mü
+- renkler tutarlı mı
+- tablo satırları okunabilir mi
+- mobil görünümde taşma var mı
+- modal/drawer ekran dışına taşıyor mu
+- scroll davranışları düzgün mü
+- browser refresh sonrası uygulama bozuluyor mu
+- notification sistemi stabil mi
+- route guard’lar stabil mi
+- Türkçe olmayan metin kaldı mı
+- yanlış alanlarda biyolojik/personel testi çağrışımı var mı
+
+14) STEP 4 SONUNDA RAPOR VER
+
+İş sonunda şunları açıkça listele:
+- Sistem Yöneticisi yetki sorunu düzeltildi mi?
+- NotificationBell runtime hatası düzeltildi mi?
+- Route/refresh kontrolleri yapıldı mı?
+- Tasarım sistemi nasıl iyileştirildi?
+- Hangi ekranların görsel kalitesi yükseltildi?
+- Framer Motion / efekt tarafında neler geliştirildi?
+- Mobil saha deneyimi nasıl iyileştirildi?
+- IndexedDB / Dexie.js eklendi mi?
+- Offline kayıt gerçek storage’a yazılıyor mu?
+- QR / barkod tarama eklendi mi?
+- QR üretimi gerçek hale geldi mi?
+- PDF rapor üretimi eklendi mi?
+- Raporlar / analitik ekranı nasıl geliştirildi?
+- Stok / seri no ekranı nasıl ürünleştirildi?
+- Canlı Operasyon ekranı nasıl rafine edildi?
+- Kullanıcı oturum menüsü eklendi mi?
+- Hangi özellikler gerçek, hangileri hâlâ simülasyon?
+- Step 5’te backend/database için önerilen mimari ne olmalı?

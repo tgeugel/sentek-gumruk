@@ -31,6 +31,8 @@ import { Role } from "./types";
 
 const queryClient = new QueryClient();
 
+const TUM_WEB_ROLLERI: Role[] = ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'];
+
 function ProtectedRoute({
   children,
   mobileOnly,
@@ -131,7 +133,7 @@ function Router() {
       {/* ── Web Panel Routes ── */}
       <Route path="/panel/dashboard">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Dashboard">
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Dashboard">
             <WebPanelLayout><Dashboard /></WebPanelLayout>
           </ProtectedRoute>
         )}
@@ -155,7 +157,7 @@ function Router() {
 
       <Route path="/panel/test-kayitlari">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı']} screenName="Test Kayıtları">
+          <ProtectedRoute webOnly allowedRoles={TUM_WEB_ROLLERI} screenName="Test Kayıtları">
             <WebPanelLayout><TestRecords /></WebPanelLayout>
           </ProtectedRoute>
         )}
@@ -171,7 +173,7 @@ function Router() {
 
       <Route path="/panel/lab-sevk">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı']} screenName="Lab Sevk Takibi">
+          <ProtectedRoute webOnly allowedRoles={TUM_WEB_ROLLERI} screenName="Lab Sevk Takibi">
             <WebPanelLayout><LabShipments /></WebPanelLayout>
           </ProtectedRoute>
         )}
@@ -179,7 +181,7 @@ function Router() {
 
       <Route path="/panel/laboratuvar">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Laboratuvar Kullanıcısı', 'Merkez Yönetici']} screenName="Laboratuvar">
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Laboratuvar Kullanıcısı']} screenName="Laboratuvar">
             <WebPanelLayout><Laboratory /></WebPanelLayout>
           </ProtectedRoute>
         )}
@@ -187,7 +189,7 @@ function Router() {
 
       <Route path="/panel/raporlar">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Raporlar">
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Raporlar">
             <WebPanelLayout><Reports /></WebPanelLayout>
           </ProtectedRoute>
         )}
@@ -209,7 +211,6 @@ function Router() {
         )}
       </Route>
 
-      {/* Fallback */}
       <Route>{() => <Redirect to="/" />}</Route>
     </Switch>
   );
