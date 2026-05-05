@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, LayoutDashboard, ClipboardList, Package,
   Truck, FlaskConical, FileBarChart, Users, Settings,
-  ChevronLeft, ChevronRight, LogOut, User, Menu, X
+  ChevronLeft, ChevronRight, LogOut, User, Menu
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
+import { NotificationBell } from '../components/sentek/NotificationBell';
 
 interface NavItem {
   path: string;
@@ -85,7 +86,7 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
       </nav>
 
       {/* User */}
-      <div className={`p-3 border-t border-sidebar-border ${collapsed ? '' : ''}`}>
+      <div className="p-3 border-t border-sidebar-border">
         <div className={`flex items-center gap-2 ${collapsed ? 'justify-center flex-col' : ''}`}>
           <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
             <User className="w-4 h-4 text-primary" />
@@ -152,13 +153,28 @@ export default function WebPanelLayout({ children }: WebPanelLayoutProps) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
-        <header className="md:hidden sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
+        {/* Top Header (desktop + mobile) */}
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3">
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden p-1.5 rounded-lg hover:bg-secondary transition-colors"
+          >
             <Menu className="w-5 h-5" />
           </button>
-          <Shield className="w-5 h-5 text-primary" />
-          <span className="font-bold text-sm">SEN<span className="text-primary">TEK</span></span>
+          <div className="md:hidden flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="font-bold text-sm">SEN<span className="text-primary">TEK</span></span>
+          </div>
+          <div className="flex-1" />
+          {/* Right side: notification + user info */}
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <div className="hidden md:block text-right">
+              <p className="text-xs font-semibold text-foreground">{kullanici?.ad}</p>
+              <p className="text-xs text-muted-foreground">{kullanici?.rol}</p>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto">

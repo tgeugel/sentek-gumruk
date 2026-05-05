@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'wouter';
 import { Home, Plus, ClipboardList, Truck, User, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { NotificationBell } from '../components/sentek/NotificationBell';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -34,9 +35,9 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
           <span className="text-xs text-muted-foreground">Saha</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="text-right">
+          <NotificationBell />
+          <div className="text-right hidden xs:block">
             <p className="text-xs font-medium text-foreground">{kullanici?.ad}</p>
-            <p className="text-xs text-muted-foreground">{kullanici?.birim}</p>
           </div>
           <button
             onClick={cikisYap}

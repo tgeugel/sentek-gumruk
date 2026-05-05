@@ -1,0 +1,374 @@
+SENTEK Step 1 tamamlandı. Şimdi Step 2’ye geç.
+
+Bu aşamada amaç:
+Mevcut mobil saha uygulaması + web yönetim paneli iskeletini geliştirerek daha gerçek, daha güçlü ve demo yapılabilir bir operasyon yazılımına dönüştürmek.
+
+Bu aşamada özellikle şu alanları güçlendir:
+1. Mobil test kayıt akışı
+2. Fotoğraftan kit analizi demo ekranı
+3. Seri no / SKT / stok düşüm mantığı
+4. Pozitif testten laboratuvar sevk süreci
+5. Numune takip timeline
+6. Web dashboard veri görünümü
+7. Laboratuvar “gelecek numuneler” ekranı
+8. Kullanıcı deneyimi ve premium UI kalitesi
+
+Çok önemli:
+- Sistem personel testi değildir.
+- Biyolojik test, idrar, tükürük, kan, sürücü testi gibi hiçbir ifade kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, numune sevki ve laboratuvar doğrulama sürecidir.
+- Herhangi bir gerçek kurum adı kullanma.
+- Demo veriler gerçekçi ama hayali olsun.
+- Arayüz tamamen Türkçe olsun.
+- Mevcut proje yapısını bozma.
+- Step 1’de kurulan mimariyi genişlet.
+
+1. Mobil Test Kayıt Akışını Güçlendir
+
+Mobil uygulamada “Yeni Test Başlat” akışını daha gerçekçi hale getir.
+
+Akış adımları:
+1. Operasyon bilgisi
+2. Lokasyon ve kontrol noktası
+3. Numune türü
+4. Şüpheli materyal açıklaması
+5. Test kiti seri no / lot / SKT
+6. Test fotoğrafı yükleme
+7. Kit analizi ekranı
+8. Sonuç doğrulama
+9. Kaydı tamamla
+10. Pozitifse lab sevk başlat
+
+Bu akış adım adım wizard şeklinde olsun.
+Kullanıcı hangi adımda olduğunu görebilsin.
+Geri / ileri butonları olsun.
+Zorunlu alanlar dolmadan sonraki adıma geçilmesin.
+Mobilde büyük butonlar, net başlıklar, sade form alanları olsun.
+
+Mobil işlem dili kısa ve net olsun:
+- “Operasyon Bilgisi”
+- “Numune Bilgisi”
+- “Kit Bilgisi”
+- “Fotoğraf ve Analiz”
+- “Sonuç”
+- “Sevk”
+
+2. Fotoğraftan Kit Analizi Demo Ekranını Geliştir
+
+Bu aşamada gerçek AI analizi şart değil; ama ekran gerçek analiz sistemi gibi görünmeli.
+
+Test fotoğrafı yüklendiğinde analiz paneli açılsın.
+
+Panelde şu yapı olsun:
+- Test görüntüsü önizlemesi
+- Algılanan panel türü
+- Kontrol çizgisi durumu
+- Test çizgisi durumu
+- Analiz sonucu önerisi
+- Güven skoru
+- Manuel sonuç doğrulama
+- Yetkili onay rozeti
+- Analiz zamanı
+- Test kayıt bağlantısı
+
+Örnek sonuçlar:
+- Pozitif
+- Negatif
+- Geçersiz
+
+Güven skoru örnekleri:
+- %92 yüksek güven
+- %78 manuel kontrol önerilir
+- %55 düşük güven / tekrar fotoğraf önerilir
+
+Ekranda şu uyarı mantığı olsun:
+- Kontrol çizgisi algılanmazsa “Geçersiz test olabilir”
+- Görüntü bulanıksa “Fotoğraf kalitesi düşük”
+- Sonuç pozitifse “Laboratuvar doğrulaması önerilir”
+
+UI gerçekçi olmalı:
+- Görüntü analiz kutusu
+- Çizgi durumu göstergeleri
+- Sonuç rozeti
+- Güven skoru barı
+- Manuel doğrulama butonları
+- “Sonucu Kaydet” butonu
+
+3. Seri No / SKT / Stok Düşüm Mantığını Güçlendir
+
+Test kaydı oluşturulurken test kiti seri no seçildiğinde veya girildiğinde stokla ilişkilendirilsin.
+
+Mock data üzerinden şu mantık çalışsın:
+- Seri no stokta varsa kayıt kabul edilsin
+- Seri no daha önce kullanılmışsa uyarı verilsin
+- SKT geçmişse uyarı verilsin
+- SKT yaklaşmışsa sarı uyarı verilsin
+- Test kaydı tamamlanınca ilgili stoktan 1 adet düşsün
+- Kullanılan seri no, test kaydıyla ilişkilendirilsin
+
+Stok ekranında şu alanları göster:
+- Seri No
+- Lot No
+- Panel Tipi
+- SKT
+- Depo / Birim
+- Durum: Kullanılabilir / Kullanıldı / SKT Yaklaşıyor / Süresi Geçmiş / İptal
+- Kullanıldığı Operasyon
+- Kullanıldığı Personel
+- Kullanım Tarihi
+
+Stok ekranına filtre ekle:
+- Durum
+- SKT
+- Panel tipi
+- Depo / birim
+- Seri no arama
+
+Dashboard uyarıları:
+- SKT yaklaşan kitler
+- Kritik stok seviyesi
+- Bugün kullanılan kit sayısı
+- En çok kullanılan panel tipi
+
+4. Pozitif Sonuçtan Laboratuvar Sevk Akışını Güçlendir
+
+Test sonucu pozitif seçildiğinde sistem otomatik olarak kullanıcıya şu seçeneği sunsun:
+“Bu pozitif numune laboratuvara sevk edilecek mi?”
+
+Buton:
+“Laboratuvara Sevk Et”
+
+Sevk formu daha gerçekçi hale gelsin.
+
+Alanlar:
+- Numune Takip No otomatik üret
+- Operasyon No otomatik gelsin
+- Test Kayıt No otomatik gelsin
+- Test Lokasyonu otomatik gelsin
+- Numune Türü otomatik gelsin
+- Ön Tarama Sonucu otomatik gelsin
+- Tespit Edilen Madde / Panel otomatik gelsin
+- Test Kiti Seri No otomatik gelsin
+- Test Kiti SKT otomatik gelsin
+- Test Fotoğrafı otomatik gelsin
+- Numune Fotoğrafı yükle
+- Paketleme Fotoğrafı yükle
+- Mühür / Etiket No
+- Delil Poşeti No
+- Sevk Eden Birim
+- Gönderim Yöntemi
+- Tahmini Varış Tarihi
+- Notlar
+
+Numune takip no formatı:
+SNT-LAB-2026-000001
+
+Sevk oluşturulduktan sonra:
+- Numune timeline ekranına yönlendir
+- Web panelde Lab Sevk Takibi ekranına kayıt düşsün
+- Laboratuvar kullanıcısının “Gelecek Numuneler” ekranında görünsün
+
+5. Numune Takip Timeline Ekranını Geliştir
+
+Her pozitif numune için güçlü bir timeline ekranı oluştur.
+
+Timeline adımları:
+1. Pozitif Ön Tarama
+2. Sevk Kaydı Oluşturuldu
+3. Numune Paketlendi
+4. Laboratuvara Yolda
+5. Laboratuvara Ulaştı
+6. Teslim Alındı
+7. Analiz Sırasında
+8. Rapor Yüklendi
+9. Dosya Kapatıldı
+
+Her adımda:
+- Durum adı
+- Tarih / saat
+- İşlemi yapan kullanıcı
+- Kısa açıklama
+- Durum rozeti
+
+Timeline görsel olarak premium olmalı.
+Mobilde dikey timeline, webde yatay/dikey detaylı timeline kullanılabilir.
+
+6. Laboratuvar Ekranını Güçlendir
+
+Laboratuvar kullanıcısı giriş yaptığında “Gelecek Numuneler” ekranı güçlü görünmeli.
+
+Kartlar:
+- Bugün beklenen numuneler
+- Yolda olan numuneler
+- Teslim alınan numuneler
+- Analiz bekleyen numuneler
+- Rapor bekleyen numuneler
+
+Tablo:
+- Numune Takip No
+- Gönderen Birim
+- Numune Türü
+- Ön Tarama Sonucu
+- Tahmini Varış
+- Durum
+- Öncelik
+- Detay
+
+Detay ekranında:
+- Test fotoğrafı
+- Numune fotoğrafı
+- Paketleme fotoğrafı
+- Seri no / SKT
+- Mühür / etiket no
+- Delil poşeti no
+- Operasyon bilgisi
+- Timeline
+- Teslim alma butonu
+
+Teslim alma aksiyonu:
+“Teslim Alındı” butonu olsun.
+
+Teslim alma formu:
+- Teslim alan personel
+- Teslim alma tarihi / saati
+- Ambalaj bütünlüğü: Uygun / Şüpheli / Uygun değil
+- Mühür kontrolü: Uygun / Uygun değil
+- Fiziksel durum notu
+- Teslim alma fotoğrafı
+- Kabul durumu: Kabul / Şartlı Kabul / Reddedildi
+
+Bu Step 2’de bu aksiyon mock/local state düzeyinde çalışabilir.
+
+7. Web Dashboard’u Güçlendir
+
+Dashboard artık daha operasyonel görünmeli.
+
+Üst kartlar:
+- Toplam test
+- Bugünkü test
+- Pozitif test
+- Negatif test
+- Geçersiz test
+- Lab sevk edilen
+- Analiz bekleyen
+- Raporlanan numune
+- Kritik stok
+- SKT yaklaşan
+
+Grafikler:
+- Son 7 gün test yoğunluğu
+- Pozitif / negatif dağılımı
+- Numune türüne göre pozitiflik
+- Lokasyon bazlı test yoğunluğu
+- Lab sevk durum dağılımı
+- Stok kullanım trendi
+
+Operasyonel uyarılar:
+- SKT yaklaşan 12 kit
+- Kritik stokta 3 panel
+- Lab’a yolda 5 numune
+- Düşük güvenli analiz bekleyen 2 kayıt
+- Rapor bekleyen 4 numune
+
+Dashboard görünümü premium dark UI olmalı.
+Kartlar, grafikler ve uyarılar düzenli olmalı.
+Gereksiz karmaşa yaratma.
+
+8. Test Kayıt Detay Ekranı Oluştur
+
+Her test kaydının detay ekranı olsun.
+
+Detayda:
+- Operasyon bilgisi
+- Lokasyon
+- Numune türü
+- Şüpheli materyal açıklaması
+- Test fotoğrafı
+- Kit analiz sonucu
+- Manuel doğrulama
+- Test kiti seri no
+- SKT
+- Testi yapan personel
+- Tarih / saat
+- Sonuç
+- Lab sevk durumu
+- İlgili numune takip no
+- Notlar
+
+Pozitif testlerde:
+- “Lab Sevk Detayını Gör”
+- “Timeline Gör”
+- “Rapor Bekleniyor / Rapor Yüklendi” alanları olsun.
+
+9. UI Kalitesini Yükselt
+
+Mevcut tasarımı daha premium hale getir.
+
+Genel UI:
+- Dark mode daha rafine olsun
+- Kart boşlukları düzenli olsun
+- Yazılar çok uzun olmasın
+- Butonlar net olsun
+- Durum rozetleri tutarlı olsun
+- Tablo alanları okunabilir olsun
+- Mobil ekranlarda tek elle kullanım hissi olsun
+- Formlar yorucu olmasın
+
+Framer Motion:
+Kontrollü kullan.
+- Wizard adım geçişleri
+- Timeline reveal
+- Dashboard kart girişleri
+- Modal/drawer geçişleri
+- Buton hover/tap
+- Aşırı animasyon kullanma
+- Mobil performansı bozma
+- prefers-reduced-motion desteğini koru
+
+10. Bildirim / Uyarı Mantığı Ekle
+
+Basit bildirim merkezi oluştur.
+
+Bildirim örnekleri:
+- Pozitif test kaydı oluşturuldu
+- Lab sevk kaydı oluşturuldu
+- Numune laboratuvara ulaştı
+- SKT yaklaşan kit var
+- Kritik stok seviyesi
+- Düşük güvenli analiz kontrol bekliyor
+- Rapor yüklendi
+
+Mobilde bildirimler kısa kartlar halinde görünsün.
+Webde sağ üst bildirim alanı veya ayrı bildirim paneli olabilir.
+
+11. Demo Verileri Genişlet
+
+Demo verileri daha gerçekçi hale getir.
+
+En az:
+- 25 test kaydı
+- 8 pozitif kayıt
+- 5 lab sevk kaydı
+- 20 stok/seri no kaydı
+- 5 lokasyon
+- 5 demo personel
+- 3 panel tipi
+- farklı SKT durumları
+- farklı lab sevk durumları
+
+Gerçek kişi/kurum verisi kullanma.
+Kurum adları genel/hayali olsun.
+
+12. Step 2 Sonunda Rapor Ver
+
+İş sonunda şunları açıkça listele:
+- Mobil test kayıt akışı geliştirildi mi?
+- Fotoğraftan kit analizi ekranı nasıl geliştirildi?
+- Seri no / SKT / stok düşüm mantığı çalışıyor mu?
+- Pozitiften lab sevk akışı çalışıyor mu?
+- Numune takip timeline hazır mı?
+- Laboratuvar gelecek numuneler ekranı hazır mı?
+- Dashboard hangi metrikleri gösteriyor?
+- Bildirim merkezi eklendi mi?
+- Hangi kısımlar halen mock/simülasyon?
+- Step 3 için önerilen geliştirmeler neler?

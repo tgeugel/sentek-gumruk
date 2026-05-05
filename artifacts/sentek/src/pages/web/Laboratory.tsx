@@ -1,239 +1,456 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FlaskConical, Check, X, Clock, Camera } from 'lucide-react';
+import {
+  FlaskConical, Check, X, Clock, Camera, Package,
+  Truck, BarChart3, FileText, AlertTriangle, ChevronRight, User
+} from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { LabDurumBadge, OncelikBadge } from '../../components/sentek/StatusBadge';
 import { LabTimeline } from '../../components/sentek/LabTimeline';
-import { LabSevk, LabSevkDurumu } from '../../types';
-import { useToast } from '../../hooks/use-toast';
+import { LabSevk, LabSevkDurumu, TeslimAlmaFormu } from '../../types';
 
-function DetayModal({ sevk, onClose, onDurumGuncelle }: { sevk: LabSevk | null; onClose: () => void; onDurumGuncelle: (id: string, durum: LabSevkDurumu) => void }) {
-  if (!sevk) return null;
+function TeslimAlmaModal({ sevk, onClose, onKaydet }: {
+  sevk: LabSevk;
+  onClose: () => void;
+  onKaydet: (form: TeslimAlmaFormu) => void;
+}) {
+  const [form, setForm] = useState<TeslimAlmaFormu>({
+    teslimAlanPersonel: '',
+    teslimTarihi: new Date().toISOString().slice(0, 16),
+    ambalajButunlugu: 'Uygun',
+    muhrKontrol: 'Uygun',
+    fizikselDurumNotu: '',
+    kabulDurumu: 'Kabul',
+  });
 
-  const handleTeslimAl = () => {
-    onDurumGuncelle(sevk.id, 'Teslim Alındı');
-    onClose();
-  };
-
-  const handleAnalizBaslat = () => {
-    onDurumGuncelle(sevk.id, 'Analiz Sırasında');
-    onClose();
-  };
+  const setField = (k: keyof TeslimAlmaFormu, v: string) => setForm(p => ({ ...p, [k]: v }));
+  const gecerli = form.teslimAlanPersonel.length >= 3;
 
   return (
-    <AnimatePresence>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-card border border-card-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card">
-            <div>
-              <p className="font-mono font-bold text-cyan-400">{sevk.numuneTakipNo}</p>
-              <p className="text-xs text-muted-foreground">{sevk.operasyonNo}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <OncelikBadge oncelik={sevk.oncelik} />
-              <LabDurumBadge durum={sevk.durum} />
-              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary"><X className="w-4 h-4" /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-card border border-card-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+      >
+        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Teslim Alma Formu</h3>
+            <p className="text-xs text-muted-foreground font-mono mt-0.5">{sevk.numuneTakipNo}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Numune özeti */}
+          <div className="bg-secondary/50 rounded-xl p-3 space-y-1.5 text-xs">
+            {[
+              ['Operasyon No', sevk.operasyonNo],
+              ['Numune Türü', sevk.numuneTuru],
+              ['Ön Tarama', sevk.onTaramaSonucu],
+              ['Gönderen', sevk.sevkEdenBirim],
+              ['Mühür / Etiket', sevk.muhrEtiketNo || '—'],
+              ['Delil Poşeti', sevk.delilPosetiNo || '—'],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between items-center">
+                <span className="text-muted-foreground">{k}</span>
+                <span className="font-medium text-foreground">{v}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Teslim Alan */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <User className="w-3 h-3" /> Teslim Alan Personel *
+            </label>
+            <input
+              type="text"
+              value={form.teslimAlanPersonel}
+              onChange={e => setField('teslimAlanPersonel', e.target.value)}
+              placeholder="Personel adı soyadı"
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/60 placeholder:text-muted-foreground/40"
+            />
+          </div>
+
+          {/* Tarih / Saat */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Clock className="w-3 h-3" /> Teslim Alma Tarihi / Saati
+            </label>
+            <input
+              type="datetime-local"
+              value={form.teslimTarihi}
+              onChange={e => setField('teslimTarihi', e.target.value)}
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/60"
+            />
+          </div>
+
+          {/* Ambalaj Bütünlüğü */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Package className="w-3 h-3" /> Ambalaj Bütünlüğü
+            </label>
+            <div className="flex gap-2">
+              {(['Uygun', 'Şüpheli', 'Uygun Değil'] as const).map(v => (
+                <button key={v} onClick={() => setField('ambalajButunlugu', v)}
+                  className={`flex-1 py-2.5 px-1 rounded-xl border text-xs font-semibold transition-all ${
+                    form.ambalajButunlugu === v
+                      ? v === 'Uygun' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
+                      : v === 'Şüpheli' ? 'border-amber-500 bg-amber-500/15 text-amber-400'
+                      : 'border-red-500 bg-red-500/15 text-red-400'
+                      : 'border-border bg-card text-foreground hover:border-border-active'
+                  }`}>
+                  {v}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="p-5 grid grid-cols-2 gap-6">
-            <div className="space-y-5">
-              <section>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Numune Bilgileri</p>
-                <div className="space-y-2">
-                  {[
-                    { l: 'Gönderen Birim', v: sevk.sevkEdenBirim },
-                    { l: 'Numune Türü', v: sevk.numuneTuru },
-                    { l: 'Ön Tarama', v: sevk.onTaramaSonucu },
-                    { l: 'Tespit Edilen', v: sevk.tespitEdilenMadde || '—' },
-                    { l: 'Mühür No', v: sevk.muhrEtiketNo || '—' },
-                    { l: 'Delil Poşeti', v: sevk.delilPosetiNo || '—' },
-                  ].map(item => (
-                    <div key={item.l} className="flex justify-between py-1.5 border-b border-border/30 text-xs">
-                      <span className="text-muted-foreground">{item.l}</span>
-                      <span className="text-foreground font-medium">{item.v}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Fotoğraf alanı */}
-              <section>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Numune Fotoğrafı</p>
-                <div className="aspect-video bg-secondary/50 rounded-xl border border-border flex items-center justify-center">
-                  <div className="text-center text-muted-foreground/40">
-                    <Camera className="w-8 h-8 mx-auto mb-1" />
-                    <p className="text-xs">Numune fotoğrafı</p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Actions */}
-              <section className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">İşlemler</p>
-                {sevk.durum === 'Laboratuvara Ulaştı' && (
-                  <button
-                    data-testid="button-teslim-al"
-                    onClick={handleTeslimAl}
-                    className="w-full py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 font-semibold text-sm hover:bg-teal-500/20 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-4 h-4" />
-                    Teslim Al
-                  </button>
-                )}
-                {sevk.durum === 'Teslim Alındı' && (
-                  <button
-                    data-testid="button-analiz-baslat"
-                    onClick={handleAnalizBaslat}
-                    className="w-full py-2.5 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-semibold text-sm hover:bg-yellow-500/20 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <FlaskConical className="w-4 h-4" />
-                    Analiz Başlat
-                  </button>
-                )}
-                {sevk.durum === 'Analiz Sırasında' && (
-                  <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-center">
-                    <p className="text-xs text-yellow-400 font-semibold">Analiz süreci devam ediyor</p>
-                  </div>
-                )}
-                <div className="p-3 rounded-xl bg-secondary/40 border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Rapor Durumu</p>
-                  <p className="text-sm font-semibold text-foreground">{sevk.durum === 'Rapor Yüklendi' ? 'Rapor mevcut' : 'Bekleniyor'}</p>
-                </div>
-              </section>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Süreç Takibi</p>
-              <LabTimeline mevcutDurum={sevk.durum as LabSevkDurumu} />
+          {/* Mühür Kontrolü */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+              Mühür Kontrolü
+            </label>
+            <div className="flex gap-2">
+              {(['Uygun', 'Uygun Değil'] as const).map(v => (
+                <button key={v} onClick={() => setField('muhrKontrol', v)}
+                  className={`flex-1 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                    form.muhrKontrol === v
+                      ? v === 'Uygun' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
+                      : 'border-red-500 bg-red-500/15 text-red-400'
+                      : 'border-border bg-card text-foreground'
+                  }`}>
+                  {v}
+                </button>
+              ))}
             </div>
           </div>
-        </motion.div>
+
+          {/* Fiziksel Durum Notu */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Fiziksel Durum Notu
+            </label>
+            <textarea
+              value={form.fizikselDurumNotu}
+              onChange={e => setField('fizikselDurumNotu', e.target.value)}
+              placeholder="Numune fiziksel durumunu kısaca açıklayın..."
+              rows={3}
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary/60 placeholder:text-muted-foreground/40 resize-none"
+            />
+          </div>
+
+          {/* Teslim Alma Fotoğrafı */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Camera className="w-3 h-3" /> Teslim Alma Fotoğrafı (İsteğe bağlı)
+            </label>
+            <button className="w-full h-16 border-dashed border-2 border-border rounded-xl flex items-center justify-center gap-2 text-xs text-muted-foreground hover:border-primary/40 transition-colors">
+              <Camera className="w-4 h-4" /> Fotoğraf Ekle
+            </button>
+          </div>
+
+          {/* Kabul Durumu */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+              Kabul Durumu *
+            </label>
+            <div className="space-y-2">
+              {(['Kabul', 'Şartlı Kabul', 'Reddedildi'] as const).map(v => (
+                <button key={v} onClick={() => setField('kabulDurumu', v)}
+                  className={`w-full py-3 px-4 rounded-xl border-2 flex items-center justify-between transition-all ${
+                    form.kabulDurumu === v
+                      ? v === 'Kabul' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                      : v === 'Şartlı Kabul' ? 'border-amber-500 bg-amber-500/10 text-amber-400'
+                      : 'border-red-500 bg-red-500/10 text-red-400'
+                      : 'border-border bg-card text-foreground'
+                  }`}>
+                  <span className="text-sm font-semibold">{v}</span>
+                  {form.kabulDurumu === v && <Check className="w-4 h-4" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 pt-0 flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-3 bg-secondary text-foreground rounded-xl font-semibold text-sm hover:bg-secondary/70 transition-colors">
+            İptal
+          </button>
+          <button
+            onClick={() => { if (gecerli) onKaydet(form); }}
+            disabled={!gecerli}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${
+              gecerli ? 'bg-primary text-primary-foreground active:scale-[0.98]' : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+            }`}>
+            Teslim Almayı Onayla
+          </button>
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </div>
+  );
+}
+
+function DetayModal({ sevk, onClose, onTeslimAl, onAnalizBaslat, onRaporYukle }: {
+  sevk: LabSevk | null;
+  onClose: () => void;
+  onTeslimAl: (sevk: LabSevk) => void;
+  onAnalizBaslat: (id: string) => void;
+  onRaporYukle: (id: string) => void;
+}) {
+  if (!sevk) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-start justify-end p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 40 }}
+        onClick={e => e.stopPropagation()}
+        className="bg-card border border-card-border rounded-2xl w-full max-w-md h-full max-h-[calc(100vh-2rem)] flex flex-col shadow-2xl"
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">{sevk.numuneTakipNo}</h3>
+            <p className="text-xs text-muted-foreground font-mono">{sevk.operasyonNo}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary">
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <LabDurumBadge durum={sevk.durum} />
+            <OncelikBadge oncelik={sevk.oncelik} />
+          </div>
+
+          <div className="glass-card p-3 space-y-1.5 text-xs">
+            {[
+              ['Numune Türü', sevk.numuneTuru],
+              ['Ön Tarama', sevk.onTaramaSonucu],
+              ...(sevk.tespitEdilenMadde ? [['Tespit', sevk.tespitEdilenMadde]] : []),
+              ['Gönderen Birim', sevk.sevkEdenBirim],
+              ['Gönderim', sevk.gonderimYontemi || '—'],
+              ['Tahmini Varış', sevk.tahminiVaris ? new Date(sevk.tahminiVaris).toLocaleString('tr-TR') : '—'],
+              ['Mühür / Etiket', sevk.muhrEtiketNo || '—'],
+              ['Delil Poşeti', sevk.delilPosetiNo || '—'],
+              ['Kit Seri No', sevk.kitSeriNo || '—'],
+              ['Kit SKT', sevk.kitSKT || '—'],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between items-start gap-2">
+                <span className="text-muted-foreground flex-shrink-0">{k}</span>
+                <span className="font-medium text-foreground text-right truncate max-w-[55%]">{v}</span>
+              </div>
+            ))}
+          </div>
+
+          {sevk.teslimAlma && (
+            <div className="glass-card p-3 border-emerald-500/20 space-y-1.5 text-xs">
+              <p className="text-xs font-semibold text-emerald-400 mb-2 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" /> Teslim Bilgileri
+              </p>
+              {[
+                ['Teslim Alan', sevk.teslimAlma.teslimAlanPersonel],
+                ['Ambalaj', sevk.teslimAlma.ambalajButunlugu],
+                ['Mühür Kontrolü', sevk.teslimAlma.muhrKontrol],
+                ['Kabul Durumu', sevk.teslimAlma.kabulDurumu],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="font-semibold text-foreground">{v}</span>
+                </div>
+              ))}
+              {sevk.teslimAlma.fizikselDurumNotu && (
+                <p className="text-muted-foreground/70 border-t border-border/30 pt-1.5">{sevk.teslimAlma.fizikselDurumNotu}</p>
+              )}
+            </div>
+          )}
+
+          {sevk.notlar && (
+            <div className="bg-secondary/50 rounded-xl p-3 text-xs text-muted-foreground">{sevk.notlar}</div>
+          )}
+
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Süreç Timeline</p>
+            <LabTimeline mevcutDurum={sevk.durum} olaylar={sevk.olaylar} />
+          </div>
+        </div>
+
+        {/* Aksiyon Butonları */}
+        <div className="p-4 border-t border-border flex-shrink-0 space-y-2">
+          {sevk.durum === 'Laboratuvara Ulaştı' && (
+            <button onClick={() => onTeslimAl(sevk)}
+              className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+              <Check className="w-4 h-4" /> Teslim Al
+            </button>
+          )}
+          {sevk.durum === 'Teslim Alındı' && (
+            <button onClick={() => onAnalizBaslat(sevk.id)}
+              className="w-full py-3 bg-violet-600 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+              <FlaskConical className="w-4 h-4" /> Analizi Başlat
+            </button>
+          )}
+          {sevk.durum === 'Analiz Sırasında' && (
+            <button onClick={() => onRaporYukle(sevk.id)}
+              className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+              <FileText className="w-4 h-4" /> Raporu Yükle
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
 export default function Laboratory() {
-  const { labSevkler, labSevkDurumGuncelle } = useData();
-  const [selected, setSelected] = useState<LabSevk | null>(null);
-  const { toast } = useToast();
+  const { labSevkler, labSevkDurumGuncelle, labSevkTeslimAlmaKaydet } = useData();
+  const [seciliSevk, setSeciliSevk] = useState<LabSevk | null>(null);
+  const [teslimAlmaModalSevk, setTeslimAlmaModalSevk] = useState<LabSevk | null>(null);
+  const [aktifTab, setAktifTab] = useState<'bekleyen' | 'aktif' | 'tamamlanan'>('bekleyen');
 
-  const handleDurumGuncelle = (id: string, durum: LabSevkDurumu) => {
-    labSevkDurumGuncelle(id, durum);
-    toast({ title: 'Durum güncellendi', description: durum });
-  };
-
-  const gelecekNumuneler = labSevkler.filter(s =>
-    ['Laboratuvara Yolda', 'Laboratuvara Ulaştı', 'Teslim Alındı', 'Analiz Sırasında'].includes(s.durum)
+  const bekleyenler = labSevkler.filter(s =>
+    ['Sevk Kaydı Oluşturuldu', 'Numune Paketlendi', 'Laboratuvara Yolda'].includes(s.durum)
+  );
+  const aktifler = labSevkler.filter(s =>
+    ['Laboratuvara Ulaştı', 'Teslim Alındı', 'Analiz Sırasında'].includes(s.durum)
   );
   const tamamlananlar = labSevkler.filter(s =>
     ['Rapor Yüklendi', 'Dosya Kapatıldı'].includes(s.durum)
   );
 
+  const TABS = [
+    { key: 'bekleyen', label: 'Bekleyen', count: bekleyenler.length, color: 'text-amber-400' },
+    { key: 'aktif', label: 'Aktif / Analiz', count: aktifler.length, color: 'text-cyan-400' },
+    { key: 'tamamlanan', label: 'Tamamlanan', count: tamamlananlar.length, color: 'text-emerald-400' },
+  ];
+
+  const listelenecek = aktifTab === 'bekleyen' ? bekleyenler : aktifTab === 'aktif' ? aktifler : tamamlananlar;
+
+  const handleTeslimAlmaKaydet = (form: TeslimAlmaFormu) => {
+    if (!teslimAlmaModalSevk) return;
+    labSevkTeslimAlmaKaydet(teslimAlmaModalSevk.id, form);
+    setTeslimAlmaModalSevk(null);
+    setSeciliSevk(null);
+  };
+
+  const handleAnalizBaslat = (id: string) => {
+    labSevkDurumGuncelle(id, 'Analiz Sırasında', 'S. Kaya', 'Kimyasal analiz başlatıldı.');
+    setSeciliSevk(null);
+  };
+
+  const handleRaporYukle = (id: string) => {
+    labSevkDurumGuncelle(id, 'Rapor Yüklendi', 'S. Kaya', 'Analiz raporu sisteme yüklendi.');
+    setSeciliSevk(null);
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-foreground">Laboratuvar</h1>
-        <p className="text-sm text-muted-foreground">{gelecekNumuneler.length} aktif numune · {tamamlananlar.length} tamamlanan</p>
+        <h1 className="text-2xl font-bold text-foreground mb-0.5">Laboratuvar</h1>
+        <p className="text-sm text-muted-foreground">Gelen numuneler ve analiz süreçleri</p>
       </div>
 
-      {/* Active samples */}
-      <section>
-        <p className="text-sm font-semibold text-foreground mb-3">Gelecek / Aktif Numuneler</p>
-        {gelecekNumuneler.length === 0 ? (
-          <div className="text-center py-12 glass-card rounded-xl border border-card-border text-muted-foreground">
-            <FlaskConical className="w-8 h-8 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">Aktif numune bulunmuyor</p>
+      {/* Stat Kartları */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon: Truck, label: 'Yolda', value: labSevkler.filter(s => s.durum === 'Laboratuvara Yolda').length, color: 'text-amber-400' },
+          { icon: Package, label: 'Ulaştı / Teslim', value: aktifler.length, color: 'text-cyan-400' },
+          { icon: BarChart3, label: 'Analiz Sırasında', value: labSevkler.filter(s => s.durum === 'Analiz Sırasında').length, color: 'text-violet-400' },
+          { icon: FileText, label: 'Raporlanan', value: tamamlananlar.length, color: 'text-emerald-400' },
+        ].map(({ icon: Icon, label, value, color }) => (
+          <div key={label} className="glass-card p-3 flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${color.replace('text-', 'bg-').replace('-400', '-500/15')}`}>
+              <Icon className={`w-4 h-4 ${color}`} />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-foreground">{value}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-secondary/30 rounded-xl p-1">
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setAktifTab(t.key as 'bekleyen' | 'aktif' | 'tamamlanan')}
+            className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+              aktifTab === t.key ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}>
+            {t.label}
+            <span className={`font-bold ${aktifTab === t.key ? t.color : ''}`}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Liste */}
+      <div className="space-y-2">
+        {listelenecek.length === 0 ? (
+          <div className="glass-card p-8 text-center">
+            <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Bu kategoride numune yok</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {gelecekNumuneler.map((sevk, i) => (
-              <motion.div
-                key={sevk.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.07 }}
-                data-testid={`card-lab-${sevk.id}`}
-                className="glass-card rounded-xl border border-card-border p-4 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-mono text-xs text-cyan-400 font-bold">{sevk.numuneTakipNo}</p>
-                    <p className="text-xs text-muted-foreground">{sevk.operasyonNo}</p>
+          listelenecek.map(sevk => (
+            <motion.button
+              key={sevk.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => setSeciliSevk(sevk)}
+              className="w-full glass-card p-4 text-left hover:border-primary/40 transition-all group"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span className="text-xs font-bold font-mono text-primary">{sevk.numuneTakipNo}</span>
+                    <OncelikBadge oncelik={sevk.oncelik} />
                   </div>
-                  <OncelikBadge oncelik={sevk.oncelik} />
+                  <p className="text-sm font-semibold text-foreground truncate">{sevk.numuneTuru}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{sevk.sevkEdenBirim}</p>
+                  {sevk.tespitEdilenMadde && (
+                    <p className="text-xs text-red-400 mt-1 font-medium flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />{sevk.tespitEdilenMadde}
+                    </p>
+                  )}
                 </div>
-
-                <div className="space-y-1">
-                  {[
-                    { l: 'Gönderen', v: sevk.sevkEdenBirim },
-                    { l: 'Numune', v: sevk.numuneTuru },
-                    { l: 'Ön Tarama', v: sevk.onTaramaSonucu },
-                  ].map(item => (
-                    <div key={item.l} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{item.l}</span>
-                      <span className="text-foreground font-medium text-right max-w-[55%] truncate">{item.v}</span>
-                    </div>
-                  ))}
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <LabDurumBadge durum={sevk.durum} />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                 </div>
-
-                <LabDurumBadge durum={sevk.durum} size="sm" />
-
-                <button
-                  data-testid={`button-lab-detay-${sevk.id}`}
-                  onClick={() => setSelected(sevk)}
-                  className="w-full py-2 rounded-lg bg-secondary/50 border border-border hover:border-primary/30 hover:bg-secondary text-xs font-medium text-muted-foreground hover:text-primary transition-all"
-                >
-                  Detay / İşlem
-                </button>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+            </motion.button>
+          ))
         )}
-      </section>
+      </div>
 
-      {/* Completed */}
-      {tamamlananlar.length > 0 && (
-        <section>
-          <p className="text-sm font-semibold text-foreground mb-3">Tamamlanan Süreçler</p>
-          <div className="glass-card rounded-xl border border-card-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/30">
-                  {['Takip No', 'Numune', 'Gönderen', 'Durum'].map(col => (
-                    <th key={col} className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tamamlananlar.map(sevk => (
-                  <tr key={sevk.id} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
-                    <td className="px-4 py-3"><span className="font-mono text-xs text-cyan-400">{sevk.numuneTakipNo}</span></td>
-                    <td className="px-4 py-3 text-xs text-foreground max-w-[140px] truncate">{sevk.numuneTuru}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{sevk.sevkEdenBirim}</td>
-                    <td className="px-4 py-3"><LabDurumBadge durum={sevk.durum} size="sm" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+      {/* Detay Drawer */}
+      <AnimatePresence>
+        {seciliSevk && (
+          <DetayModal
+            sevk={seciliSevk}
+            onClose={() => setSeciliSevk(null)}
+            onTeslimAl={(s) => { setSeciliSevk(null); setTeslimAlmaModalSevk(s); }}
+            onAnalizBaslat={handleAnalizBaslat}
+            onRaporYukle={handleRaporYukle}
+          />
+        )}
+      </AnimatePresence>
 
-      {selected && (
-        <DetayModal
-          sevk={selected}
-          onClose={() => setSelected(null)}
-          onDurumGuncelle={handleDurumGuncelle}
-        />
-      )}
+      {/* Teslim Alma Modal */}
+      <AnimatePresence>
+        {teslimAlmaModalSevk && (
+          <TeslimAlmaModal
+            sevk={teslimAlmaModalSevk}
+            onClose={() => setTeslimAlmaModalSevk(null)}
+            onKaydet={handleTeslimAlmaKaydet}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

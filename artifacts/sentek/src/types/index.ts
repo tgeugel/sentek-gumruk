@@ -22,15 +22,19 @@ export interface TestKaydi {
   sahisAciklamasi: string;
   kitSeriNo: string;
   kitSKT: string;
+  kitPanelTipi?: string;
   fotografUrl?: string;
   testSonucu: TestSonucu;
   tespitEdilenMadde?: string;
   notlar?: string;
   personelAdi: string;
   labSevkDurumu?: string;
+  labSevkId?: string;
+  analizGuvenSkoru?: number;
+  stokId?: string;
 }
 
-export type LabSevkDurumu = 
+export type LabSevkDurumu =
   | 'Pozitif Tespit Edildi'
   | 'Sevk Kaydı Oluşturuldu'
   | 'Numune Paketlendi'
@@ -40,6 +44,22 @@ export type LabSevkDurumu =
   | 'Analiz Sırasında'
   | 'Rapor Yüklendi'
   | 'Dosya Kapatıldı';
+
+export interface LabSevkOlay {
+  durum: LabSevkDurumu;
+  tarih: string;
+  kullanici: string;
+  aciklama?: string;
+}
+
+export interface TeslimAlmaFormu {
+  teslimAlanPersonel: string;
+  teslimTarihi: string;
+  ambalajButunlugu: 'Uygun' | 'Şüpheli' | 'Uygun Değil';
+  muhrKontrol: 'Uygun' | 'Uygun Değil';
+  fizikselDurumNotu: string;
+  kabulDurumu: 'Kabul' | 'Şartlı Kabul' | 'Reddedildi';
+}
 
 export interface LabSevk {
   id: string;
@@ -51,12 +71,16 @@ export interface LabSevk {
   tespitEdilenMadde?: string;
   muhrEtiketNo?: string;
   delilPosetiNo?: string;
+  kitSeriNo?: string;
+  kitSKT?: string;
   sevkEdenBirim: string;
   gonderimYontemi?: string;
   tahminiVaris?: string;
   durum: LabSevkDurumu;
   notlar?: string;
   oncelik: 'Yüksek' | 'Normal' | 'Düşük';
+  olaylar?: LabSevkOlay[];
+  teslimAlma?: TeslimAlmaFormu;
 }
 
 export interface Stok {
@@ -71,4 +95,16 @@ export interface Stok {
   depo: string;
   kritikSeviye: number;
   durum: 'Normal' | 'Kritik' | 'SKT Yaklaşıyor' | 'Tükendi';
+}
+
+export type BildirimTur = 'pozitif' | 'stok' | 'lab' | 'analiz' | 'rapor' | 'sistem';
+
+export interface Bildirim {
+  id: string;
+  mesaj: string;
+  tur: BildirimTur;
+  tarih: string;
+  okundu: boolean;
+  operasyonNo?: string;
+  link?: string;
 }
