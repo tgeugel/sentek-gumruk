@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { TestKaydi } from '../../types';
 import TR_ILLER from '../../data/turkiyeIller';
 
@@ -96,6 +96,199 @@ function project(lat: number, lng: number): [number, number] {
   ];
 }
 
+interface NokData {
+  lokasyon: string; tip: LokasyonTipi;
+  svgX: number; svgY: number;
+  testSayisi: number; pozitifSayisi: number; negatifSayisi: number; gecersizSayisi: number;
+  sonMadde?: string; sonTestTarihi?: string;
+  renk: string; r: number; hasData: boolean; hasPozitif: boolean;
+}
+
+/* ─── STATIC LAYER — memoized, only re-renders when filtre/noktalar change ── */
+const StaticMapLayer = memo(function StaticMapLayer() {
+  return (
+    <g>
+      {/* Deep shadow extrusion under Turkey — gives 3-D depth */}
+      {TR_ILLER.map(il => (
+        <path key={`depth3-${il.id}`} d={il.d}
+          fill="rgba(0,5,15,0.55)" stroke="none"
+          transform="translate(4,6)" style={{ pointerEvents: 'none' }} />
+      ))}
+      {TR_ILLER.map(il => (
+        <path key={`depth2-${il.id}`} d={il.d}
+          fill="rgba(0,8,22,0.45)" stroke="none"
+          transform="translate(2.5,4)" style={{ pointerEvents: 'none' }} />
+      ))}
+      {TR_ILLER.map(il => (
+        <path key={`depth1-${il.id}`} d={il.d}
+          fill="rgba(0,12,30,0.35)" stroke="none"
+          transform="translate(1,2)" style={{ pointerEvents: 'none' }} />
+      ))}
+
+      {/* Province fill — gradient top-to-bottom for depth illusion */}
+      {TR_ILLER.map(il => (
+        <path key={il.id} d={il.d}
+          className="il-path"
+          fill="url(#ohProvFill)"
+          stroke="rgba(0,212,255,0.30)"
+          strokeWidth="0.55"
+          strokeLinejoin="round"
+        />
+      ))}
+
+      {/* Province inner highlight — top edge lighter */}
+      {TR_ILLER.map(il => (
+        <path key={`hi-${il.id}`} d={il.d}
+          fill="none"
+          stroke="rgba(100,200,255,0.06)"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+          style={{ pointerEvents: 'none' }}
+        />
+      ))}
+
+      {/* Outer glow — cyan bloom on borders */}
+      {TR_ILLER.map(il => (
+        <path key={`glow-${il.id}`} d={il.d}
+          fill="none"
+          stroke="rgba(0,212,255,0.09)"
+          strokeWidth="5"
+          strokeLinejoin="round"
+          style={{ pointerEvents: 'none', filter: 'blur(1px)' }}
+        />
+      ))}
+    </g>
+  );
+});
+
+/* ─── MARKERS LAYER ──────────────────────────────────────────────────────── */
+interface MarkersProps {
+  gosterilecekler: NokData[];
+  canliOlay: string | null | undefined;
+  secilenLokasyon: string | null;
+  onSelect: (n: NokData) => void;
+}
+
+const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, canliOlay, secilenLokasyon, onSelect }: MarkersProps) {
+  return (
+    <g>
+      {gosterilecekler.map(n => {
+        const isCanli = canliOlay === n.lokasyon;
+        const isSecili = secilenLokasyon === n.lokasyon;
+        const pr1 = n.r + 6;
+        const pr2 = n.r + 13;
+        const pr3 = n.r + 21;
+        return (
+          <g key={n.lokasyon} className="svg-marker"
+            onClick={() => onSelect(n)}>
+
+            {/* Triple-ring pulse for positive/live markers */}
+            {(n.hasPozitif || isCanli) && (
+              <>
+                <circle cx={n.svgX} cy={n.svgY}
+                  style={{ ['--pr1' as string]: `${pr1}px` }} r={pr1}
+                  fill="none" stroke={n.renk} strokeWidth="1.2" strokeOpacity="0.6"
+                  className="svg-pulse-1" />
+                <circle cx={n.svgX} cy={n.svgY}
+                  style={{ ['--pr2' as string]: `${pr2}px` }} r={pr2}
+                  fill="none" stroke={n.renk} strokeWidth="0.7" strokeOpacity="0.35"
+                  className="svg-pulse-2" />
+                <circle cx={n.svgX} cy={n.svgY}
+                  style={{ ['--pr1' as string]: `${pr3}px`, animationDelay: '1s' }} r={pr3}
+                  fill="none" stroke={n.renk} strokeWidth="0.4" strokeOpacity="0.15"
+                  className="svg-pulse-1" />
+              </>
+            )}
+
+            {/* Selection ring */}
+            {isSecili && (
+              <circle cx={n.svgX} cy={n.svgY} r={n.r + 8}
+                fill="none" stroke={n.renk} strokeWidth="1.8" strokeOpacity="0.9"
+                strokeDasharray="4 2.5" />
+            )}
+
+            {/* Ambient glow beneath marker */}
+            {n.hasData && (
+              <circle cx={n.svgX} cy={n.svgY} r={n.r + 4}
+                fill={n.renk + '18'} stroke="none"
+                style={{ pointerEvents: 'none', filter: 'blur(3px)' }} />
+            )}
+
+            {/* Marker body */}
+            {n.hasData ? (
+              <g className="marker-core">
+                {/* Outer ring */}
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 2}
+                  fill="none" stroke={n.renk + '40'} strokeWidth="1" />
+                {/* Shadow */}
+                <circle cx={n.svgX + 1} cy={n.svgY + 1.5} r={n.r}
+                  fill="rgba(0,0,0,0.5)" stroke="none"
+                  style={{ pointerEvents: 'none' }} />
+                {/* Main fill — radial gradient via stops inline trick */}
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill={n.renk + 'dd'} stroke={n.renk}
+                  strokeWidth="1.5" filter="url(#ohGlowMed)" />
+                {/* Inner highlight shine */}
+                <circle cx={n.svgX - n.r * 0.25} cy={n.svgY - n.r * 0.3} r={n.r * 0.38}
+                  fill="rgba(255,255,255,0.22)" stroke="none"
+                  style={{ pointerEvents: 'none' }} />
+                {/* Count label */}
+                <text x={n.svgX} y={n.svgY + 1}
+                  fontSize={n.r > 12 ? '8.5' : '7'}
+                  fontWeight="900" fontFamily="monospace"
+                  fill="white" textAnchor="middle" dominantBaseline="middle"
+                  style={{ pointerEvents: 'none', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                  {n.testSayisi}
+                </text>
+                {n.pozitifSayisi > 0 && n.r > 11 && (
+                  <text x={n.svgX} y={n.svgY + n.r + 7}
+                    fontSize="5.5" fontWeight="700" fontFamily="monospace"
+                    fill={n.renk} textAnchor="middle"
+                    style={{ pointerEvents: 'none' }}>
+                    +{n.pozitifSayisi}
+                  </text>
+                )}
+              </g>
+            ) : (
+              <g className="marker-core">
+                {/* Dormant marker */}
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 1}
+                  fill="none" stroke={n.renk + '20'} strokeWidth="0.8" />
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill={n.renk + '15'} stroke={n.renk + '45'}
+                  strokeWidth="0.8" />
+                <text x={n.svgX} y={n.svgY + 1}
+                  fontSize="5.5" fontWeight="900" fontFamily="monospace"
+                  fill={n.renk + '80'} textAnchor="middle" dominantBaseline="middle"
+                  style={{ pointerEvents: 'none' }}>
+                  {TIP_HARF[n.tip]}
+                </text>
+              </g>
+            )}
+
+            {/* Live pulse — white ring blink */}
+            {isCanli && (
+              <>
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 1.5}
+                  fill="none" stroke="white" strokeWidth="1.5" strokeOpacity="0.6"
+                  className="svg-canli" />
+                {/* Live dot */}
+                <circle cx={n.svgX + n.r + 3} cy={n.svgY - n.r - 3} r={2.5}
+                  fill="#ef4444" stroke="rgba(0,0,0,0.6)" strokeWidth="0.8"
+                  className="svg-canli" />
+              </>
+            )}
+          </g>
+        );
+      })}
+    </g>
+  );
+}, (prev, next) =>
+  prev.canliOlay === next.canliOlay &&
+  prev.secilenLokasyon === next.secilenLokasyon &&
+  prev.gosterilecekler === next.gosterilecekler
+);
+
 interface OperasyonHaritaProps {
   testKayitlari: TestKaydi[];
   canliOlay?: string | null;
@@ -113,7 +306,7 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
     return () => clearInterval(id);
   }, []);
 
-  const noktalar = useMemo(() => {
+  const noktalar = useMemo((): NokData[] => {
     return Object.entries(LOKASYON_KOORDINATLARI).map(([lokasyon, [lat, lng]]) => {
       const tip = (LOKASYON_TIP[lokasyon] || 'mobil') as LokasyonTipi;
       const kayitlar = testKayitlari.filter(t => t.lokasyon === lokasyon);
@@ -127,12 +320,13 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       const [svgX, svgY] = project(lat, lng);
       const oran = testSayisi > 0 ? pozitifSayisi / testSayisi : 0;
       const renk = pozitifSayisi > 0 ? (oran > 0.4 ? '#ef4444' : '#f97316') : TIP_RENK[tip];
-      const r = testSayisi > 0 ? Math.min(7 + testSayisi * 0.8, 16) : 5;
+      const r = testSayisi > 0 ? Math.min(7 + testSayisi * 0.9, 17) : 5;
       return {
-        lokasyon, tip, lat, lng, svgX, svgY,
-        testSayisi, pozitifSayisi, negatifSayisi: negatifler.length,
-        gecersizSayisi: gecersizler.length, sonMadde, sonTestTarihi,
-        renk, r, hasData: testSayisi > 0, hasPozitif: pozitifSayisi > 0,
+        lokasyon, tip, svgX, svgY,
+        testSayisi, pozitifSayisi,
+        negatifSayisi: negatifler.length, gecersizSayisi: gecersizler.length,
+        sonMadde, sonTestTarihi, renk, r,
+        hasData: testSayisi > 0, hasPozitif: pozitifSayisi > 0,
       };
     });
   }, [testKayitlari]);
@@ -151,343 +345,287 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
     pozitif: 'Pozitif',
   };
 
+  const handleSelect = useCallback((n: NokData) => {
+    setSecilenNokta(prev => prev?.lokasyon === n.lokasyon ? null : {
+      lokasyon: n.lokasyon, tip: n.tip,
+      testSayisi: n.testSayisi, pozitifSayisi: n.pozitifSayisi,
+      negatifSayisi: n.negatifSayisi, gecersizSayisi: n.gecersizSayisi,
+      sonTestTarihi: n.sonTestTarihi, sonMadde: n.sonMadde,
+    });
+  }, []);
+
   const gridLngs = [28, 30, 32, 34, 36, 38, 40, 42, 44];
   const gridLats = [37, 38, 39, 40, 41, 42];
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ background: '#03060f' }}>
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden"
+      style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)' }}>
+
       <style>{`
         @keyframes svgPulse1 {
-          0%   { r: var(--pr1); opacity: 0.7; }
-          100% { r: calc(var(--pr1) + 12); opacity: 0; }
+          0%   { r: var(--pr1); opacity: 0.75; }
+          100% { r: calc(var(--pr1) + 14); opacity: 0; }
         }
         @keyframes svgPulse2 {
           0%   { r: var(--pr2); opacity: 0.5; }
-          100% { r: calc(var(--pr2) + 20); opacity: 0; }
+          100% { r: calc(var(--pr2) + 22); opacity: 0; }
         }
         @keyframes svgBlink {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
+          50% { opacity: 0.2; }
         }
-        .svg-pulse-1 { animation: svgPulse1 2s ease-out infinite; }
-        .svg-pulse-2 { animation: svgPulse2 2s ease-out infinite 0.5s; }
-        .svg-marker { cursor: pointer; transition: all 0.15s ease; }
-        .svg-marker:hover .marker-core { filter: brightness(1.5); }
-        .svg-canli { animation: svgBlink 1.2s ease-in-out infinite; }
-        .il-path { transition: fill 0.2s ease; }
-        .il-path:hover { fill: rgba(0,212,255,0.18) !important; }
+        @keyframes svgSpin {
+          from { transform-origin: center; transform: rotate(0deg); }
+          to   { transform-origin: center; transform: rotate(360deg); }
+        }
+        .svg-pulse-1 { animation: svgPulse1 2.2s ease-out infinite; }
+        .svg-pulse-2 { animation: svgPulse2 2.2s ease-out infinite 0.6s; }
+        .svg-marker  { cursor: pointer; }
+        .svg-marker:hover .marker-core circle:first-of-type { opacity: 0.85; }
+        .svg-canli   { animation: svgBlink 1s ease-in-out infinite; }
+        .il-path     { transition: fill 0.25s ease; }
+        .il-path:hover { fill: rgba(0,212,255,0.16) !important; }
       `}</style>
 
+      {/* ── SVG MAP — slice fills container fully, no gaps ───────────────── */}
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         width="100%"
         height="100%"
-        style={{ display: 'block' }}
-        preserveAspectRatio="xMidYMid meet"
+        style={{ display: 'block', position: 'absolute', inset: 0 }}
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          <radialGradient id="ohBgGrad" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#050d20" />
-            <stop offset="100%" stopColor="#02040b" />
+          {/* Province gradient — gives top-to-bottom depth */}
+          <linearGradient id="ohProvFill" x1="0" y1="0" x2="0" y2={VB_H} gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#071e42" />
+            <stop offset="55%"  stopColor="#04122e" />
+            <stop offset="100%" stopColor="#020a1c" />
+          </linearGradient>
+
+          {/* Vignette */}
+          <radialGradient id="ohVignette" cx="50%" cy="50%" r="72%">
+            <stop offset="30%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(1,3,10,0.85)" />
           </radialGradient>
-          <radialGradient id="ohVignette" cx="50%" cy="50%" r="70%">
-            <stop offset="35%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(2,4,12,0.7)" />
-          </radialGradient>
-          <filter id="ohGlow">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <filter id="ohGlowStrong">
-            <feGaussianBlur stdDeviation="5" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <pattern id="ohScanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="1" height="3" fill="transparent" />
-            <rect x="0" y="3" width="1" height="1" fill="rgba(0,212,255,0.010)" />
+
+          {/* Scanlines */}
+          <pattern id="ohScanlines" x="0" y="0" width="1" height="3" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="1" height="2.5" fill="transparent" />
+            <rect x="0" y="2.5" width="1" height="0.5" fill="rgba(0,212,255,0.012)" />
           </pattern>
-          <linearGradient id="ohSeaLeft" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="rgba(0,30,70,0.6)" />
-            <stop offset="100%" stopColor="rgba(0,30,70,0)" />
-          </linearGradient>
-          <linearGradient id="ohSeaRight" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="rgba(0,30,70,0)" />
-            <stop offset="100%" stopColor="rgba(0,30,70,0.6)" />
-          </linearGradient>
+
+          {/* Dot grid overlay */}
+          <pattern id="ohDotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="0.6" fill="rgba(0,212,255,0.07)" />
+          </pattern>
+
+          {/* Marker glow filters */}
+          <filter id="ohGlowMed" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="ohGlowStrong" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="5.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="ohDropShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="2" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.7)" />
+          </filter>
+
+          {/* Outer ambient sea gradient */}
+          <radialGradient id="ohSeaGlow" cx="50%" cy="100%" r="60%">
+            <stop offset="0%" stopColor="rgba(0,50,120,0.25)" />
+            <stop offset="100%" stopColor="transparent" />
+          </radialGradient>
         </defs>
 
-        <rect width={VB_W} height={VB_H} fill="url(#ohBgGrad)" />
+        {/* Background */}
+        <rect width={VB_W} height={VB_H} fill="url(#ohSeaGlow)" />
+        <rect width={VB_W} height={VB_H} fill="url(#ohDotGrid)" style={{ pointerEvents: 'none' }} />
 
+        {/* Graticule grid */}
         {gridLngs.map(lng => {
           const x = project(40, lng)[0];
           return (
-            <g key={`vg-${lng}`}>
-              <line x1={x} y1={0} x2={x} y2={VB_H} stroke="rgba(0,212,255,0.04)" strokeWidth="0.5" />
-              <text x={x} y={VB_H - 5} fontSize="7" fill="rgba(0,212,255,0.18)" textAnchor="middle" fontFamily="monospace">{lng}°E</text>
+            <g key={`vg-${lng}`} style={{ pointerEvents: 'none' }}>
+              <line x1={x} y1={0} x2={x} y2={VB_H}
+                stroke="rgba(0,212,255,0.06)" strokeWidth="0.5" strokeDasharray="4 6" />
+              <text x={x} y={VB_H - 4} fontSize="7" fill="rgba(0,212,255,0.20)"
+                textAnchor="middle" fontFamily="monospace">{lng}°E</text>
             </g>
           );
         })}
         {gridLats.map(lat => {
           const y = project(lat, 36)[1];
           return (
-            <g key={`hg-${lat}`}>
-              <line x1={0} y1={y} x2={VB_W} y2={y} stroke="rgba(0,212,255,0.04)" strokeWidth="0.5" />
-              <text x={6} y={y - 3} fontSize="7" fill="rgba(0,212,255,0.18)" fontFamily="monospace">{lat}°N</text>
+            <g key={`hg-${lat}`} style={{ pointerEvents: 'none' }}>
+              <line x1={0} y1={y} x2={VB_W} y2={y}
+                stroke="rgba(0,212,255,0.06)" strokeWidth="0.5" strokeDasharray="4 6" />
+              <text x={7} y={y - 3} fontSize="7" fill="rgba(0,212,255,0.20)"
+                fontFamily="monospace">{lat}°N</text>
             </g>
           );
         })}
 
-        {TR_ILLER.map(il => (
-          <path
-            key={il.id}
-            d={il.d}
-            className="il-path"
-            fill="rgba(5,15,38,0.92)"
-            stroke="rgba(0,212,255,0.28)"
-            strokeWidth="0.6"
-            strokeLinejoin="round"
-          />
-        ))}
+        {/* ── Memoized province layer ── */}
+        <StaticMapLayer />
 
-        {TR_ILLER.map(il => (
-          <path
-            key={`glow-${il.id}`}
-            d={il.d}
-            fill="none"
-            stroke="rgba(0,212,255,0.07)"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-            style={{ pointerEvents: 'none' }}
-          />
-        ))}
+        {/* ── Dynamic markers ── */}
+        <MarkersLayer
+          gosterilecekler={gosterilecekler}
+          canliOlay={canliOlay}
+          secilenLokasyon={secilenNokta?.lokasyon ?? null}
+          onSelect={handleSelect}
+        />
 
-        {gosterilecekler.map(n => {
-          const isCanli = canliOlay === n.lokasyon;
-          const isSecili = secilenNokta?.lokasyon === n.lokasyon;
-          const pr1 = n.r + 5;
-          const pr2 = n.r + 11;
-          return (
-            <g
-              key={n.lokasyon}
-              className="svg-marker"
-              onClick={() => setSecilenNokta(isSecili ? null : {
-                lokasyon: n.lokasyon, tip: n.tip,
-                testSayisi: n.testSayisi, pozitifSayisi: n.pozitifSayisi,
-                negatifSayisi: n.negatifSayisi, gecersizSayisi: n.gecersizSayisi,
-                sonTestTarihi: n.sonTestTarihi, sonMadde: n.sonMadde,
-              })}
-            >
-              {(n.hasPozitif || isCanli) && (
-                <>
-                  <circle
-                    cx={n.svgX} cy={n.svgY}
-                    style={{ ['--pr1' as string]: `${pr1}px` }}
-                    r={pr1}
-                    fill="none"
-                    stroke={n.renk}
-                    strokeWidth="1"
-                    strokeOpacity="0.55"
-                    className="svg-pulse-1"
-                  />
-                  <circle
-                    cx={n.svgX} cy={n.svgY}
-                    style={{ ['--pr2' as string]: `${pr2}px` }}
-                    r={pr2}
-                    fill="none"
-                    stroke={n.renk}
-                    strokeWidth="0.6"
-                    strokeOpacity="0.3"
-                    className="svg-pulse-2"
-                  />
-                </>
-              )}
-
-              {isSecili && (
-                <circle cx={n.svgX} cy={n.svgY} r={n.r + 7}
-                  fill="none" stroke={n.renk} strokeWidth="1.5" strokeOpacity="0.85"
-                  strokeDasharray="3 2" />
-              )}
-
-              {n.hasData ? (
-                <g className="marker-core">
-                  <circle
-                    cx={n.svgX} cy={n.svgY} r={n.r}
-                    fill={n.renk + 'cc'}
-                    stroke={n.renk}
-                    strokeWidth="1.5"
-                    filter="url(#ohGlow)"
-                  />
-                  <text
-                    x={n.svgX} y={n.svgY + 1}
-                    fontSize={n.r > 12 ? '8' : '6.5'}
-                    fontWeight="900"
-                    fontFamily="monospace"
-                    fill="white"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    {n.testSayisi}
-                  </text>
-                  {n.pozitifSayisi > 0 && n.r > 11 && (
-                    <text
-                      x={n.svgX} y={n.svgY + n.r + 6}
-                      fontSize="5.5"
-                      fontWeight="700"
-                      fontFamily="monospace"
-                      fill={n.renk}
-                      textAnchor="middle"
-                      style={{ pointerEvents: 'none' }}
-                    >
-                      +{n.pozitifSayisi}
-                    </text>
-                  )}
-                </g>
-              ) : (
-                <g className="marker-core">
-                  <circle
-                    cx={n.svgX} cy={n.svgY} r={n.r}
-                    fill={n.renk + '18'}
-                    stroke={n.renk + '50'}
-                    strokeWidth="0.8"
-                  />
-                  <text
-                    x={n.svgX} y={n.svgY + 1}
-                    fontSize="5"
-                    fontWeight="900"
-                    fontFamily="monospace"
-                    fill={n.renk + '90'}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    {TIP_HARF[n.tip]}
-                  </text>
-                </g>
-              )}
-
-              {isCanli && (
-                <circle cx={n.svgX} cy={n.svgY} r={n.r}
-                  fill="none" stroke="white" strokeWidth="1" strokeOpacity="0.5"
-                  className="svg-canli" />
-              )}
-            </g>
-          );
-        })}
-
+        {/* Post-process overlays */}
         <rect width={VB_W} height={VB_H} fill="url(#ohScanlines)" style={{ pointerEvents: 'none' }} />
-        <rect width={VB_W} height={VB_H} fill="url(#ohVignette)" style={{ pointerEvents: 'none' }} />
+        <rect width={VB_W} height={VB_H} fill="url(#ohVignette)"  style={{ pointerEvents: 'none' }} />
 
-        <path d="M 2,22 L 2,2 L 22,2" stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M ${VB_W - 2},22 L ${VB_W - 2},2 L ${VB_W - 22},2`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M 2,${VB_H - 22} L 2,${VB_H - 2} L 22,${VB_H - 2}`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M ${VB_W - 2},${VB_H - 22} L ${VB_W - 2},${VB_H - 2} L ${VB_W - 22},${VB_H - 2}`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        {/* HUD corner brackets */}
+        <g style={{ pointerEvents: 'none' }}>
+          <path d="M 2,26 L 2,2 L 26,2" stroke="rgba(0,212,255,0.7)" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d={`M ${VB_W-2},26 L ${VB_W-2},2 L ${VB_W-26},2`} stroke="rgba(0,212,255,0.7)" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d={`M 2,${VB_H-26} L 2,${VB_H-2} L 26,${VB_H-2}`} stroke="rgba(0,212,255,0.7)" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d={`M ${VB_W-2},${VB_H-26} L ${VB_W-2},${VB_H-2} L ${VB_W-26},${VB_H-2}`} stroke="rgba(0,212,255,0.7)" strokeWidth="2" fill="none" strokeLinecap="round" />
 
-        <text x={28} y={14} fontSize="8" fontWeight="900" fontFamily="monospace" fill="rgba(0,212,255,0.55)" letterSpacing="2" style={{ pointerEvents: 'none' }}>
-          TÜRKİYE · TAKTİK HARITA
-        </text>
-        <text x={VB_W - 8} y={14} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.35)" textAnchor="end" style={{ pointerEvents: 'none' }}>
-          {tick % 2 === 0 ? '●' : '○'} CANLI · {gosterilecekler.length} NOKTA
-        </text>
-        <text x={VB_W - 8} y={VB_H - 6} fontSize="6.5" fontFamily="monospace" fill="rgba(0,212,255,0.18)" textAnchor="end" style={{ pointerEvents: 'none' }}>
-          © simplemaps.com · SENTEK GEO v3
-        </text>
+          {/* Corner inner accent dots */}
+          <circle cx={2} cy={2} r={2} fill="rgba(0,212,255,0.6)" />
+          <circle cx={VB_W-2} cy={2} r={2} fill="rgba(0,212,255,0.6)" />
+          <circle cx={2} cy={VB_H-2} r={2} fill="rgba(0,212,255,0.6)" />
+          <circle cx={VB_W-2} cy={VB_H-2} r={2} fill="rgba(0,212,255,0.6)" />
+
+          {/* Status bar */}
+          <text x={32} y={15} fontSize="8.5" fontWeight="900" fontFamily="monospace"
+            fill="rgba(0,212,255,0.65)" letterSpacing="2">
+            TÜRKİYE · TAKTİK HARITA
+          </text>
+          <text x={VB_W-10} y={15} fontSize="8" fontFamily="monospace"
+            fill="rgba(0,212,255,0.40)" textAnchor="end">
+            {tick % 2 === 0 ? '●' : '○'} CANLI · {gosterilecekler.length} NOKTA
+          </text>
+          <text x={VB_W-10} y={VB_H-5} fontSize="6.5" fontFamily="monospace"
+            fill="rgba(0,212,255,0.15)" textAnchor="end">
+            © simplemaps.com · SENTEK GEO v3
+          </text>
+
+          {/* Top scan line accent */}
+          <line x1={32} y1={18} x2={240} y2={18}
+            stroke="rgba(0,212,255,0.25)" strokeWidth="0.5" />
+
+          {/* Bottom edge glow line */}
+          <line x1={0} y1={VB_H-1} x2={VB_W} y2={VB_H-1}
+            stroke="rgba(0,212,255,0.18)" strokeWidth="1" />
+        </g>
       </svg>
 
+      {/* ── HTML Overlays — outside SVG, not affected by preserveAspectRatio ── */}
+
+      {/* Filter buttons */}
       <div className="absolute flex gap-1.5" style={{ zIndex: 500, top: 58, left: 16 }}>
         {(Object.keys(FILTRE_LABELS) as Filtre[]).map(f => (
           <button key={f} onClick={() => setFiltre(f)}
             className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all border ${
               filtre === f
                 ? 'bg-primary/15 border-primary/40 text-primary'
-                : 'border-white/8 text-muted-foreground hover:border-white/15'
+                : 'border-white/8 text-muted-foreground hover:border-white/15 hover:text-foreground/70'
             }`}
-            style={{ backdropFilter: 'blur(12px)', background: filtre === f ? undefined : 'rgba(4,8,20,0.82)' }}>
+            style={{ backdropFilter: 'blur(14px)', background: filtre === f ? undefined : 'rgba(4,8,20,0.82)' }}>
             {FILTRE_LABELS[f]}
           </button>
         ))}
       </div>
 
+      {/* Selected location detail panel */}
       {secilenNokta && (
-        <div className="absolute w-60 rounded-xl border p-3 text-xs space-y-2"
-          style={{ zIndex: 500, top: 58, right: 8, background: 'rgba(5,9,22,0.97)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+        <div className="absolute w-62 rounded-xl p-3.5 space-y-2.5"
+          style={{ zIndex: 500, top: 58, right: 10,
+            background: 'rgba(4,9,24,0.97)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0,212,255,0.18)',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <span className="text-[9px] font-black tracking-[0.18em] uppercase px-1.5 py-0.5 rounded"
-                style={{ backgroundColor: `${TIP_RENK[secilenNokta.tip]}15`, color: TIP_RENK[secilenNokta.tip], border: `1px solid ${TIP_RENK[secilenNokta.tip]}30` }}>
+              <span className="text-[10px] font-black tracking-[0.18em] uppercase px-2 py-0.5 rounded-md"
+                style={{ backgroundColor: `${TIP_RENK[secilenNokta.tip]}12`,
+                  color: TIP_RENK[secilenNokta.tip],
+                  border: `1px solid ${TIP_RENK[secilenNokta.tip]}30` }}>
                 {TIP_LABEL[secilenNokta.tip]}
               </span>
-              <p className="font-bold text-foreground mt-1.5 leading-tight">{secilenNokta.lokasyon}</p>
+              <p className="font-bold text-[13px] text-foreground mt-2 leading-tight">{secilenNokta.lokasyon}</p>
             </div>
-            <button onClick={() => setSecilenNokta(null)} className="text-muted-foreground/60 hover:text-foreground text-base leading-none flex-shrink-0 mt-0.5">×</button>
+            <button onClick={() => setSecilenNokta(null)}
+              className="text-muted-foreground/50 hover:text-foreground text-lg leading-none flex-shrink-0 mt-0.5 transition-colors">×</button>
           </div>
 
           {secilenNokta.testSayisi > 0 ? (
             <>
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  { l: 'Test', v: secilenNokta.testSayisi, c: '#00D4FF' },
-                  { l: 'Poz', v: secilenNokta.pozitifSayisi, c: secilenNokta.pozitifSayisi > 0 ? '#EF4444' : '#334155' },
-                  { l: 'Neg', v: secilenNokta.negatifSayisi, c: '#10B981' },
-                  { l: 'Geç', v: secilenNokta.gecersizSayisi, c: '#64748B' },
+                  { l: 'Test', v: secilenNokta.testSayisi,    c: '#00D4FF' },
+                  { l: 'Poz',  v: secilenNokta.pozitifSayisi, c: secilenNokta.pozitifSayisi > 0 ? '#EF4444' : '#334155' },
+                  { l: 'Neg',  v: secilenNokta.negatifSayisi, c: '#10B981' },
+                  { l: 'Geç',  v: secilenNokta.gecersizSayisi,c: '#64748B' },
                 ].map(({ l, v, c }) => (
-                  <div key={l} className="rounded-lg py-1.5 text-center" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <p className="text-[13px] font-black font-mono" style={{ color: c }}>{v}</p>
-                    <p className="text-[8px] text-muted-foreground uppercase tracking-wider">{l}</p>
+                  <div key={l} className="rounded-lg py-2 text-center"
+                    style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <p className="text-[14px] font-black font-mono" style={{ color: c }}>{v}</p>
+                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-0.5">{l}</p>
                   </div>
                 ))}
               </div>
               {secilenNokta.pozitifSayisi > 0 && (
-                <div className="w-full bg-black/20 rounded-full h-1 overflow-hidden">
-                  <div className="h-full rounded-full bg-red-500 transition-all"
+                <div className="w-full bg-black/30 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-500 transition-all"
                     style={{ width: `${Math.round(secilenNokta.pozitifSayisi / secilenNokta.testSayisi * 100)}%` }} />
                 </div>
               )}
               {secilenNokta.sonMadde && (
-                <div className="rounded-lg px-2.5 py-1.5" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <p className="text-[9px] text-red-400/70 uppercase tracking-wider mb-0.5">Son Pozitif Madde</p>
-                  <p className="text-xs font-bold text-red-300">{secilenNokta.sonMadde}</p>
+                <div className="rounded-lg px-2.5 py-2"
+                  style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                  <p className="text-[9px] text-red-400/60 uppercase tracking-wider mb-0.5">Son Pozitif Madde</p>
+                  <p className="text-[12px] font-bold text-red-300">{secilenNokta.sonMadde}</p>
                 </div>
               )}
               {secilenNokta.sonTestTarihi && (
-                <p className="text-[9px] font-mono text-muted-foreground/50">
+                <p className="text-[9px] font-mono text-muted-foreground/40">
                   Son: {new Date(secilenNokta.sonTestTarihi).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-[10px] text-muted-foreground/50 italic py-2 text-center">Henüz test kaydı yok</p>
+            <p className="text-[11px] text-muted-foreground/45 italic py-2 text-center">Henüz test kaydı yok</p>
           )}
         </div>
       )}
 
+      {/* Legend */}
       {!compact && (
-        <div className="absolute bottom-3 left-3 rounded-xl p-3 text-xs space-y-1.5" style={{
-          zIndex: 10,
-          background: 'rgba(5,9,22,0.93)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(0,212,255,0.1)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-        }}>
-          <p className="font-black text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-2">Gösterge</p>
+        <div className="absolute rounded-xl p-3 space-y-1.5"
+          style={{ zIndex: 10, bottom: 12, left: 12,
+            background: 'rgba(4,9,24,0.92)', backdropFilter: 'blur(14px)',
+            border: '1px solid rgba(0,212,255,0.10)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.03)' }}>
+          <p className="font-black text-[9px] uppercase tracking-[0.22em] text-muted-foreground/60 mb-2.5">Gösterge</p>
           {[
-            { renk: '#ef4444', label: 'Yüksek pozitif' },
+            { renk: '#ef4444', label: 'Yüksek pozitif  (>40%)' },
             { renk: '#f97316', label: 'Orta pozitif' },
             { renk: '#00D4FF', label: 'Temiz / aktif' },
           ].map(({ renk, label }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: renk, boxShadow: `0 0 6px ${renk}88` }} />
-              <span className="text-muted-foreground text-[10px]">{label}</span>
+            <div key={label} className="flex items-center gap-2.5">
+              <div className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ background: renk, boxShadow: `0 0 8px ${renk}88` }} />
+              <span className="text-muted-foreground/70 text-[10px]">{label}</span>
             </div>
           ))}
-          <div className="border-t pt-1.5 mt-1 space-y-1" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+          <div className="border-t pt-2 mt-1.5 space-y-1.5" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
             {(['sinir', 'liman', 'havalimanı', 'karayolu'] as LokasyonTipi[]).map(t => (
-              <div key={t} className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full border flex items-center justify-center flex-shrink-0"
-                  style={{ borderColor: TIP_RENK[t] + '55', background: TIP_RENK[t] + '12' }}>
-                  <span style={{ fontSize: '5px', color: TIP_RENK[t], fontWeight: 900 }}>{TIP_HARF[t]}</span>
+              <div key={t} className="flex items-center gap-2.5">
+                <div className="w-3 h-3 rounded-full border flex items-center justify-center flex-shrink-0"
+                  style={{ borderColor: TIP_RENK[t] + '55', background: TIP_RENK[t] + '14' }}>
+                  <span style={{ fontSize: '5.5px', color: TIP_RENK[t], fontWeight: 900 }}>{TIP_HARF[t]}</span>
                 </div>
-                <span className="text-muted-foreground/60 text-[10px]">{TIP_LABEL[t]}</span>
+                <span className="text-muted-foreground/55 text-[10px]">{TIP_LABEL[t]}</span>
               </div>
             ))}
           </div>
