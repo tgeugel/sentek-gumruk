@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { TestKaydi } from '../../types';
 import TR_ILLER from '../../data/turkiyeIller';
 
@@ -289,16 +289,9 @@ interface OperasyonHaritaProps {
   compact?: boolean;
 }
 
-export function OperasyonHarita({ testKayitlari, canliOlay, compact }: OperasyonHaritaProps) {
+export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, canliOlay, compact }: OperasyonHaritaProps) {
   const [secilenNokta, setSecilenNokta] = useState<NoktaDetay | null>(null);
   const [filtre, setFiltre] = useState<Filtre>('tumu');
-  const [tick, setTick] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 2000);
-    return () => clearInterval(id);
-  }, []);
 
   const noktalar = useMemo((): NokData[] => {
     return Object.entries(LOKASYON_KOORDINATLARI).map(([lokasyon, [lat, lng]]) => {
@@ -352,36 +345,8 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
   const gridLats = [37, 38, 39, 40, 41, 42];
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden"
+    <div className="relative w-full h-full overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)' }}>
-
-      <style>{`
-        @keyframes svgRingPulse {
-          0%   { transform: scale(1);   opacity: 0.82; }
-          100% { transform: scale(4.2); opacity: 0; }
-        }
-        @keyframes svgBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.15; }
-        }
-        .svg-pulse-1 {
-          animation: svgRingPulse 2.5s ease-out infinite;
-          transform-box: fill-box; transform-origin: center;
-        }
-        .svg-pulse-2 {
-          animation: svgRingPulse 2.5s ease-out infinite 0.7s;
-          transform-box: fill-box; transform-origin: center;
-        }
-        .svg-pulse-3 {
-          animation: svgRingPulse 2.5s ease-out infinite 1.4s;
-          transform-box: fill-box; transform-origin: center;
-        }
-        .svg-marker  { cursor: pointer; }
-        .svg-marker:hover .marker-core { filter: brightness(1.35); }
-        .svg-canli   { animation: svgBlink 1s ease-in-out infinite; }
-        .il-path     { transition: fill 0.25s ease; }
-        .il-path:hover { fill: rgba(0,212,255,0.14) !important; }
-      `}</style>
 
       {/* ── SVG MAP — slice fills container fully, no gaps ───────────────── */}
       <svg
@@ -499,7 +464,7 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
           </text>
           <text x={VB_W-10} y={15} fontSize="8" fontFamily="monospace"
             fill="rgba(0,212,255,0.40)" textAnchor="end">
-            {tick % 2 === 0 ? '●' : '○'} CANLI · {gosterilecekler.length} NOKTA
+            ● CANLI · {gosterilecekler.length} NOKTA
           </text>
           <text x={VB_W-10} y={VB_H-5} fontSize="6.5" fontFamily="monospace"
             fill="rgba(0,212,255,0.15)" textAnchor="end">
@@ -629,4 +594,8 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       )}
     </div>
   );
-}
+}, (prev, next) =>
+  prev.canliOlay === next.canliOlay &&
+  prev.compact === next.compact &&
+  prev.testKayitlari === next.testKayitlari
+);
