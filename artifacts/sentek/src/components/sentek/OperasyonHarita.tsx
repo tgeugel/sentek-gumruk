@@ -275,16 +275,21 @@ interface OperasyonHaritaProps {
 }
 
 export const OperasyonHarita = memo(function OperasyonHarita({ compact }: OperasyonHaritaProps) {
-  const testKayitlari = (useLiveQuery(
+  const rawTestler = useLiveQuery(
     () => db.testKayitlari.orderBy('tarih').reverse().toArray(),
-    [],
     []
-  ) as TestKaydi[]) ?? [];
+  );
+  const testKayitlari: TestKaydi[] = (rawTestler as TestKaydi[] | undefined) ?? [];
 
   const [secilenNokta, setSecilenNokta] = useState<NoktaDetay | null>(null);
   const [filtre, setFiltre] = useState<Filtre>('tumu');
 
   const noktalar = useMemo((): NokData[] => {
+    if (!testKayitlari || testKayitlari.length === 0) return Object.entries(LOKASYON_KOORDINATLARI).map(([lokasyon, [lat, lng]]) => {
+      const tip = (LOKASYON_TIP[lokasyon] || 'mobil') as LokasyonTipi;
+      const [svgX, svgY] = project(lat, lng);
+      return { lokasyon, tip, svgX, svgY, testSayisi: 0, pozitifSayisi: 0, negatifSayisi: 0, gecersizSayisi: 0, renk: TIP_RENK[tip], r: 5, hasData: false, hasPozitif: false };
+    });
     return Object.entries(LOKASYON_KOORDINATLARI).map(([lokasyon, [lat, lng]]) => {
       const tip = (LOKASYON_TIP[lokasyon] || 'mobil') as LokasyonTipi;
       const kayitlar = testKayitlari.filter(t => t.lokasyon === lokasyon);
