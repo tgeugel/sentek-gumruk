@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { TestKaydi } from '../../types';
+import TR_ILLER from '../../data/turkiyeIller';
 
 type LokasyonTipi = 'sinir' | 'liman' | 'havalimanı' | 'karayolu' | 'antrepo' | 'posta' | 'mobil';
 type Filtre = 'tumu' | 'aktif' | 'pozitif';
@@ -83,38 +84,17 @@ const TIP_RENK: Record<LokasyonTipi, string> = {
   karayolu: '#F59E0B', antrepo: '#6366F1', posta: '#EC4899', mobil: '#10B981',
 };
 
-const SVG_W = 840;
-const SVG_H = 430;
-const LNG_MIN = 25.5;
-const LAT_MAX = 43.5;
-const LNG_SCALE = 42;
-const LAT_SCALE = 52.5;
+const VB_W = 1000;
+const VB_H = 422;
 
 function project(lat: number, lng: number): [number, number] {
+  const x = Math.round(60 + (lng - 26) * 47.9);
+  const y = Math.round(5 + (42 - lat) * 66.9);
   return [
-    Math.round((lng - LNG_MIN) * LNG_SCALE),
-    Math.round((LAT_MAX - lat) * LAT_SCALE),
+    Math.max(8, Math.min(VB_W - 8, x)),
+    Math.max(8, Math.min(VB_H - 8, y)),
   ];
 }
-
-const THRACE_PATH =
-  'M 34,76 L 81,81 L 101,95 L 146,118 L 146,131 ' +
-  'L 126,137 L 103,147 L 84,158 L 69,163 L 50,163 ' +
-  'L 29,142 L 29,118 L 29,95 Z';
-
-const ANATOLIA_PATH =
-  'M 38,176 L 29,210 L 42,242 L 59,255 L 69,268 L 73,286 ' +
-  'L 73,297 L 67,326 L 71,341 L 92,352 L 118,361 L 146,372 ' +
-  'L 171,383 L 231,365 L 273,368 L 294,367 L 357,362 L 384,351 ' +
-  'L 438,363 L 449,356 L 469,365 L 490,346 L 533,349 ' +
-  'L 609,337 L 660,339 L 714,332 ' +
-  'L 811,313 L 811,263 L 806,216 L 792,195 L 754,158 ' +
-  'L 735,129 L 672,105 ' +
-  'L 638,126 L 596,126 L 559,129 L 521,113 L 487,115 ' +
-  'L 441,102 L 403,89 L 361,74 ' +
-  'L 273,87 L 231,115 L 189,110 L 151,126 ' +
-  'L 147,129 L 147,133 L 164,141 L 183,143 L 179,146 L 178,152 ' +
-  'L 151,163 L 126,163 L 104,163 L 78,174 L 48,176 Z';
 
 interface OperasyonHaritaProps {
   testKayitlari: TestKaydi[];
@@ -147,7 +127,7 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       const [svgX, svgY] = project(lat, lng);
       const oran = testSayisi > 0 ? pozitifSayisi / testSayisi : 0;
       const renk = pozitifSayisi > 0 ? (oran > 0.4 ? '#ef4444' : '#f97316') : TIP_RENK[tip];
-      const r = testSayisi > 0 ? Math.min(8 + testSayisi * 0.9, 18) : 5;
+      const r = testSayisi > 0 ? Math.min(7 + testSayisi * 0.8, 16) : 5;
       return {
         lokasyon, tip, lat, lng, svgX, svgY,
         testSayisi, pozitifSayisi, negatifSayisi: negatifler.length,
@@ -171,93 +151,121 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
     pozitif: 'Pozitif',
   };
 
-  const gridLngs = [27, 29, 31, 33, 35, 37, 39, 41, 43, 45];
-  const gridLats = [37, 38, 39, 40, 41, 42, 43];
+  const gridLngs = [28, 30, 32, 34, 36, 38, 40, 42, 44];
+  const gridLats = [37, 38, 39, 40, 41, 42];
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ background: '#03060f' }}>
       <style>{`
         @keyframes svgPulse1 {
           0%   { r: var(--pr1); opacity: 0.7; }
-          100% { r: calc(var(--pr1) + 10); opacity: 0; }
+          100% { r: calc(var(--pr1) + 12); opacity: 0; }
         }
         @keyframes svgPulse2 {
           0%   { r: var(--pr2); opacity: 0.5; }
-          100% { r: calc(var(--pr2) + 18); opacity: 0; }
+          100% { r: calc(var(--pr2) + 20); opacity: 0; }
         }
         @keyframes svgBlink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
         }
-        .svg-pulse-1 { animation: svgPulse1 1.8s ease-out infinite; }
-        .svg-pulse-2 { animation: svgPulse2 1.8s ease-out infinite 0.4s; }
+        .svg-pulse-1 { animation: svgPulse1 2s ease-out infinite; }
+        .svg-pulse-2 { animation: svgPulse2 2s ease-out infinite 0.5s; }
         .svg-marker { cursor: pointer; transition: all 0.15s ease; }
-        .svg-marker:hover { filter: brightness(1.4); }
+        .svg-marker:hover .marker-core { filter: brightness(1.5); }
         .svg-canli { animation: svgBlink 1.2s ease-in-out infinite; }
+        .il-path { transition: fill 0.2s ease; }
+        .il-path:hover { fill: rgba(0,212,255,0.18) !important; }
       `}</style>
 
       <svg
-        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
         width="100%"
         height="100%"
         style={{ display: 'block' }}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#060d1f" />
+          <radialGradient id="ohBgGrad" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#050d20" />
             <stop offset="100%" stopColor="#02040b" />
           </radialGradient>
-          <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-            <stop offset="40%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(2,4,12,0.65)" />
+          <radialGradient id="ohVignette" cx="50%" cy="50%" r="70%">
+            <stop offset="35%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(2,4,12,0.7)" />
           </radialGradient>
-          <filter id="glow">
+          <filter id="ohGlow">
             <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          <filter id="glowStrong">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter id="ohGlowStrong">
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          <pattern id="scanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
+          <pattern id="ohScanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
             <rect x="0" y="0" width="1" height="3" fill="transparent" />
-            <rect x="0" y="3" width="1" height="1" fill="rgba(0,212,255,0.012)" />
+            <rect x="0" y="3" width="1" height="1" fill="rgba(0,212,255,0.010)" />
           </pattern>
+          <linearGradient id="ohSeaLeft" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="rgba(0,30,70,0.6)" />
+            <stop offset="100%" stopColor="rgba(0,30,70,0)" />
+          </linearGradient>
+          <linearGradient id="ohSeaRight" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="rgba(0,30,70,0)" />
+            <stop offset="100%" stopColor="rgba(0,30,70,0.6)" />
+          </linearGradient>
         </defs>
 
-        <rect width={SVG_W} height={SVG_H} fill="url(#bgGrad)" />
+        <rect width={VB_W} height={VB_H} fill="url(#ohBgGrad)" />
 
         {gridLngs.map(lng => {
-          const x = (lng - LNG_MIN) * LNG_SCALE;
+          const x = project(40, lng)[0];
           return (
             <g key={`vg-${lng}`}>
-              <line x1={x} y1={0} x2={x} y2={SVG_H} stroke="rgba(0,212,255,0.045)" strokeWidth="0.5" />
-              <text x={x} y={SVG_H - 4} fontSize="7" fill="rgba(0,212,255,0.22)" textAnchor="middle" fontFamily="monospace">{lng}°E</text>
+              <line x1={x} y1={0} x2={x} y2={VB_H} stroke="rgba(0,212,255,0.04)" strokeWidth="0.5" />
+              <text x={x} y={VB_H - 5} fontSize="7" fill="rgba(0,212,255,0.18)" textAnchor="middle" fontFamily="monospace">{lng}°E</text>
             </g>
           );
         })}
         {gridLats.map(lat => {
-          const y = (LAT_MAX - lat) * LAT_SCALE;
+          const y = project(lat, 36)[1];
           return (
             <g key={`hg-${lat}`}>
-              <line x1={0} y1={y} x2={SVG_W} y2={y} stroke="rgba(0,212,255,0.045)" strokeWidth="0.5" />
-              <text x={4} y={y - 2} fontSize="7" fill="rgba(0,212,255,0.22)" fontFamily="monospace">{lat}°N</text>
+              <line x1={0} y1={y} x2={VB_W} y2={y} stroke="rgba(0,212,255,0.04)" strokeWidth="0.5" />
+              <text x={6} y={y - 3} fontSize="7" fill="rgba(0,212,255,0.18)" fontFamily="monospace">{lat}°N</text>
             </g>
           );
         })}
 
-        <path d={THRACE_PATH} fill="rgba(6,18,42,0.9)" stroke="rgba(0,212,255,0.35)" strokeWidth="1" strokeLinejoin="round" />
-        <path d={ANATOLIA_PATH} fill="rgba(6,18,42,0.9)" stroke="rgba(0,212,255,0.35)" strokeWidth="1" strokeLinejoin="round" />
+        {TR_ILLER.map(il => (
+          <path
+            key={il.id}
+            d={il.d}
+            className="il-path"
+            fill="rgba(5,15,38,0.92)"
+            stroke="rgba(0,212,255,0.28)"
+            strokeWidth="0.6"
+            strokeLinejoin="round"
+          />
+        ))}
 
-        <path d={THRACE_PATH} fill="none" stroke="rgba(0,212,255,0.12)" strokeWidth="4" strokeLinejoin="round" />
-        <path d={ANATOLIA_PATH} fill="none" stroke="rgba(0,212,255,0.12)" strokeWidth="4" strokeLinejoin="round" />
+        {TR_ILLER.map(il => (
+          <path
+            key={`glow-${il.id}`}
+            d={il.d}
+            fill="none"
+            stroke="rgba(0,212,255,0.07)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+            style={{ pointerEvents: 'none' }}
+          />
+        ))}
 
         {gosterilecekler.map(n => {
           const isCanli = canliOlay === n.lokasyon;
           const isSecili = secilenNokta?.lokasyon === n.lokasyon;
           const pr1 = n.r + 5;
-          const pr2 = n.r + 10;
+          const pr2 = n.r + 11;
           return (
             <g
               key={n.lokasyon}
@@ -278,7 +286,7 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
                     fill="none"
                     stroke={n.renk}
                     strokeWidth="1"
-                    strokeOpacity="0.6"
+                    strokeOpacity="0.55"
                     className="svg-pulse-1"
                   />
                   <circle
@@ -287,8 +295,8 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
                     r={pr2}
                     fill="none"
                     stroke={n.renk}
-                    strokeWidth="0.7"
-                    strokeOpacity="0.35"
+                    strokeWidth="0.6"
+                    strokeOpacity="0.3"
                     className="svg-pulse-2"
                   />
                 </>
@@ -296,22 +304,22 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
 
               {isSecili && (
                 <circle cx={n.svgX} cy={n.svgY} r={n.r + 7}
-                  fill="none" stroke={n.renk} strokeWidth="1.5" strokeOpacity="0.8"
+                  fill="none" stroke={n.renk} strokeWidth="1.5" strokeOpacity="0.85"
                   strokeDasharray="3 2" />
               )}
 
               {n.hasData ? (
-                <>
+                <g className="marker-core">
                   <circle
                     cx={n.svgX} cy={n.svgY} r={n.r}
                     fill={n.renk + 'cc'}
                     stroke={n.renk}
                     strokeWidth="1.5"
-                    filter="url(#glow)"
+                    filter="url(#ohGlow)"
                   />
                   <text
                     x={n.svgX} y={n.svgY + 1}
-                    fontSize={n.r > 13 ? '8' : '6.5'}
+                    fontSize={n.r > 12 ? '8' : '6.5'}
                     fontWeight="900"
                     fontFamily="monospace"
                     fill="white"
@@ -334,28 +342,28 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
                       +{n.pozitifSayisi}
                     </text>
                   )}
-                </>
+                </g>
               ) : (
-                <>
+                <g className="marker-core">
                   <circle
                     cx={n.svgX} cy={n.svgY} r={n.r}
                     fill={n.renk + '18'}
-                    stroke={n.renk + '55'}
-                    strokeWidth="1"
+                    stroke={n.renk + '50'}
+                    strokeWidth="0.8"
                   />
                   <text
                     x={n.svgX} y={n.svgY + 1}
                     fontSize="5"
                     fontWeight="900"
                     fontFamily="monospace"
-                    fill={n.renk + '88'}
+                    fill={n.renk + '90'}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{ pointerEvents: 'none' }}
                   >
                     {TIP_HARF[n.tip]}
                   </text>
-                </>
+                </g>
               )}
 
               {isCanli && (
@@ -367,23 +375,22 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
           );
         })}
 
-        <rect width={SVG_W} height={SVG_H} fill="url(#scanlines)" style={{ pointerEvents: 'none' }} />
-        <rect width={SVG_W} height={SVG_H} fill="url(#vignette)" style={{ pointerEvents: 'none' }} />
+        <rect width={VB_W} height={VB_H} fill="url(#ohScanlines)" style={{ pointerEvents: 'none' }} />
+        <rect width={VB_W} height={VB_H} fill="url(#ohVignette)" style={{ pointerEvents: 'none' }} />
 
-        <path d="M 2,22 L 2,2 L 22,2" stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M ${SVG_W - 2},22 L ${SVG_W - 2},2 L ${SVG_W - 22},2`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M 2,${SVG_H - 22} L 2,${SVG_H - 2} L 22,${SVG_H - 2}`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-        <path d={`M ${SVG_W - 2},${SVG_H - 22} L ${SVG_W - 2},${SVG_H - 2} L ${SVG_W - 22},${SVG_H - 2}`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d="M 2,22 L 2,2 L 22,2" stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M ${VB_W - 2},22 L ${VB_W - 2},2 L ${VB_W - 22},2`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M 2,${VB_H - 22} L 2,${VB_H - 2} L 22,${VB_H - 2}`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M ${VB_W - 2},${VB_H - 22} L ${VB_W - 2},${VB_H - 2} L ${VB_W - 22},${VB_H - 2}`} stroke="rgba(0,212,255,0.6)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
 
-        <text x={8} y={14} fontSize="8" fontWeight="900" fontFamily="monospace" fill="rgba(0,212,255,0.5)" letterSpacing="2" style={{ pointerEvents: 'none' }}>
-          TÜRKİYE · TAKTİK HARITA v2
+        <text x={28} y={14} fontSize="8" fontWeight="900" fontFamily="monospace" fill="rgba(0,212,255,0.55)" letterSpacing="2" style={{ pointerEvents: 'none' }}>
+          TÜRKİYE · TAKTİK HARITA
         </text>
-        <text x={SVG_W - 8} y={14} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.35)" textAnchor="end" style={{ pointerEvents: 'none' }}>
-          {tick % 2 === 0 ? '●' : '○'} CANLI
+        <text x={VB_W - 8} y={14} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.35)" textAnchor="end" style={{ pointerEvents: 'none' }}>
+          {tick % 2 === 0 ? '●' : '○'} CANLI · {gosterilecekler.length} NOKTA
         </text>
-
-        <text x={SVG_W - 8} y={SVG_H - 6} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.2)" textAnchor="end" style={{ pointerEvents: 'none' }}>
-          SENTEK COĞRAFYA MODELİ · {gosterilecekler.length} NOKTA AKTİF
+        <text x={VB_W - 8} y={VB_H - 6} fontSize="6.5" fontFamily="monospace" fill="rgba(0,212,255,0.18)" textAnchor="end" style={{ pointerEvents: 'none' }}>
+          © simplemaps.com · SENTEK GEO v3
         </text>
       </svg>
 
@@ -403,7 +410,7 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
 
       {secilenNokta && (
         <div className="absolute top-12 right-2 w-56 rounded-xl border p-3 text-xs space-y-2"
-          style={{ zIndex: 10, background: 'rgba(5,9,22,0.96)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+          style={{ zIndex: 10, background: 'rgba(5,9,22,0.97)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <span className="text-[9px] font-black tracking-[0.18em] uppercase px-1.5 py-0.5 rounded"

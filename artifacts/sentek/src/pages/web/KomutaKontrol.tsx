@@ -234,7 +234,7 @@ export default function KomutaKontrol() {
   ];
 
   return (
-    <div className="flex flex-col h-full overflow-auto" style={{ minHeight: 0 }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ minHeight: 0 }}>
 
       {/* ─── HEADER ─────────────────────────────────────── */}
       <div className="flex-shrink-0 px-5 py-3 flex items-center justify-between gap-4"
