@@ -115,27 +115,28 @@ function AkisKarti({ olay }: { olay: AkisOlayi }) {
   const Icon = cfg.icon;
   return (
     <motion.div
-      initial={{ opacity: 0, x: 14, scale: 0.97 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 16, scale: 0.96 }}
-      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className={`flex items-start gap-2 p-2 transition-all ${cfg.alertClass}`}
+      layout={false}
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className={`flex items-start gap-2 p-2.5 transition-all ${cfg.alertClass}`}
     >
-      <div className={`w-6 h-6 rounded-md border ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-        <Icon className={`w-3 h-3 ${cfg.renk}`} />
+      <div className={`w-7 h-7 rounded-md border ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+        <Icon className={`w-3.5 h-3.5 ${cfg.renk}`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-          <span className={`text-[9px] font-black tracking-widest ${cfg.renk}`}>{cfg.etiket}</span>
+          <span className={`text-[10px] font-black tracking-widest ${cfg.renk}`}>{cfg.etiket}</span>
           {olay.operasyonNo && (
-            <span className="text-[9px] font-mono text-primary/60">{olay.operasyonNo}</span>
+            <span className="text-[10px] font-mono text-primary/60">{olay.operasyonNo}</span>
           )}
         </div>
-        <p className="text-[10px] text-foreground/90 leading-snug">{olay.mesaj}</p>
-        <p className="text-[9px] text-muted-foreground/35 mt-0.5 flex items-center gap-1">
-          <MapPin className="w-2 h-2 flex-shrink-0" /><span className="truncate">{olay.lokasyon}</span>
+        <p className="text-[11px] text-foreground/90 leading-snug">{olay.mesaj}</p>
+        <p className="text-[10px] text-muted-foreground/40 mt-0.5 flex items-center gap-1">
+          <MapPin className="w-2.5 h-2.5 flex-shrink-0" /><span className="truncate">{olay.lokasyon}</span>
           <span className="text-muted-foreground/20 mx-0.5 flex-shrink-0">·</span>
-          <Clock className="w-2 h-2 flex-shrink-0" />{timeAgo(olay.zaman)}
+          <Clock className="w-2.5 h-2.5 flex-shrink-0" />{timeAgo(olay.zaman)}
         </p>
       </div>
     </motion.div>
@@ -174,7 +175,7 @@ export default function KomutaKontrol() {
       olaySayacRef.current++;
       const template = DEMO_OLAYLAR[sira];
       const yeni: AkisOlayi = { ...template, id: `live-${Date.now()}`, zaman: new Date().toISOString() };
-      setAkis(prev => [yeni, ...prev.slice(0, 49)]);
+      setAkis(prev => [yeni, ...prev.slice(0, 11)]);
       setAktifLokasyon(yeni.lokasyon);
     }, 4500);
     return () => clearInterval(interval);
@@ -302,18 +303,18 @@ export default function KomutaKontrol() {
             {/* Top gradient + title */}
             <div className="absolute top-0 left-0 right-0 pointer-events-none"
               style={{ height: 60, background: 'linear-gradient(to bottom, rgba(5,9,22,0.82) 0%, transparent 100%)', zIndex: 450 }}>
-              <div className="flex items-center justify-between px-4 pt-2.5 pointer-events-auto" style={{ paddingLeft: 52 }}>
+              <div className="flex items-center justify-between px-4 pt-2.5 pointer-events-none" style={{ paddingLeft: 52 }}>
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="text-[9px] font-black tracking-[0.25em] uppercase text-gradient-cyan">
+                  <span className="text-[10px] font-black tracking-[0.25em] uppercase text-gradient-cyan">
                     TÜRKİYE NARKOTİK OPERASYON AĞRI
                   </span>
                 </div>
                 {aktifLokasyon && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full pointer-events-auto"
                     style={{ background: 'rgba(0,212,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0,212,255,0.22)' }}>
-                    <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-                    <span className="text-[9px] text-primary font-bold">{aktifLokasyon}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[11px] text-primary font-bold">{aktifLokasyon}</span>
                   </div>
                 )}
               </div>
@@ -475,7 +476,7 @@ export default function KomutaKontrol() {
 
           {/* Feed scroll */}
           <div className="flex-1 overflow-y-auto no-scrollbar scrollbar-hide space-y-0.5 p-2" style={{ minHeight: 0 }}>
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="sync" initial={false}>
               {akis.map(olay => <AkisKarti key={olay.id} olay={olay} />)}
             </AnimatePresence>
             {akis.length === 0 && (

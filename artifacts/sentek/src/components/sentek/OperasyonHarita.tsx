@@ -394,23 +394,23 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
         </text>
       </svg>
 
-      <div className="absolute top-3 left-8 flex gap-1" style={{ zIndex: 10 }}>
+      <div className="absolute flex gap-1.5" style={{ zIndex: 500, top: 58, left: 16 }}>
         {(Object.keys(FILTRE_LABELS) as Filtre[]).map(f => (
           <button key={f} onClick={() => setFiltre(f)}
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all border ${
+            className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all border ${
               filtre === f
                 ? 'bg-primary/15 border-primary/40 text-primary'
                 : 'border-white/8 text-muted-foreground hover:border-white/15'
             }`}
-            style={{ backdropFilter: 'blur(12px)', background: filtre === f ? undefined : 'rgba(4,8,20,0.75)' }}>
+            style={{ backdropFilter: 'blur(12px)', background: filtre === f ? undefined : 'rgba(4,8,20,0.82)' }}>
             {FILTRE_LABELS[f]}
           </button>
         ))}
       </div>
 
       {secilenNokta && (
-        <div className="absolute top-12 right-2 w-56 rounded-xl border p-3 text-xs space-y-2"
-          style={{ zIndex: 10, background: 'rgba(5,9,22,0.97)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+        <div className="absolute w-60 rounded-xl border p-3 text-xs space-y-2"
+          style={{ zIndex: 500, top: 58, right: 8, background: 'rgba(5,9,22,0.97)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <span className="text-[9px] font-black tracking-[0.18em] uppercase px-1.5 py-0.5 rounded"
