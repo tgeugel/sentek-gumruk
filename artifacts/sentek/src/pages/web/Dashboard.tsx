@@ -1,38 +1,16 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
 import {
   FlaskConical, Package, AlertTriangle, TrendingUp,
   CheckCircle, XCircle, HelpCircle, Truck, Activity, Clock,
-  Shield, BarChart3
+  Shield, BarChart3, ChevronRight, ArrowRight, Database, Layers,
+  GitBranch, Microscope, Archive, FileCheck, Scan, Scale, Camera, ClipboardCheck, FileText
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, Legend
+  Tooltip, ResponsiveContainer, Legend, CartesianGrid, Area, AreaChart
 } from 'recharts';
-
-function StatsCard({ label, value, icon: Icon, color, sub }: {
-  label: string; value: string | number; icon: typeof Activity; color: string; sub?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="glass-card p-4"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted-foreground truncate mb-1">{label}</p>
-          <p className={`text-2xl font-bold ${color}`}>{value}</p>
-          {sub && <p className="text-xs text-muted-foreground/60 mt-0.5">{sub}</p>}
-        </div>
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-2 ${color.replace('text-', 'bg-').replace('-400', '-500/15').replace('-500', '-500/15')}`}>
-          <Icon className={`w-4 h-4 ${color}`} />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 const TOOLTIP_STYLE = {
   contentStyle: { backgroundColor: '#0F1629', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: 11 },
@@ -43,6 +21,21 @@ const CHART_COLORS = ['#00D4FF', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6', '#E
 
 export default function Dashboard() {
   const { testKayitlari, labSevkler, stoklar, bildirimler } = useData();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    const hh = date.getHours().toString().padStart(2, '0');
+    const mm = date.getMinutes().toString().padStart(2, '0');
+    const dd = date.getDate().toString().padStart(2, '0');
+    const mmm = date.toLocaleString('tr-TR', { month: 'short' });
+    const yyyy = date.getFullYear();
+    return `${hh}:${mm} · ${dd} ${mmm} ${yyyy}`;
+  };
 
   const bugun = new Date().toISOString().slice(0, 10);
   const bugunTestler = testKayitlari.filter(t => t.tarih.startsWith(bugun));
@@ -91,175 +84,276 @@ export default function Dashboard() {
   const labDurumData = Object.entries(labDurumMap).map(([name, value]) => ({ name, value }));
 
   const uyarilar = [
-    sktYaklasan > 0 && { tip: 'stok', mesaj: `SKT yaklaşan ${sktYaklasan} kit`, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-    kritikStok > 0 && { tip: 'stok', mesaj: `Kritik / tükenen ${kritikStok} stok kalemi`, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
+    sktYaklasan > 0 && { tip: 'stok', mesaj: `SKT yaklaşan ${sktYaklasan} kit`, color: 'text-amber-400', class: 'alert-warning', icon: AlertTriangle },
+    kritikStok > 0 && { tip: 'stok', mesaj: `Kritik / tükenen ${kritikStok} stok kalemi`, color: 'text-red-400', class: 'alert-critical', icon: AlertTriangle },
     labSevkler.filter(s => s.durum === 'Laboratuvara Yolda').length > 0 && {
       tip: 'lab', mesaj: `Lab'a yolda ${labSevkler.filter(s => s.durum === 'Laboratuvara Yolda').length} numune`,
-      color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20'
+      color: 'text-cyan-400', class: 'alert-info', icon: Truck
     },
     testKayitlari.filter(t => (t.analizGuvenSkoru || 100) < 55 && t.testSonucu === 'Geçersiz').length > 0 && {
       tip: 'analiz', mesaj: `Düşük güven skorlu ${testKayitlari.filter(t => (t.analizGuvenSkoru || 100) < 55 && t.testSonucu === 'Geçersiz').length} kayıt kontrol bekliyor`,
-      color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20'
+      color: 'text-violet-400', class: 'alert-lab', icon: Activity
     },
-    raporlanan > 0 && { tip: 'rapor', mesaj: `${raporlanan} numune rapor aşamasında`, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-  ].filter(Boolean) as { tip: string; mesaj: string; color: string; bg: string }[];
+    raporlanan > 0 && { tip: 'rapor', mesaj: `${raporlanan} numune rapor aşamasında`, color: 'text-emerald-400', class: 'alert-info', icon: FileCheck },
+  ].filter(Boolean) as { tip: string; mesaj: string; color: string; class: string; icon: any }[];
+
+  const chainSteps = [
+    { label: 'Test Kaydı', icon: FlaskConical, count: testKayitlari.length },
+    { label: 'Fotoğraf', icon: Camera, count: testKayitlari.filter(t => t.fotografUrl).length },
+    { label: 'Sonuç', icon: CheckCircle, count: testKayitlari.filter(t => !!t.testSonucu).length },
+    { label: 'Seri No', icon: Scan, count: testKayitlari.filter(t => t.kitSeriNo).length },
+    { label: 'Stok Düşümü', icon: Package, count: testKayitlari.filter(t => t.stokId).length },
+    { label: 'Numune Sevki', icon: Truck, count: labSevkler.length },
+    { label: 'Teslim Alma', icon: ClipboardCheck, count: labSevkler.filter(s => ['Teslim Alındı', 'Analiz Sırasında', 'Rapor Yüklendi', 'Dosya Kapatıldı'].includes(s.durum)).length },
+    { label: 'Analiz', icon: Microscope, count: labSevkler.filter(s => ['Teslim Alındı', 'Analiz Sırasında'].includes(s.durum)).length },
+    { label: 'Rapor', icon: FileText, count: labSevkler.filter(s => ['Rapor Yüklendi', 'Dosya Kapatıldı'].includes(s.durum)).length },
+    { label: 'Arşiv', icon: Archive, count: labSevkler.filter(s => s.durum === 'Dosya Kapatıldı').length },
+  ];
+
+  const kpis = [
+    { label: 'Toplam Test', value: testKayitlari.length, color: 'bg-cyan-500' },
+    { label: 'Bugünkü Test', value: bugunTestler.length, color: 'bg-blue-500' },
+    { label: 'Pozitif', value: pozitifler.length, color: 'bg-red-500' },
+    { label: 'Negatif', value: negatifler.length, color: 'bg-emerald-500' },
+    { label: 'Geçersiz', value: gecersizler.length, color: 'bg-amber-500' },
+    { label: 'Lab Sevk', value: labSevkEdilen, color: 'bg-violet-500' },
+    { label: 'Analiz Bekleyen', value: analizBekleyen, color: 'bg-sky-500' },
+    { label: 'Raporlanan', value: raporlanan, color: 'bg-teal-500' },
+    { label: 'Kritik Stok', value: kritikStok, color: 'bg-orange-500' },
+    { label: 'Bildirim', value: okunmamis, color: 'bg-pink-500' },
+  ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-0.5">Operasyon Merkezi</h1>
-        <p className="text-sm text-muted-foreground">Canlı operasyon verileri ve durum özeti</p>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="p-6 space-y-8"
+    >
+      {/* SECTION 1 — Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Operasyon Komuta Merkezi</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Gerçek zamanlı saha verisi ve analiz özeti</p>
+        </div>
+        <div className="flex items-center gap-3 text-sm font-medium">
+          <span className="text-muted-foreground tabular-nums">{formatTime(currentTime)}</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
+            Sistem Aktif
+          </div>
+        </div>
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {[
-          { label: 'Toplam Test', value: testKayitlari.length, icon: Activity, color: 'text-cyan-400' },
-          { label: 'Bugünkü Test', value: bugunTestler.length, icon: Clock, color: 'text-blue-400', sub: new Date().toLocaleDateString('tr-TR') },
-          { label: 'Pozitif Kayıt', value: pozitifler.length, icon: AlertTriangle, color: 'text-red-400' },
-          { label: 'Negatif Kayıt', value: negatifler.length, icon: CheckCircle, color: 'text-emerald-400' },
-          { label: 'Geçersiz', value: gecersizler.length, icon: XCircle, color: 'text-amber-400' },
-          { label: 'Lab Sevk', value: labSevkEdilen, icon: Truck, color: 'text-violet-400' },
-          { label: 'Analiz Bekleyen', value: analizBekleyen, icon: FlaskConical, color: 'text-sky-400' },
-          { label: 'Raporlanan', value: raporlanan, icon: TrendingUp, color: 'text-teal-400' },
-          { label: 'Kritik Stok', value: kritikStok, icon: Package, color: 'text-orange-400' },
-          { label: 'Okunmamış Bildirim', value: okunmamis, icon: Shield, color: 'text-pink-400' },
-        ].map((c, i) => (
-          <motion.div key={c.label}
-            initial={{ opacity: 0, y: 12 }}
+      {/* SECTION 2 — İZLENEBİLİRLİK ZİNCİRİ */}
+      <div className="space-y-3">
+        <h2 className="section-title px-1">İZLENEBİLİRLİK ZİNCİRİ</h2>
+        <div className="glass-card-premium p-5 overflow-x-auto">
+          <div className="flex items-center justify-between min-w-[900px]">
+            {chainSteps.map((step, i) => (
+              <div key={step.label} className="flex items-center flex-1 last:flex-none">
+                <div className="chain-step">
+                  <div className={`chain-step-icon ${step.count > 0 ? 'active' : ''}`}>
+                    <step.icon className={`w-4 h-4 ${step.count > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[8px] font-bold tracking-widest uppercase text-muted-foreground whitespace-nowrap">{step.label}</span>
+                    <span className="text-[10px] font-mono font-bold text-foreground/80">{step.count || '—'}</span>
+                  </div>
+                </div>
+                {i < chainSteps.length - 1 && (
+                  <div className="flex-1 flex justify-center">
+                    <ArrowRight className="w-3 h-3 chain-arrow" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 3 — KPI Strip */}
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {kpis.map((kpi, i) => (
+          <motion.div
+            key={kpi.label}
+            className="kpi-chip"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04, duration: 0.3 }}
+            transition={{ delay: i * 0.035, duration: 0.3 }}
           >
-            <StatsCard {...c} />
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full ${kpi.color}`} />
+              <span className="metric-label">{kpi.label}</span>
+            </div>
+            <span className="metric-value">{kpi.value}</span>
           </motion.div>
         ))}
       </div>
 
-      {/* Operasyonel Uyarılar */}
-      {uyarilar.length > 0 && (
-        <div className="glass-card p-4 space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <h2 className="text-sm font-bold text-foreground">Operasyonel Uyarılar</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {uyarilar.map((u, i) => (
-              <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-xs font-medium ${u.bg} ${u.color}`}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                {u.mesaj}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Grafikler Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Test Yoğunluğu */}
-        <div className="lg:col-span-2 glass-card p-4">
-          <h3 className="text-sm font-bold text-foreground mb-4">Son 7 Gün — Test Yoğunluğu</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={son7Gun}>
-              <XAxis dataKey="gun" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={20} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10 }} />
-              <Line type="monotone" dataKey="Toplam" stroke="#00D4FF" strokeWidth={2} dot={{ fill: '#00D4FF', r: 3 }} />
-              <Line type="monotone" dataKey="Pozitif" stroke="#EF4444" strokeWidth={2} dot={{ fill: '#EF4444', r: 3 }} />
-              <Line type="monotone" dataKey="Negatif" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Sonuç Dağılımı Pie */}
-        <div className="glass-card p-4">
-          <h3 className="text-sm font-bold text-foreground mb-4">Sonuç Dağılımı</h3>
-          <ResponsiveContainer width="100%" height={140}>
-            <PieChart>
-              <Pie data={sonucDagilim} cx="50%" cy="50%" innerRadius={40} outerRadius={65}
-                dataKey="value" stroke="none">
-                {sonucDagilim.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i]} />
-                ))}
-              </Pie>
-              <Tooltip {...TOOLTIP_STYLE} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-col gap-1 mt-2">
-            {sonucDagilim.map((d, i) => (
-              <div key={d.name} className="flex items-center justify-between text-xs">
+      {/* SECTION 4 — Main content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT COLUMN */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Chart 1: Test Yoğunluğu */}
+          <motion.div
+            className="glass-card p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm font-bold text-foreground">Son 7 Gün — Test Yoğunluğu</h3>
+              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
-                  <span className="text-muted-foreground">{d.name}</span>
+                  <div className="w-2 h-0.5 bg-primary" />
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold">Toplam</span>
                 </div>
-                <span className="font-semibold text-foreground">{d.value}</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-0.5 bg-red-500" />
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold">Pozitif</span>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Grafikler Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Lokasyon Bazlı */}
-        <div className="glass-card p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold text-foreground">Lokasyon Bazlı Test Yoğunluğu</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={lokasyonData} layout="vertical">
-              <XAxis type="number" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} width={80} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Bar dataKey="value" fill="#00D4FF" radius={[0, 4, 4, 0]} maxBarSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Lab Sevk Durum */}
-        <div className="glass-card p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <FlaskConical className="w-4 h-4 text-violet-400" />
-            <h3 className="text-sm font-bold text-foreground">Lab Sevk Durum Dağılımı</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={labDurumData}>
-              <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 8 }} axisLine={false} tickLine={false}
-                angle={-20} textAnchor="end" height={40} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={20} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28}>
-                {labDurumData.map((_, i) => (
-                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Son Aktiviteler */}
-      <div className="glass-card p-4">
-        <h3 className="text-sm font-bold text-foreground mb-3">Son Test Kayıtları</h3>
-        <div className="space-y-2">
-          {testKayitlari.slice(0, 6).map(t => (
-            <div key={t.id} className="flex items-center gap-3 py-2 border-b border-border/30 last:border-0">
-              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                t.testSonucu === 'Pozitif' ? 'bg-red-400' :
-                t.testSonucu === 'Negatif' ? 'bg-emerald-400' : 'bg-amber-400'
-              }`} />
-              <span className="text-xs font-mono text-muted-foreground/70 flex-shrink-0">{t.id}</span>
-              <span className="text-xs text-foreground flex-1 truncate">{t.lokasyon}</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0 hidden sm:block">{t.numuneTuru}</span>
-              <span className={`text-xs font-bold flex-shrink-0 ${
-                t.testSonucu === 'Pozitif' ? 'text-red-400' :
-                t.testSonucu === 'Negatif' ? 'text-emerald-400' : 'text-amber-400'
-              }`}>{t.testSonucu}</span>
             </div>
-          ))}
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={son7Gun}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#00D4FF" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-white/[0.06]" />
+                <XAxis dataKey="gun" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={30} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Area type="monotone" dataKey="Toplam" stroke="#00D4FF" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotal)" dot={{ r: 4, fill: '#00D4FF', strokeWidth: 2, stroke: '#080d1a' }} />
+                <Line type="monotone" dataKey="Pozitif" stroke="#EF4444" strokeWidth={2} dot={{ r: 4, fill: '#EF4444', strokeWidth: 2, stroke: '#080d1a' }} />
+                <Line type="monotone" dataKey="Negatif" stroke="#10B981" strokeWidth={2} dot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: '#080d1a' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </motion.div>
+
+          {/* Chart 2 row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-card p-5">
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-5">Sonuç Dağılımı</h3>
+              <div className="flex items-center gap-4">
+                <div className="w-1/2">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={sonucDagilim} cx="50%" cy="50%" innerRadius={45} outerRadius={65} dataKey="value" stroke="none" paddingAngle={5}>
+                        {sonucDagilim.map((_, i) => (
+                          <Cell key={i} fill={PIE_COLORS[i]} />
+                        ))}
+                      </Pie>
+                      <Tooltip {...TOOLTIP_STYLE} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2.5">
+                  {sonucDagilim.map((d, i) => (
+                    <div key={d.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
+                        <span className="text-[11px] text-muted-foreground font-medium">{d.name}</span>
+                      </div>
+                      <span className="text-xs font-bold text-foreground">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card p-5">
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-5">Lokasyon Yoğunluğu</h3>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={lokasyonData} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} width={80} />
+                  <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                  <Bar dataKey="value" fill="#00D4FF" radius={[0, 4, 4, 0]} barSize={12} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="space-y-6">
+          {/* Panel A: Kritik Uyarılar */}
+          <div className="glass-card p-5">
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-4">Kritik Uyarılar</h3>
+            <div className="space-y-3">
+              {uyarilar.length > 0 ? uyarilar.map((u, i) => (
+                <div key={i} className={`p-3 flex items-start gap-3 ${u.class}`}>
+                  <u.icon className={`w-4 h-4 mt-0.5 ${u.color}`} />
+                  <span className={`text-xs font-medium leading-relaxed ${u.color}`}>{u.mesaj}</span>
+                </div>
+              )) : (
+                <div className="p-4 text-center border border-dashed rounded-xl border-white/5">
+                  <span className="text-xs text-muted-foreground">Aktif uyarı bulunmuyor</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Panel B: Son Test Kayıtları */}
+          <div className="glass-card p-5">
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-4">Son Test Kayıtları</h3>
+            <div className="space-y-1">
+              {testKayitlari.slice(0, 8).map(t => (
+                <div key={t.id} className="flex items-center gap-3 py-2.5 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors px-1">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    t.testSonucu === 'Pozitif' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' :
+                    t.testSonucu === 'Negatif' ? 'bg-emerald-500' : 'bg-amber-500'
+                  }`} />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-primary/70">{t.operasyonNo}</span>
+                      <span className="text-[11px] font-bold text-foreground truncate">{t.lokasyon}</span>
+                    </div>
+                    <span className="text-[9px] text-muted-foreground sm:hidden">{t.numuneTuru}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground hidden sm:block whitespace-nowrap">{t.numuneTuru}</span>
+                  <span className={`text-[11px] font-bold flex-shrink-0 tabular-nums ${
+                    t.testSonucu === 'Pozitif' ? 'text-red-400' :
+                    t.testSonucu === 'Negatif' ? 'text-emerald-400' : 'text-amber-400'
+                  }`}>{t.testSonucu}</span>
+                </div>
+              ))}
+            </div>
+            <button className="w-full mt-4 py-2 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-widest flex items-center justify-center gap-2 group">
+              Tümünü Görüntüle <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+
+          {/* Panel C: Lab sevk durum bar chart */}
+          <div className="glass-card p-5">
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-4">Lab Sevk Durumu</h3>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={labDurumData}>
+                <XAxis dataKey="name" hide />
+                <YAxis hide />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Bar dataKey="value" radius={[4, 4, 4, 4]} barSize={20}>
+                  {labDurumData.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} fillOpacity={0.8} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+              {labDurumData.slice(0, 4).map((d, i) => (
+                <div key={d.name} className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                  <span className="text-[9px] text-muted-foreground truncate">{d.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -48,19 +48,36 @@ const TIP_CONFIG: Record<AkisOlayi['tip'], { icon: typeof Radio; renk: string; b
   sistem: { icon: Radio, renk: 'text-muted-foreground', bg: 'bg-secondary/50 border-border', etiket: 'SİSTEM' },
 };
 
+function timeAgo(dateString: string) {
+  const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
+  if (seconds < 60) return `${seconds} sn önce`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} dk önce`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} sa önce`;
+  return new Date(dateString).toLocaleDateString('tr-TR');
+}
+
 function AkisKarti({ olay }: { olay: AkisOlayi }) {
   const cfg = TIP_CONFIG[olay.tip];
   const Icon = cfg.icon;
+
+  const alertClass = olay.tip === 'pozitif' ? 'alert-critical' :
+                    olay.tip === 'negatif' ? 'alert-info' :
+                    olay.tip === 'lab' ? 'alert-lab' :
+                    olay.tip === 'stok' ? 'alert-warning' :
+                    olay.tip === 'sevk' ? 'alert-info' : 'alert-info';
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -16, scale: 0.98 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 16, scale: 0.96 }}
       transition={{ duration: 0.25 }}
-      className={`flex items-start gap-3 p-3 rounded-xl border ${cfg.bg} transition-all`}
+      className={`flex items-start gap-3 p-3 transition-all ${alertClass}`}
     >
-      <div className={`w-7 h-7 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-        <Icon className={`w-3.5 h-3.5 ${cfg.renk}`} />
+      <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+        <Icon className={`w-4 h-4 ${cfg.renk}`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -79,7 +96,7 @@ function AkisKarti({ olay }: { olay: AkisOlayi }) {
         <p className="text-xs text-foreground/90">{olay.mesaj}</p>
         <p className="text-[10px] text-muted-foreground/60 mt-0.5 flex items-center gap-1">
           <Clock className="w-2.5 h-2.5" />
-          {new Date(olay.zaman).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          {timeAgo(olay.zaman)}
         </p>
       </div>
     </motion.div>
@@ -91,7 +108,13 @@ export default function LiveOps() {
   const [akis, setAkis] = useState<AkisOlayi[]>([]);
   const [canli, setCanli] = useState(true);
   const [aktifLokasyon, setAktifLokasyon] = useState<string | null>(null);
+  const [simdi, setSimdi] = useState(new Date());
   const olaySayacRef = useRef(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setSimdi(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const baslangic: AkisOlayi[] = [
@@ -133,88 +156,107 @@ export default function LiveOps() {
   });
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-6 space-y-6 animate-fade-slide-up">
       {/* Başlık */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <h1 className="text-2xl font-bold text-foreground">Canlı Operasyon</h1>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+              <div className="absolute inset-0 w-3 h-3 rounded-full bg-red-500 animate-ping opacity-75" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Canlı Operasyon</h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Komuta Merkezi Paneli</p>
+                <span className="text-muted-foreground/30">|</span>
+                <p className="text-xs font-mono text-primary/80">
+                  {simdi.toLocaleDateString('tr-TR')} {simdi.toLocaleTimeString('tr-TR')}
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">Gerçek zamanlı saha operasyonu izleme paneli</p>
+          <button
+            onClick={() => setCanli(!canli)}
+            className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-xs transition-all overflow-hidden ${
+              canli
+                ? 'text-red-400 bg-red-500/10 border border-red-500/30'
+                : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30'
+            }`}
+          >
+            <div className={`absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-r ${canli ? 'from-red-500 to-transparent' : 'from-emerald-500 to-transparent'}`} />
+            <Radio className={`w-3.5 h-3.5 relative z-10 ${canli ? 'animate-pulse' : ''}`} />
+            <span className="relative z-10 uppercase tracking-widest">{canli ? 'Durdur' : 'Başlat'}</span>
+          </button>
         </div>
-        <button
-          onClick={() => setCanli(!canli)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-semibold text-sm transition-all ${
-            canli
-              ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
-              : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
-          }`}
-        >
-          <Radio className={`w-4 h-4 ${canli ? 'animate-pulse' : ''}`} />
-          {canli ? 'Canlı — Durdur' : 'Başlat'}
-        </button>
+        <div className="gradient-divider" />
       </div>
 
       {/* KPI Şeridi */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
         {[
-          { label: 'Bugün Toplam', value: bugunTestler.length, icon: Activity, renk: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-          { label: 'Bugün Pozitif', value: bugunPozitif.length, icon: AlertTriangle, renk: 'text-red-400', bg: 'bg-red-500/10' },
-          { label: 'Aktif Lab Sevk', value: aktifSevkler.length, icon: Truck, renk: 'text-violet-400', bg: 'bg-violet-500/10' },
-          { label: 'Kritik / Tükenen', value: kritikStok.length, icon: Package, renk: 'text-amber-400', bg: 'bg-amber-500/10' },
+          { label: 'Bugün Toplam', value: bugunTestler.length, icon: Activity, renk: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+          { label: 'Bugün Pozitif', value: bugunPozitif.length, icon: AlertTriangle, renk: 'text-red-400', bg: 'bg-red-500/20' },
+          { label: 'Aktif Lab Sevk', value: aktifSevkler.length, icon: Truck, renk: 'text-violet-400', bg: 'bg-violet-500/20' },
+          { label: 'Kritik / Tükenen', value: kritikStok.length, icon: Package, renk: 'text-amber-400', bg: 'bg-amber-500/20' },
+          { label: 'Düşük Güven Analizi', value: dusukGuven.length, icon: Shield, renk: 'text-orange-400', bg: 'bg-orange-500/20' },
+          { label: 'SKT Yaklaşan Kit', value: sktYaklasan.length, icon: Clock, renk: 'text-blue-400', bg: 'bg-blue-500/20' },
         ].map(({ label, value, icon: Icon, renk, bg }) => (
-          <div key={label} className="glass-card p-4 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
-              <Icon className={`w-5 h-5 ${renk}`} />
+          <div key={label} className="kpi-chip flex-row items-center gap-4 min-w-[200px]">
+            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
+              <Icon className={`w-4 h-4 ${renk}`} />
             </div>
             <div>
-              <p className="text-2xl font-black text-foreground">{value}</p>
-              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="metric-label">{label}</p>
+              <p className="metric-value text-lg">{value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Harita + Akış */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Harita */}
-        <div className="xl:col-span-3 space-y-2">
-          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Map className="w-4 h-4 text-primary" />
-            Operasyon Haritası
+        <div className="xl:col-span-3 glass-card-elevated overflow-hidden flex flex-col">
+          <div className="bg-black/30 px-4 py-2 border-bottom flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Map className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[10px] font-black tracking-[0.2em] text-foreground/80 uppercase">Canlı Harita</span>
+            </div>
             {aktifLokasyon && (
-              <span className="text-[10px] font-normal text-muted-foreground ml-1 flex items-center gap-1">
-                <MapPin className="w-2.5 h-2.5 text-primary" />
-                <span className="text-primary">{aktifLokasyon}</span> — son olay
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  <span className="text-primary">{aktifLokasyon}</span> — aktif
+                </span>
+              </div>
             )}
-          </h2>
+          </div>
           <div className="h-[420px]">
             <OperasyonHarita testKayitlari={testKayitlari} canliOlay={aktifLokasyon} />
           </div>
         </div>
 
         {/* Canlı Akış */}
-        <div className="xl:col-span-2 space-y-3">
+        <div className="xl:col-span-2 space-y-3 flex flex-col">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" />
-              Canlı Akış
-              {canli && <span className="text-[10px] font-black text-red-400 tracking-widest animate-pulse">● CANLI</span>}
+            <h2 className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-primary" />
+              Saha Akışı
+              {canli && <span className="text-[10px] font-black text-red-500 animate-pulse ml-2">● CANLI</span>}
             </h2>
-            <button onClick={() => setAkis([])} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => setAkis([])} className="text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest">
               Temizle
             </button>
           </div>
-          <div className="space-y-2 h-[372px] overflow-y-auto pr-1">
+          <div className="space-y-2 flex-1 h-[420px] overflow-y-auto pr-1">
             <AnimatePresence mode="popLayout">
               {akis.map(olay => <AkisKarti key={olay.id} olay={olay} />)}
             </AnimatePresence>
             {akis.length === 0 && (
-              <div className="glass-card p-8 text-center">
-                <Radio className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Akış bekleniyor</p>
+              <div className="glass-card-inset p-12 text-center border-dashed">
+                <Radio className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Veri bekleniyor</p>
               </div>
             )}
           </div>
@@ -222,68 +264,86 @@ export default function LiveOps() {
       </div>
 
       {/* Alt Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Son Pozitifler */}
-        <div className="glass-card p-4">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-red-400" /> Son Pozitif Kayıtlar
+        <div className="glass-card-elevated p-5 space-y-4">
+          <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> Son Pozitif Kayıtlar
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {sonPozitifler.map(kayit => (
-              <div key={kayit.id} className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/15">
-                <p className="text-xs font-mono font-bold text-red-400">{kayit.operasyonNo}</p>
-                <p className="text-xs text-foreground/80">{kayit.tespitEdilenMadde || kayit.numuneTuru}</p>
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-2.5 h-2.5" />{kayit.lokasyon}
-                </p>
+              <div key={kayit.id} className="alert-critical p-3">
+                <div className="flex justify-between items-start mb-1">
+                  <p className="text-xs font-mono font-bold text-red-400">{kayit.operasyonNo}</p>
+                  <span className="text-[10px] text-muted-foreground/50">{timeAgo(kayit.tarih)}</span>
+                </div>
+                <p className="text-xs font-semibold text-foreground/90">{kayit.tespitEdilenMadde || kayit.numuneTuru}</p>
+                <div className="flex items-center gap-1 mt-2">
+                  <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">{kayit.lokasyon}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Kritik Stok + Düşük Güven */}
-        <div className="glass-card p-4">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Package className="w-3.5 h-3.5 text-amber-400" /> Kritik Stok & Uyarılar
+        {/* Kritik Stok */}
+        <div className="glass-card-elevated p-5 space-y-4">
+          <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <Package className="w-4 h-4" /> Kritik Stok Durumu
           </h3>
-          <div className="space-y-2">
-            {kritikStok.slice(0, 3).map(s => (
-              <div key={s.id} className="p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/15">
-                <p className="text-xs font-semibold text-amber-400 truncate">{s.urunAdi}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {s.durum === 'Tükendi' ? '⚠ Tükendi' : `${s.kalanAdedi} adet · ${s.durum}`}
-                </p>
-              </div>
-            ))}
-            {dusukGuven.length > 0 && (
-              <div className="p-2.5 rounded-lg bg-violet-500/5 border border-violet-500/15">
-                <p className="text-xs font-semibold text-violet-400 flex items-center gap-1">
-                  <Shield className="w-3 h-3" /> {dusukGuven.length} düşük güven analizi
-                </p>
-                <p className="text-[10px] text-muted-foreground">Manuel kontrol önerilir</p>
-              </div>
-            )}
+          <div className="space-y-4">
+            {kritikStok.slice(0, 4).map(s => {
+              const oran = (s.kalanAdedi / s.girisAdedi) * 100;
+              return (
+                <div key={s.id} className="alert-warning p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs font-bold text-amber-400 truncate pr-2">{s.urunAdi}</p>
+                    <span className="text-[10px] font-mono font-bold text-amber-400/80">{s.kalanAdedi}/{s.girisAdedi}</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${oran}%` }}
+                      className={`h-full ${oran < 10 ? 'bg-red-500' : 'bg-amber-500'}`}
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2 uppercase tracking-tighter">
+                    {s.depo} · {s.durum}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* SKT Yaklaşan */}
-        <div className="glass-card p-4">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-orange-400" /> SKT Yaklaşan Kitler
+        <div className="glass-card-elevated p-5 space-y-4">
+          <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+            <Clock className="w-4 h-4" /> SKT Yaklaşan Kitler
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {sktYaklasan.slice(0, 5).map(s => {
               const kalan = Math.ceil((new Date(s.skt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
               const acil = kalan <= 30;
               return (
-                <div key={s.id} className={`p-2.5 rounded-lg border ${acil ? 'bg-red-500/5 border-red-500/20' : 'bg-orange-500/5 border-orange-500/15'}`}>
-                  <p className={`text-xs font-semibold truncate ${acil ? 'text-red-400' : 'text-orange-400'}`}>{s.urunAdi}</p>
-                  <p className="text-[10px] text-muted-foreground">{kalan} gün · {s.lotSeriNo}</p>
+                <div key={s.id} className={`${acil ? 'alert-critical' : 'alert-warning'} p-3`}>
+                  <div className="flex justify-between items-start">
+                    <p className={`text-xs font-bold truncate pr-2 ${acil ? 'text-red-400' : 'text-amber-400'}`}>{s.urunAdi}</p>
+                    <span className={`text-[10px] font-black ${acil ? 'text-red-500' : 'text-amber-500'}`}>{kalan} GÜN</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-mono text-muted-foreground/60">{s.lotSeriNo}</span>
+                    <span className="text-[10px] text-muted-foreground/30">·</span>
+                    <span className="text-[10px] text-muted-foreground/60">{new Date(s.skt).toLocaleDateString('tr-TR')}</span>
+                  </div>
                 </div>
               );
             })}
             {sktYaklasan.length === 0 && (
-              <p className="text-xs text-muted-foreground/60 text-center py-3">SKT yaklaşan kit yok</p>
+              <div className="glass-card-inset p-8 text-center border-dashed">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Kritik SKT yok</p>
+              </div>
             )}
           </div>
         </div>

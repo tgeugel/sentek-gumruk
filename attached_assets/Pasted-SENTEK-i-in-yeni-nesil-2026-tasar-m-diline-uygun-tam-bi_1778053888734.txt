@@ -1,0 +1,270 @@
+SENTEK için yeni nesil 2026 tasarım diline uygun tam bir premium tasarım dönüşümü yap.
+
+Bu aşamada birinci öncelik:
+görsel kalite, ürün algısı, estetik pencere geçişleri, 3D obje kullanımı, motion language ve kullanıcı deneyimi.
+
+Amaç:
+SENTEK klasik bir admin panel ya da sıradan dashboard gibi görünmemeli.
+2026 seviyesinde, çok düşünülmüş, çok ciddi, kullanıcı dostu, premium, havalı ve kurumsal güven veren bir operasyon platformu gibi görünmeli.
+
+Hedef his:
+- pahalı
+- güçlü
+- yeni nesil
+- estetik
+- ciddi
+- kullanıcı dostu
+- stratejik
+- kurum önünde ikna edici
+
+Çok önemli:
+- Mevcut çalışan modülleri bozma.
+- Yeni özellik eklemek ikinci planda.
+- Öncelik tasarım ve deneyim kalitesi.
+- Baştan yazma, mevcut sistemi tasarım açısından dönüştür.
+- Personel testi, biyolojik test, idrar, tükürük, kan, sürücü testi gibi ifadeler kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, stok/seri no takibi, numune sevki ve laboratuvar doğrulama sürecidir.
+- Gerçek kurum adı kullanma.
+- Arayüz tamamen Türkçe olsun.
+
+1. Genel tasarım yönü
+
+Tasarım dili şu birleşimi taşısın:
+- 2026 premium enterprise UI
+- cinematic dark interface
+- mission control hissi
+- refined SaaS clarity
+- spatial / layered UI
+- glass depth
+- soft volumetric light
+- tactile digital objects
+- premium motion system
+
+Kalite seviyesi:
+- Linear sadeliği
+- Apple seviyesinde akıcılık
+- Vercel / Ramp seviyesinde premium denge
+- Stripe seviyesinde veri hiyerarşisi
+- Palantir benzeri operasyon ciddiyeti
+
+Bunları birebir kopyalama. Sadece kalite seviyesi olarak yaklaş.
+
+2. Design system kur
+
+Tüm uygulama için sağlam bir tasarım sistemi kur:
+- typography scale
+- 8pt spacing system
+- semantic colors
+- card variants
+- badge variants
+- table styles
+- form styles
+- modal / drawer system
+- chart styles
+- icon language
+- motion language
+
+Renk sistemi:
+- Ana arka plan: derin koyu lacivert / grafit siyah
+- Panel yüzeyleri: koyu füme / cam hissi
+- Ana vurgu: cyan / elektrik mavisi
+- İkincil vurgu: mor / mavi
+- Pozitif: kırmızı
+- Negatif: yeşil
+- Geçersiz: amber
+- Kritik stok: kırmızı
+- SKT yaklaşan: amber
+- Bilgi / analiz: cyan
+
+3. 3D ve spatial tasarım dili ekle
+
+Bu projede 3D kullanımını stratejik yap.
+Her yeri 3D yapma.
+Sadece değer katan alanlarda kullan.
+
+3D / depth kullanılacak alanlar:
+- ana dashboard hero katmanı
+- test kiti / numune / QR / etiket objeleri
+- zincirleme izlenebilirlik akışı
+- pencere geçişleri ve panel katmanları
+- bazı öne çıkan kartlar
+- mobil hızlı aksiyon alanları
+
+Görsel efektler:
+- hafif depth
+- layered panel hissi
+- cam / glass yüzeyler
+- hafif volumetric glow
+- objelerde kontrollü 3D perspektif
+- çok hafif parallax hissi
+- hover anında ince yükselme ve ışık tepkisi
+
+Amaç:
+Sistem çok yeni nesil görünsün ama oyuncak gibi olmasın.
+
+4. Estetik pencere geçişleri ve motion system
+
+Tüm sayfa/pencere geçişlerini yeni nesil hale getir.
+
+Kullan:
+- sayfa geçişlerinde hafif depth + fade + translate
+- drawer açılışlarında premium window transition
+- modal açılışlarında blur + scale + opacity geçişi
+- tab geçişlerinde akıcı underline ve content fade
+- kart reveal animasyonları
+- timeline adımlarında staged reveal
+- canlı operasyon akışında yumuşak girişler
+- mobil wizard adımlarında çok şık geçişler
+- hover/tap feedback
+
+Hedef:
+Apple seviyesinde rafine,
+Linear seviyesinde sade,
+2026 seviyesinde modern hareket dili.
+
+Kullanma:
+- fazla zıplama
+- sert easing
+- sürekli dönen efektler
+- dikkat dağıtan animasyonlar
+- performansı bozan hareketler
+
+5. Dashboard’u yeniden sahnele
+
+Dashboard sıradan kart topluluğu gibi görünmesin.
+Bir “operasyon komuta merkezi” gibi hissettirsin.
+
+Yapı:
+- üstte güçlü KPI şeridi
+- orta alanda ana operasyon grafikleri
+- özel bir görsel “izlenebilirlik akışı” alanı
+- sağ tarafta kritik uyarılar / canlı akış
+- altta operasyon modülleri / stok / lab pipeline
+
+Dashboard içinde mutlaka güçlü şekilde hissettir:
+Test → Fotoğraf → Sonuç → Seri No → Stok Düşümü → Sevk → Teslim Alma → Analiz → Rapor → Arşiv
+
+Bu alan SENTEK’in imza alanı olsun.
+
+6. Canlı Operasyon ekranını 2026 seviyesine çıkar
+
+Bu ekran satışta en etkileyici alan olmalı.
+
+İyileştir:
+- harita daha premium olsun
+- harita üstü marker’lar modern olsun
+- canlı akış daha rafine olsun
+- sağ paneller daha düzgün dengelensin
+- alt kartlar hizalı olsun
+- data viz daha güçlü görünsün
+- command center hissi artsın
+
+Ek olarak:
+- harita katmanı daha karanlık ve premium olabilir
+- veri noktaları daha seçici parlayabilir
+- kritik lokasyon kartları daha sinematik durabilir
+
+7. Test detay ve Lab sevk detay ekranlarını premiumlaştır
+
+Bu ekranlar güven, delil zinciri ve profesyonellik hissettirmeli.
+
+Test detay ekranında:
+- fotoğraf önizleme premium card içinde olsun
+- analiz alanı daha güçlü görünsün
+- güven skoru daha estetik sunulsun
+- QR / Etiket / Rapor aksiyonları tek blokta toplansın
+- işlem geçmişi daha rafine timeline/list görünümünde olsun
+
+Lab sevk detay ekranında:
+- numune bilgisi
+- sevk bilgisi
+- fotoğraflar
+- mühür / etiket bilgisi
+- teslim alma
+- analiz süreci
+- rapor durumu
+- işlem geçmişi
+çok daha güçlü ve premium paneller halinde görünsün.
+
+8. Stok / Seri No / SKT ekranını sıradan tablodan çıkar
+
+Bu ekran lojistik + operasyonel hazırlık ekranı gibi görünsün.
+
+Şu akışı hissettir:
+Merkez Depo → Bölge / Birim → Saha Kullanımı → Test Kaydı
+
+Üst KPI kartları premium olsun.
+Tablo daha rafine hale gelsin.
+Satır detayları drawer veya genişletilebilir panel ile daha şık gösterilsin.
+Kritik stok ve SKT uyarıları ayrı premium bloklarda sunulsun.
+
+9. Mobil saha uygulamasını gerçek 2026 mobil ürün gibi yap
+
+Mobil görünüm web sayfası küçültmesi gibi durmasın.
+Gerçek native hissine yaklaşsın.
+
+Mobil ana ekranda:
+- Yeni Test
+- QR / Barkod Tara
+- Senkronize Et
+- Sevklerim
+
+Bu aksiyonlar premium 3D/derinlik hissi olan kartlar halinde sunulabilir.
+
+Mobilde:
+- büyük dokunmatik alanlar
+- çok net tipografi
+- sade ama güçlü adım yapısı
+- kamera/fotoğraf alanı vurgulu
+- pozitiften sevke geçiş çok akıcı
+- alt navigasyon premium ve yeni nesil görünsün
+
+10. Sales / Executive layer ekle veya güçlendir
+
+Karar vericiyi ikna eden görsel katman ekle.
+
+Bu alanlarda şu mesajlar güçlü gösterilsin:
+- kurumsal izlenebilirlik
+- operasyonel kontrol
+- delil zinciri
+- stok ve seri no yönetimi
+- saha-laboratuvar entegrasyonu
+- kurumsal hafıza
+
+Önce / Sonra veya Zincirleme İzlenebilirlik gibi görsel bloklar eklenebilir.
+Ama bunlar premium olmalı, pazarlama afişi gibi durmamalı.
+
+11. Raporlar / Analitik ekranını daha yeni nesil yap
+
+Grafikler daha modern olsun.
+Filter panel daha rafine olsun.
+Export alanları daha premium olsun.
+Veri yoğunluğu daha dengeli olsun.
+Raporlar ekranı yöneticiyi etkileyecek düzeyde modern ve kurumsal hissettirsin.
+
+12. Son kalite hedefi
+
+Sonuçta sistem şu hissi vermeli:
+- 2026 ürün dili
+- çok ciddi ama çok havalı
+- estetik geçişler
+- yeni nesil spatial UI
+- kontrollü 3D objeler
+- kullanıcı dostu
+- stratejik
+- pahalı ve premium
+- satışta ikna edici
+
+13. İş sonunda rapor ver
+
+Şunları açıkça yaz:
+- tasarım sistemi nasıl yenilendi
+- hangi ekranlar yeniden sahnelendi
+- 3D / depth / spatial UI nerelerde kullanıldı
+- pencere geçişleri nasıl geliştirildi
+- motion system nasıl kuruldu
+- dashboard nasıl yeniden sahnelendi
+- canlı operasyon ekranında ne değişti
+- mobil uygulama nasıl yeni nesil hale getirildi
+- stok / test detay / lab detay ekranlarında ne geliştirildi
+- sistemin ürün algısı ve satış etkisi nasıl yükseltildi
