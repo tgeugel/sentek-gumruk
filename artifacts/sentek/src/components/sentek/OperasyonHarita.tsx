@@ -164,7 +164,8 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       attributionControl: false,
     });
 
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
       maxZoom: 20,
     }).addTo(map);
 
