@@ -16,22 +16,51 @@ const ADIMLAR = [
 ];
 
 const LOKASYONLAR = [
-  'Sınır Kapısı A', 'Sınır Kapısı B', 'Liman Kontrol Noktası',
-  'Antrepo Bölgesi', 'Araç Arama Noktası', 'Karayolu Kontrol Noktası',
-  'Havalimanı Kargo', 'Posta / Kargo Merkezi', 'Kargo Terminali', 'Mobil Saha Ekibi',
+  // Kara Sınır Kapıları — Batı
+  'Kapıkule Sınır Kapısı', 'Hamzabeyli Sınır Kapısı', 'Dereköy Sınır Kapısı',
+  'İpsala Sınır Kapısı', 'Pazarkule Sınır Kapısı',
+  // Kara Sınır Kapıları — Doğu/Güney
+  'Sarp Sınır Kapısı', 'Gürbulak Sınır Kapısı', 'Esendere Sınır Kapısı',
+  'Habur Sınır Kapısı', 'Nusaybin Sınır Kapısı',
+  'Cilvegözü Sınır Kapısı', 'Öncüpınar Sınır Kapısı', 'Akçakale Sınır Kapısı',
+  // Deniz Limanları
+  'İzmir Alsancak Limanı', 'Mersin Uluslararası Limanı',
+  'Ambarlı Limanı', 'Haydarpaşa Limanı', 'Derince Limanı',
+  // Havalimanları
+  'İstanbul Havalimanı Kargo', 'Sabiha Gökçen Kargo',
+  // Karayolu / İç
+  'TEM Karayolu Kontrol', 'E-5 Karayolu Kontrol', 'Araç Arama Noktası',
+  // Antrepo / Posta
+  'Merkez Antrepo', 'Posta / Kargo Merkezi', 'Mobil Saha Ekibi',
 ];
 
 const KONTROL_NOKTALARI: Record<string, string[]> = {
-  'Sınır Kapısı A': ['Peron 1', 'Peron 2', 'Peron 3', 'TIR Parkı', 'Yolcu Kapısı', 'Gümrük Binası'],
-  'Sınır Kapısı B': ['Giriş Kapısı', 'Peron A', 'Peron B', 'Araç Denetim'],
-  'Liman Kontrol Noktası': ['Konteyner Sahası', 'Ro-Ro Terminali', 'Gemi Ambarı', 'Konteyner Limanı'],
-  'Antrepo Bölgesi': ['Depo Girişi', 'Depo A', 'Depo B', 'İç Hat Terminal'],
+  'Kapıkule Sınır Kapısı': ['TIR Giriş Hattı', 'Yolcu Terminali', 'Peron 1', 'Peron 2', 'Peron 3', 'Gümrük Binası', 'Araç Denetim Sahası'],
+  'Hamzabeyli Sınır Kapısı': ['Giriş Kapısı', 'Peron A', 'Araç Kontrol'],
+  'Dereköy Sınır Kapısı': ['Ana Geçiş', 'TIR Hattı', 'Kontrol Noktası'],
+  'İpsala Sınır Kapısı': ['TIR Parkı', 'Yolcu Kapısı', 'Peron 1', 'Peron 2', 'Araç Arama Sahası'],
+  'Pazarkule Sınır Kapısı': ['Ana Geçiş', 'Yolcu Hattı', 'Araç Denetim'],
+  'Sarp Sınır Kapısı': ['TIR Terminali', 'Yolcu Kapısı', 'Araç Kontrol', 'Gümrük Binası'],
+  'Gürbulak Sınır Kapısı': ['TIR Giriş Hattı', 'Araç Kontrol Sahası', 'Gümrük Binası', 'Depo Alanı'],
+  'Esendere Sınır Kapısı': ['Ana Geçiş', 'Kontrol Noktası', 'Araç Denetim'],
+  'Habur Sınır Kapısı': ['TIR Geçiş Hattı', 'Ticari Araç Kontrol', 'Gümrük Binası', 'Depolama Alanı', 'Araç Bekleme Sahası'],
+  'Nusaybin Sınır Kapısı': ['Ana Geçiş', 'TIR Hattı', 'Araç Denetim', 'Gümrük Binası'],
+  'Cilvegözü Sınır Kapısı': ['TIR Terminali', 'Araç Kontrol', 'Yolcu Hattı', 'Gümrük Binası'],
+  'Öncüpınar Sınır Kapısı': ['Ana Geçiş', 'Araç Kontrol', 'Gümrük Noktası'],
+  'Akçakale Sınır Kapısı': ['Ana Geçiş', 'Araç Denetim', 'Kontrol Noktası'],
+  'İzmir Alsancak Limanı': ['Konteyner Sahası', 'Ro-Ro Terminali', 'Gemi Ambarı', 'İç Liman'],
+  'Mersin Uluslararası Limanı': ['Konteyner Terminali', 'Gemi Ambarı', 'Kargo Sahası', 'Depo Alanı'],
+  'Ambarlı Limanı': ['Konteyner Sahası', 'Ro-Ro Terminali', 'Yükleme Sahası'],
+  'Haydarpaşa Limanı': ['Konteyner Alanı', 'Gemi Rıhtımı', 'Kargo Sahası'],
+  'Derince Limanı': ['Konteyner Terminali', 'Kargo Alanı', 'Gemi Rıhtımı'],
+  'İstanbul Havalimanı Kargo': ['İç Hat Terminal', 'Dış Hat Terminal', 'Kargo Ambarı', 'X-Ray Denetim'],
+  'Sabiha Gökçen Kargo': ['Kargo Terminali', 'Dış Hat Kargo', 'X-Ray Kontrol'],
+  'TEM Karayolu Kontrol': ['Kuzey Hat', 'Orta Hat', 'Güney Hat', 'Araç Arama Noktası'],
+  'E-5 Karayolu Kontrol': ['Güzergah 1', 'Güzergah 2', 'Güzergah 3'],
   'Araç Arama Noktası': ['Kuzey Hat', 'Orta Hat', 'Güney Hat', 'Araç Arama Noktası 2'],
-  'Karayolu Kontrol Noktası': ['Güzergah 1', 'Güzergah 2', 'Güzergah 3'],
-  'Havalimanı Kargo': ['İç Hat Terminal', 'Dış Hat Terminal', 'Kargo Ambarı'],
+  'Merkez Antrepo': ['Depo A', 'Depo B', 'Depo Girişi', 'İç Terminal'],
   'Posta / Kargo Merkezi': ['X-Ray Denetim', 'Sortaj Alanı', 'Giriş Lobi'],
-  'Kargo Terminali': ['Sortaj Alanı', 'Depolama Alanı'],
-  'Mobil Saha Ekibi': ['Güney Güzergah', 'Kuzey Güzergah', 'Araç Arama Noktası 2'],
+  'Mobil Saha Ekibi': ['Güney Güzergah', 'Kuzey Güzergah', 'Saha Kontrol Noktası'],
 };
 
 const NUMUNE_TURLERI = [

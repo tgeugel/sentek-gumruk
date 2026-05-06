@@ -18,20 +18,25 @@ interface AkisOlayi {
 
 const DEMO_OLAYLAR: Omit<AkisOlayi, 'id' | 'zaman'>[] = [
   { lokasyon: 'Araç Arama Noktası', mesaj: 'Yeni test kaydı oluşturuldu — numune türü: toz madde', tip: 'sistem', operasyonNo: 'OPS-2026-0182' },
-  { lokasyon: 'Sınır Kapısı A', mesaj: 'Pozitif ön tarama kaydedildi — Esrar türevi tespiti', tip: 'pozitif', operasyonNo: 'OPS-2026-0183' },
-  { lokasyon: 'Liman Kontrol Noktası', mesaj: 'SNT-LAB-2026-000002 numunesı analiz sürecine alındı', tip: 'lab' },
+  { lokasyon: 'Kapıkule Sınır Kapısı', mesaj: 'Pozitif ön tarama kaydedildi — Esrar türevi tespiti', tip: 'pozitif', operasyonNo: 'OPS-2026-0183' },
+  { lokasyon: 'İzmir Alsancak Limanı', mesaj: 'SNT-LAB-2026-000002 numunesi analiz sürecine alındı', tip: 'lab' },
   { lokasyon: 'Mobil Saha Ekibi', mesaj: 'Numune sevk kaydı oluşturuldu — Limana yolda', tip: 'sevk', operasyonNo: 'OPS-2026-0184' },
-  { lokasyon: 'Antrepo Bölgesi', mesaj: 'STK-007 (AMP Kiti) kritik seviyede — 80 adet kaldı', tip: 'stok' },
-  { lokasyon: 'Liman Kontrol Noktası', mesaj: 'Negatif test sonucu — konteyner yüzey sürüntüsü', tip: 'negatif', operasyonNo: 'OPS-2026-0185' },
-  { lokasyon: 'Havalimanı Kargo', mesaj: 'SNT-LAB-2026-000006 analiz raporu sisteme yüklendi', tip: 'lab' },
-  { lokasyon: 'Sınır Kapısı B', mesaj: 'Yeni saha ekibi operasyona başladı', tip: 'sistem' },
-  { lokasyon: 'Antrepo Bölgesi', mesaj: 'Fentanil türevi şüphesi — acil sevk başlatıldı', tip: 'pozitif', operasyonNo: 'OPS-2026-0186' },
-  { lokasyon: 'Karayolu Kontrol Noktası', mesaj: 'Düşük güven skoru analiz — manuel kontrol önerildi', tip: 'sistem' },
-  { lokasyon: 'Mobil Saha Ekibi', mesaj: 'Çevrimdışı modda 1 test kaydı oluşturuldu', tip: 'sistem' },
+  { lokasyon: 'Merkez Antrepo', mesaj: 'STK-007 (AMP Kiti) kritik seviyede — 80 adet kaldı', tip: 'stok' },
+  { lokasyon: 'Mersin Uluslararası Limanı', mesaj: 'Negatif test sonucu — konteyner yüzey sürüntüsü', tip: 'negatif', operasyonNo: 'OPS-2026-0185' },
+  { lokasyon: 'İstanbul Havalimanı Kargo', mesaj: 'SNT-LAB-2026-000006 analiz raporu sisteme yüklendi', tip: 'lab' },
+  { lokasyon: 'İpsala Sınır Kapısı', mesaj: 'Yeni saha ekibi operasyona başladı — 3 personel', tip: 'sistem' },
+  { lokasyon: 'Habur Sınır Kapısı', mesaj: 'Fentanil türevi şüphesi — acil sevk başlatıldı', tip: 'pozitif', operasyonNo: 'OPS-2026-0186' },
+  { lokasyon: 'TEM Karayolu Kontrol', mesaj: 'Düşük güven skoru analiz — manuel kontrol önerildi', tip: 'sistem' },
+  { lokasyon: 'Gürbulak Sınır Kapısı', mesaj: 'Çevrimdışı modda 1 test kaydı oluşturuldu', tip: 'sistem' },
   { lokasyon: 'Posta / Kargo Merkezi', mesaj: 'SNT-LAB-2026-000004 teslim alındı — kabul edildi', tip: 'lab' },
-  { lokasyon: 'Sınır Kapısı A', mesaj: 'Araç arama sonuçlandı — temiz', tip: 'negatif', operasyonNo: 'OPS-2026-0187' },
-  { lokasyon: 'Havalimanı Kargo', mesaj: 'Şüpheli paket tespit edildi — analiz başlatıldı', tip: 'pozitif', operasyonNo: 'OPS-2026-0188' },
-  { lokasyon: 'Karayolu Kontrol Noktası', mesaj: 'Rutin denetim tamamlandı — 3 araç geçti', tip: 'sistem' },
+  { lokasyon: 'Kapıkule Sınır Kapısı', mesaj: 'TIR araması sonuçlandı — temiz', tip: 'negatif', operasyonNo: 'OPS-2026-0187' },
+  { lokasyon: 'Sabiha Gökçen Kargo', mesaj: 'Şüpheli kargo paketi tespit edildi — analiz başlatıldı', tip: 'pozitif', operasyonNo: 'OPS-2026-0188' },
+  { lokasyon: 'E-5 Karayolu Kontrol', mesaj: 'Rutin denetim tamamlandı — 5 araç geçti', tip: 'sistem' },
+  { lokasyon: 'Sarp Sınır Kapısı', mesaj: 'Metamfetamin tespiti — gizli bölme, TIR', tip: 'pozitif', operasyonNo: 'OPS-2026-0189' },
+  { lokasyon: 'Cilvegözü Sınır Kapısı', mesaj: 'Numune sevk edildi — laboratuvara yolda', tip: 'sevk', operasyonNo: 'OPS-2026-0190' },
+  { lokasyon: 'Hamzabeyli Sınır Kapısı', mesaj: 'Araç geçişi negatif — rutin kontrol tamamlandı', tip: 'negatif', operasyonNo: 'OPS-2026-0191' },
+  { lokasyon: 'Haydarpaşa Limanı', mesaj: 'Konteyner yüzey sürüntüsü — analiz bekleniyor', tip: 'lab' },
+  { lokasyon: 'Nusaybin Sınır Kapısı', mesaj: 'Kritik stok uyarısı — Eroin Panel Kiti 30 adet', tip: 'stok' },
 ];
 
 const TIP_CONFIG: Record<AkisOlayi['tip'], { icon: typeof Radio; renk: string; bg: string; etiket: string }> = {
@@ -91,7 +96,7 @@ export default function LiveOps() {
   useEffect(() => {
     const baslangic: AkisOlayi[] = [
       { id: 'init-1', zaman: new Date(Date.now() - 5000).toISOString(), lokasyon: 'Liman Kontrol Noktası', mesaj: 'SNT-LAB-2026-000003 analiz sırasında — kimyasal test devam ediyor', tip: 'lab' },
-      { id: 'init-2', zaman: new Date(Date.now() - 15000).toISOString(), lokasyon: 'Sınır Kapısı A', mesaj: 'Pozitif test kaydedildi — OPS-2026-0142', tip: 'pozitif', operasyonNo: 'OPS-2026-0142' },
+      { id: 'init-2', zaman: new Date(Date.now() - 15000).toISOString(), lokasyon: 'Kapıkule Sınır Kapısı', mesaj: 'Pozitif test kaydedildi — OPS-2026-0142', tip: 'pozitif', operasyonNo: 'OPS-2026-0142' },
       { id: 'init-3', zaman: new Date(Date.now() - 30000).toISOString(), lokasyon: 'Antrepo Bölgesi', mesaj: 'STK-002 kritik seviyede — 50 adet kaldı', tip: 'stok' },
       { id: 'init-4', zaman: new Date(Date.now() - 50000).toISOString(), lokasyon: 'Karayolu Kontrol Noktası', mesaj: 'LS-009 laboratuvara yolda — tahmini varış bekleniyor', tip: 'sevk' },
       { id: 'init-5', zaman: new Date(Date.now() - 90000).toISOString(), lokasyon: 'Havalimanı Kargo', mesaj: 'Sistem başlatıldı — Canlı operasyon izleme aktif', tip: 'sistem' },
