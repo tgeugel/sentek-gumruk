@@ -301,8 +301,8 @@ export default function KomutaKontrol() {
 
           {/* Tactical Map */}
           <div className="flex-1 relative min-h-0" style={{ minHeight: 320 }}>
-            {/* Map fills the full area */}
-            <div className="absolute inset-0">
+            {/* Map fills the full area — translateZ(0) promotes to own GPU layer */}
+            <div className="absolute inset-0" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
               <OperasyonHarita compact={false} />
             </div>
 
@@ -318,7 +318,7 @@ export default function KomutaKontrol() {
                 </div>
                 {aktifLokasyon && (
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full pointer-events-auto"
-                    style={{ background: 'rgba(0,212,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0,212,255,0.22)' }}>
+                    style={{ background: 'rgba(0,18,36,0.88)', border: '1px solid rgba(0,212,255,0.25)' }}>
                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     <span className="text-[11px] text-primary font-bold">{aktifLokasyon}</span>
                   </div>
@@ -347,8 +347,8 @@ export default function KomutaKontrol() {
             </div>
           </div>
 
-          {/* Bottom charts strip */}
-          <div className="flex-shrink-0 flex gap-3 px-4 py-3" style={{ background: 'rgba(5,9,22,0.6)', borderTop: '1px solid rgba(0,212,255,0.06)' }}>
+          {/* Bottom charts strip — explicit height prevents map container from fluctuating */}
+          <div className="flex-shrink-0 flex gap-3 px-4 py-3" style={{ height: 164, background: 'rgba(5,9,22,0.6)', borderTop: '1px solid rgba(0,212,255,0.06)', overflow: 'hidden' }}>
 
             {/* Area chart */}
             <div className="flex-1 min-w-0 glass-card glow-card p-3">
