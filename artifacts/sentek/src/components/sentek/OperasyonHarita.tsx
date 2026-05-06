@@ -175,28 +175,22 @@ const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, canliOlay, se
       {gosterilecekler.map(n => {
         const isCanli = canliOlay === n.lokasyon;
         const isSecili = secilenLokasyon === n.lokasyon;
-        const pr1 = n.r + 6;
-        const pr2 = n.r + 13;
-        const pr3 = n.r + 21;
         return (
           <g key={n.lokasyon} className="svg-marker"
             onClick={() => onSelect(n)}>
 
-            {/* Triple-ring pulse for positive/live markers */}
+            {/* Triple-ring pulse — scale-based, cross-browser safe */}
             {(n.hasPozitif || isCanli) && (
               <>
-                <circle cx={n.svgX} cy={n.svgY}
-                  style={{ ['--pr1' as string]: `${pr1}px` }} r={pr1}
-                  fill="none" stroke={n.renk} strokeWidth="1.2" strokeOpacity="0.6"
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill="none" stroke={n.renk} strokeWidth="1.6" strokeOpacity="0.75"
                   className="svg-pulse-1" />
-                <circle cx={n.svgX} cy={n.svgY}
-                  style={{ ['--pr2' as string]: `${pr2}px` }} r={pr2}
-                  fill="none" stroke={n.renk} strokeWidth="0.7" strokeOpacity="0.35"
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill="none" stroke={n.renk} strokeWidth="0.9" strokeOpacity="0.4"
                   className="svg-pulse-2" />
-                <circle cx={n.svgX} cy={n.svgY}
-                  style={{ ['--pr1' as string]: `${pr3}px`, animationDelay: '1s' }} r={pr3}
-                  fill="none" stroke={n.renk} strokeWidth="0.4" strokeOpacity="0.15"
-                  className="svg-pulse-1" />
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill="none" stroke={n.renk} strokeWidth="0.4" strokeOpacity="0.18"
+                  className="svg-pulse-3" />
               </>
             )}
 
@@ -362,29 +356,31 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)' }}>
 
       <style>{`
-        @keyframes svgPulse1 {
-          0%   { r: var(--pr1); opacity: 0.75; }
-          100% { r: calc(var(--pr1) + 14); opacity: 0; }
-        }
-        @keyframes svgPulse2 {
-          0%   { r: var(--pr2); opacity: 0.5; }
-          100% { r: calc(var(--pr2) + 22); opacity: 0; }
+        @keyframes svgRingPulse {
+          0%   { transform: scale(1);   opacity: 0.82; }
+          100% { transform: scale(4.2); opacity: 0; }
         }
         @keyframes svgBlink {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.2; }
+          50% { opacity: 0.15; }
         }
-        @keyframes svgSpin {
-          from { transform-origin: center; transform: rotate(0deg); }
-          to   { transform-origin: center; transform: rotate(360deg); }
+        .svg-pulse-1 {
+          animation: svgRingPulse 2.5s ease-out infinite;
+          transform-box: fill-box; transform-origin: center;
         }
-        .svg-pulse-1 { animation: svgPulse1 2.2s ease-out infinite; }
-        .svg-pulse-2 { animation: svgPulse2 2.2s ease-out infinite 0.6s; }
+        .svg-pulse-2 {
+          animation: svgRingPulse 2.5s ease-out infinite 0.7s;
+          transform-box: fill-box; transform-origin: center;
+        }
+        .svg-pulse-3 {
+          animation: svgRingPulse 2.5s ease-out infinite 1.4s;
+          transform-box: fill-box; transform-origin: center;
+        }
         .svg-marker  { cursor: pointer; }
-        .svg-marker:hover .marker-core circle:first-of-type { opacity: 0.85; }
+        .svg-marker:hover .marker-core { filter: brightness(1.35); }
         .svg-canli   { animation: svgBlink 1s ease-in-out infinite; }
         .il-path     { transition: fill 0.25s ease; }
-        .il-path:hover { fill: rgba(0,212,255,0.16) !important; }
+        .il-path:hover { fill: rgba(0,212,255,0.14) !important; }
       `}</style>
 
       {/* ── SVG MAP — slice fills container fully, no gaps ───────────────── */}

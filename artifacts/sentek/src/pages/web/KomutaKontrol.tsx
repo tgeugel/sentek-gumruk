@@ -50,6 +50,12 @@ const DEMO_OLAYLAR: Omit<AkisOlayi, 'id' | 'zaman'>[] = [
   { lokasyon: 'Nusaybin Sınır Kapısı', mesaj: 'Kritik stok uyarısı — Eroin Panel Kiti 30 adet', tip: 'stok' },
   { lokasyon: 'Gürbulak Sınır Kapısı', mesaj: 'Çevrimdışı modda 1 test kaydı oluşturuldu', tip: 'sistem' },
   { lokasyon: 'Sabiha Gökçen Kargo', mesaj: 'Şüpheli kargo paketi tespit edildi — analiz başlatıldı', tip: 'pozitif', operasyonNo: 'OPS-2026-0188' },
+  { lokasyon: 'Esendere Sınır Kapısı', mesaj: 'Pozitif ön tarama — Hakkari İran sınırı kapısı, esrar türevi', tip: 'pozitif', operasyonNo: 'OPS-2026-0204' },
+  { lokasyon: 'Öncüpınar Sınır Kapısı', mesaj: 'Numune sevk kaydı oluşturuldu — analiz için laboratuvara', tip: 'sevk', operasyonNo: 'OPS-2026-0206' },
+  { lokasyon: 'Akçakale Sınır Kapısı', mesaj: 'Eroin türevi tespiti — tarım yükü içine gizlenmiş paket', tip: 'pozitif', operasyonNo: 'OPS-2026-0207' },
+  { lokasyon: 'Dereköy Sınır Kapısı', mesaj: 'Amfetamin grubu tespit — Bulgaristan geçiş hattı', tip: 'pozitif', operasyonNo: 'OPS-2026-0210' },
+  { lokasyon: 'Ambarlı Limanı', mesaj: 'Konteyner yüzeyi analiz — SNT-LAB-2026-000014 sevk edildi', tip: 'lab' },
+  { lokasyon: 'PTT Kargo Merkezi İstanbul', mesaj: 'Uluslararası posta paketi — X-ray tespiti üzerine numune alındı', tip: 'sistem', operasyonNo: 'OPS-2026-0213' },
 ];
 
 const TIP_CONFIG: Record<AkisOlayi['tip'], { icon: typeof Radio; renk: string; bg: string; etiket: string; alertClass: string }> = {
