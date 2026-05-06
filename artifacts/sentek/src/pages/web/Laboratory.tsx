@@ -372,15 +372,15 @@ export default function Laboratory() {
         </div>
 
         <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0">
-          <div className="kpi-chip border-l-4 border-l-amber-500">
+          <div className="kpi-chip glow-card border-l-4 border-l-amber-500">
             <span className="metric-label">Bekleyen</span>
             <span className="text-xl font-bold text-amber-400">{bekleyenler.length}</span>
           </div>
-          <div className="kpi-chip border-l-4 border-l-violet-500">
+          <div className="kpi-chip glow-card border-l-4 border-l-violet-500">
             <span className="metric-label">Analiz</span>
             <span className="text-xl font-bold text-violet-400">{labSevkler.filter(s => s.durum === 'Analiz Sırasında').length}</span>
           </div>
-          <div className="kpi-chip border-l-4 border-l-emerald-500">
+          <div className="kpi-chip glow-card border-l-4 border-l-emerald-500">
             <span className="metric-label">Tamamlanan</span>
             <span className="text-xl font-bold text-emerald-400">{tamamlananlar.length}</span>
           </div>
@@ -413,7 +413,7 @@ export default function Laboratory() {
               key={sevk.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`glass-card-elevated border-l-[3px] ${getBorderColor(sevk.durum)} overflow-hidden group cursor-pointer`}
+              className={`glass-card-elevated glow-card border-l-[3px] ${getBorderColor(sevk.durum)} overflow-hidden group cursor-pointer`}
               onClick={() => setSeciliSevk(sevk)}
             >
               <div className="p-5">

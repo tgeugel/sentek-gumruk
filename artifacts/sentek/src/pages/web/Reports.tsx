@@ -229,7 +229,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden">
+      <div className="glass-card glow-card overflow-hidden">
         <FiltrePaneli filtreler={filtreler} onChange={setFiltre} />
         <div className="px-5 py-2.5 bg-secondary/10 border-t border-white/5 flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
           <Filter className="w-3 h-3" />
@@ -240,7 +240,7 @@ export default function Reports() {
       </div>
 
       {/* Tab Nav */}
-      <div className="glass-card p-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
+      <div className="glass-card glow-card p-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
         {TABS.map(tab => {
           const isActive = aktifTab === tab.key;
           return (

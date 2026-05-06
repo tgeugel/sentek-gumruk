@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
-import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Shield, Eye, EyeOff, AlertCircle, Zap } from 'lucide-react';
 import { useAuth, rolRouteAl } from '../contexts/AuthContext';
 import { Role } from '../types';
 
-const DEMO_ROLES: { label: string; email: string; sifre: string; rol: Role }[] = [
-  { label: 'Sistem Yöneticisi', email: 'admin@sentek.local', sifre: 'admin123', rol: 'Sistem Yöneticisi' },
-  { label: 'Merkez Yönetici', email: 'merkez@sentek.local', sifre: 'merkez123', rol: 'Merkez Yönetici' },
-  { label: 'Bölge Yetkilisi', email: 'bolge@sentek.local', sifre: 'bolge123', rol: 'Bölge Yetkilisi' },
-  { label: 'Saha Personeli', email: 'saha@sentek.local', sifre: 'saha123', rol: 'Saha Personeli' },
-  { label: 'Laboratuvar', email: 'lab@sentek.local', sifre: 'lab123', rol: 'Laboratuvar Kullanıcısı' },
+const DEMO_ROLES: { label: string; email: string; sifre: string; rol: Role; renk: string; bg: string; border: string }[] = [
+  { label: 'Sistem Yöneticisi', email: 'admin@sentek.local',  sifre: 'admin123',  rol: 'Sistem Yöneticisi',       renk: 'text-violet-400', bg: 'bg-violet-500/8',  border: 'border-violet-500/20' },
+  { label: 'Merkez Yönetici',   email: 'merkez@sentek.local', sifre: 'merkez123', rol: 'Merkez Yönetici',         renk: 'text-cyan-400',   bg: 'bg-cyan-500/8',    border: 'border-cyan-500/20' },
+  { label: 'Bölge Yetkilisi',   email: 'bolge@sentek.local',  sifre: 'bolge123',  rol: 'Bölge Yetkilisi',         renk: 'text-blue-400',   bg: 'bg-blue-500/8',    border: 'border-blue-500/20' },
+  { label: 'Saha Personeli',    email: 'saha@sentek.local',   sifre: 'saha123',   rol: 'Saha Personeli',          renk: 'text-emerald-400',bg: 'bg-emerald-500/8', border: 'border-emerald-500/20' },
+  { label: 'Laboratuvar',       email: 'lab@sentek.local',    sifre: 'lab123',    rol: 'Laboratuvar Kullanıcısı', renk: 'text-amber-400',  bg: 'bg-amber-500/8',   border: 'border-amber-500/20' },
 ];
 
 export default function Login() {
@@ -56,32 +56,41 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: 'hsl(225 48% 5.5%)' }}>
+      {/* Extra local glow for login page depth */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-cyan-500/[0.04] rounded-full blur-[120px]" />
+      </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md relative z-10"
       >
         {/* Logo / Branding */}
         <div className="text-center mb-8">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30 mb-4 shadow-[0_0_30px_rgba(0,212,255,0.15)]"
+            transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-5 relative"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,212,255,0.18) 0%, rgba(0,136,204,0.08) 100%)',
+              border: '1px solid rgba(0,212,255,0.35)',
+              boxShadow: '0 0 50px rgba(0,212,255,0.2), 0 0 100px rgba(0,212,255,0.06), inset 0 1px 0 rgba(0,212,255,0.15)'
+            }}
           >
-            <Shield className="w-8 h-8 text-primary" />
+            <Shield className="w-9 h-9 text-primary" style={{ filter: 'drop-shadow(0 0 12px rgba(0,212,255,0.7))' }} />
+            <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(circle at 40% 35%, rgba(0,212,255,0.12) 0%, transparent 60%)' }} />
           </motion.div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              SEN<span className="text-primary">TEK</span>
+
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }}>
+            <h1 className="text-4xl font-bold tracking-tight mb-1.5 display-title" style={{ fontFamily: 'var(--font-display)' }}>
+              <span className="text-gradient-white">SEN</span>
+              <span className="text-gradient-cyan">TEK</span>
             </h1>
-            <p className="text-xs text-muted-foreground mt-1 tracking-widest uppercase">
+            <p className="text-[10px] text-muted-foreground/60 tracking-[0.22em] uppercase">
               Saha Entegre Narkotik Test Yazılımı
             </p>
           </motion.div>
@@ -91,14 +100,20 @@ export default function Login() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="glass-card rounded-2xl p-6 border border-card-border"
+          transition={{ delay: 0.22, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-card-premium glow-card rounded-2xl p-6 mb-4 relative overflow-hidden"
         >
-          <h2 className="text-lg font-semibold text-foreground mb-5">Sisteme Giriş</h2>
+          {/* Top gradient line */}
+          <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(0,212,255,0.5), transparent)' }} />
+
+          <h2 className="text-base font-semibold text-foreground mb-5 flex items-center gap-2">
+            <div className="w-1 h-4 rounded-full bg-primary" style={{ boxShadow: '0 0 8px rgba(0,212,255,0.6)' }} />
+            Sisteme Giriş
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
+              <label className="block text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-[0.14em]">
                 E-posta
               </label>
               <input
@@ -106,13 +121,26 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+                className="w-full rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 outline-none transition-all"
+                style={{
+                  background: 'rgba(0,0,0,0.25)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = 'rgba(0,212,255,0.4)';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1), 0 0 20px rgba(0,212,255,0.06)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = 'rgba(255,255,255,0.09)';
+                  e.target.style.boxShadow = 'none';
+                }}
                 placeholder="kullanici@sentek.local"
                 required
               />
             </div>
+
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
+              <label className="block text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-[0.14em]">
                 Şifre
               </label>
               <div className="relative">
@@ -121,14 +149,26 @@ export default function Login() {
                   type={goster ? 'text' : 'password'}
                   value={sifre}
                   onChange={e => setSifre(e.target.value)}
-                  className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+                  className="w-full rounded-xl px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/40 outline-none transition-all"
+                  style={{
+                    background: 'rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                  }}
+                  onFocus={e => {
+                    e.target.style.borderColor = 'rgba(0,212,255,0.4)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0,212,255,0.1), 0 0 20px rgba(0,212,255,0.06)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.09)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setGoster(!goster)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 >
                   {goster ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -139,7 +179,7 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2"
+                className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2.5"
               >
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {hata}
@@ -150,53 +190,77 @@ export default function Login() {
               data-testid="button-login"
               type="submit"
               disabled={yukleniyor}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full bg-primary text-primary-foreground font-semibold py-2.5 rounded-lg text-sm transition-all hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,212,255,0.2)]"
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              className="w-full font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 60%, #0077AA 100%)',
+                color: '#080d1a',
+                boxShadow: '0 4px 28px rgba(0,212,255,0.35), 0 1px 0 rgba(255,255,255,0.15) inset',
+              }}
             >
+              <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
               {yukleniyor ? (
-                <span className="flex items-center justify-center gap-2">
+                <span className="flex items-center justify-center gap-2 relative z-10">
                   <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                   Doğrulanıyor...
                 </span>
-              ) : 'Giriş Yap'}
+              ) : (
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Giriş Yap
+                </span>
+              )}
             </motion.button>
           </form>
         </motion.div>
 
         {/* Demo Quick Login */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="mt-4 glass-card rounded-2xl p-4 border border-card-border"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.4 }}
+          className="glass-card-elevated glow-card rounded-2xl p-4 relative overflow-hidden"
         >
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3 text-center">Demo Hızlı Giriş</p>
+          <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(0,212,255,0.25), transparent)' }} />
+
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-3 h-3 text-primary/60" />
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.18em]">Demo Hızlı Giriş</p>
+          </div>
+
           <div className="grid grid-cols-1 gap-1.5">
-            {DEMO_ROLES.map(role => (
+            {DEMO_ROLES.map((role, i) => (
               <motion.button
                 key={role.email}
                 data-testid={`button-demo-${role.rol.replace(/\s+/g, '-').toLowerCase()}`}
                 onClick={() => hizliGiris(role.email, role.sifre)}
-                whileHover={{ scale: 1.01 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.42 + i * 0.04 }}
+                whileHover={{ scale: 1.01, x: 2 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-between w-full px-3 py-2 rounded-lg bg-secondary/40 border border-border/50 hover:border-primary/30 hover:bg-secondary/70 transition-all text-left group"
+                className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl border transition-all text-left group ${role.bg} ${role.border}`}
+                style={{ backdropFilter: 'blur(8px)' }}
               >
-                <div>
-                  <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">{role.label}</p>
-                  <p className="text-xs text-muted-foreground/60">{role.email}</p>
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${role.renk.replace('text-', 'bg-')}`} style={{ boxShadow: `0 0 6px currentColor` }} />
+                  <div>
+                    <p className={`text-xs font-bold ${role.renk}`}>{role.label}</p>
+                    <p className="text-[10px] text-muted-foreground/50 font-mono">{role.email}</p>
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground/40 group-hover:text-primary/60 transition-colors">{role.sifre}</span>
+                <span className={`text-[10px] font-mono font-bold opacity-40 group-hover:opacity-70 transition-opacity ${role.renk}`}>{role.sifre}</span>
               </motion.button>
             ))}
           </div>
         </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground/40 mt-4">
-          SENTEK v1.0 — Demo Ortamı
+        <p className="text-center text-[10px] text-muted-foreground/25 mt-4 tracking-widest uppercase">
+          SENTEK v1.0 · Demo Ortamı
         </p>
       </motion.div>
     </div>

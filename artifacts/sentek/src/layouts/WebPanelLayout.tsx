@@ -5,7 +5,7 @@ import {
   Shield, LayoutDashboard, ClipboardList, Package,
   Truck, FlaskConical, FileBarChart, Users, Settings,
   ChevronLeft, ChevronRight, LogOut, User, Menu, Radio, Map,
-  Bell, ChevronDown, Zap
+  ChevronDown, Zap
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
@@ -34,10 +34,10 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const ROL_RENK: Record<Role, string> = {
-  'Sistem Yöneticisi':    'bg-violet-500/15 text-violet-400 border-violet-500/20',
-  'Merkez Yönetici':      'bg-cyan-500/15 text-cyan-400 border-cyan-500/20',
-  'Bölge Yetkilisi':      'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  'Saha Personeli':       'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  'Sistem Yöneticisi':       'bg-violet-500/15 text-violet-400 border-violet-500/20',
+  'Merkez Yönetici':         'bg-cyan-500/15 text-cyan-400 border-cyan-500/20',
+  'Bölge Yetkilisi':         'bg-blue-500/15 text-blue-400 border-blue-500/20',
+  'Saha Personeli':          'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
   'Laboratuvar Kullanıcısı': 'bg-amber-500/15 text-amber-400 border-amber-500/20',
 };
 
@@ -63,8 +63,10 @@ function UserDropdown() {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 transition-colors group"
       >
-        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 relative"
-          style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.2) 0%, rgba(0,136,204,0.1) 100%)', border: '1px solid rgba(0,212,255,0.3)' }}>
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.2) 0%, rgba(0,136,204,0.1) 100%)', border: '1px solid rgba(0,212,255,0.3)', boxShadow: '0 0 12px rgba(0,212,255,0.08)' }}
+        >
           <User className="w-3.5 h-3.5 text-primary" />
         </div>
         <div className="flex-1 min-w-0 text-left">
@@ -82,7 +84,12 @@ function UserDropdown() {
             exit={{ opacity: 0, y: 6, scale: 0.96 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="absolute bottom-full left-3 right-3 mb-1 z-[200] overflow-hidden"
-            style={{ background: 'hsl(224 44% 11%)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.05)' }}
+            style={{
+              background: 'hsl(224 44% 11%)',
+              border: '1px solid rgba(0,212,255,0.12)',
+              borderRadius: 14,
+              boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.05)'
+            }}
           >
             <div className="p-3 border-b border-white/5">
               <div className="flex items-center gap-2.5 mb-2.5">
@@ -160,16 +167,23 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
       {/* Logo */}
       <div className={`flex-shrink-0 border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.25) 0%, rgba(0,136,204,0.12) 100%)', border: '1px solid rgba(0,212,255,0.3)', boxShadow: '0 0 20px rgba(0,212,255,0.12)' }}>
-            <Shield className="w-4 h-4 text-primary" />
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,212,255,0.22) 0%, rgba(0,136,204,0.1) 100%)',
+              border: '1px solid rgba(0,212,255,0.35)',
+              boxShadow: '0 0 20px rgba(0,212,255,0.15), inset 0 1px 0 rgba(0,212,255,0.12)'
+            }}
+          >
+            <Shield className="w-4 h-4 text-primary" style={{ filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.6))' }} />
           </div>
           {!collapsed && (
             <div>
-              <p className="text-sm font-bold leading-tight tracking-tight">
-                SEN<span className="text-primary">TEK</span>
+              <p className="text-sm font-bold leading-tight tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                <span style={{ background: 'linear-gradient(135deg, #fff 0%, #e0f7ff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>SEN</span>
+                <span className="text-primary">TEK</span>
               </p>
-              <p className="text-[9px] text-muted-foreground/60 leading-tight uppercase tracking-[0.15em] mt-0.5">Operasyon Paneli</p>
+              <p className="text-[9px] text-muted-foreground/50 leading-tight uppercase tracking-[0.15em] mt-0.5">Operasyon Paneli</p>
             </div>
           )}
         </div>
@@ -182,7 +196,7 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
           return (
             <div key={group}>
               {!collapsed && (
-                <p className="section-title px-3 mb-1.5">{group}</p>
+                <p className="section-title px-3 mb-1.5" style={{ fontSize: '0.6rem' }}>{group}</p>
               )}
               <div className="space-y-0.5">
                 {items.map(item => {
@@ -203,6 +217,9 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
                         {!collapsed && (
                           <span className="flex-1 truncate">{item.label}</span>
                         )}
+                        {!collapsed && active && (
+                          <div className="w-1 h-1 rounded-full bg-primary/60 flex-shrink-0" />
+                        )}
                       </div>
                     </Link>
                   );
@@ -213,10 +230,7 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
         })}
       </nav>
 
-      {/* Collapse hint (collapsed) */}
       {collapsed && <div className="h-2" />}
-
-      {/* User */}
       {collapsed ? <UserDropdownCollapsed /> : <UserDropdown />}
     </>
   );
@@ -228,14 +242,18 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
         animate={{ width: collapsed ? 60 : 244 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="hidden md:flex flex-col bg-sidebar border-r border-sidebar-border flex-shrink-0 relative overflow-hidden"
+        style={{ borderRight: '1px solid rgba(0,212,255,0.08)' }}
       >
+        {/* Sidebar inner glow */}
+        <div className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(0,212,255,0.04) 0%, transparent 100%)' }} />
+
         <NavContent />
 
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-[4.25rem] w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-primary transition-colors z-10"
-          style={{ background: 'hsl(224 44% 11%)', border: '1px solid rgba(255,255,255,0.09)' }}
+          style={{ background: 'hsl(224 44% 11%)', border: '1px solid rgba(0,212,255,0.15)' }}
         >
           {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
         </button>
@@ -265,8 +283,15 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-30 px-5 py-3 flex items-center gap-3"
-          style={{ background: 'hsl(var(--background) / 0.92)', backdropFilter: 'blur(20px) saturate(1.5)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <header
+          className="sticky top-0 z-30 px-5 py-3 flex items-center gap-3"
+          style={{
+            background: 'hsl(var(--background) / 0.92)',
+            backdropFilter: 'blur(24px) saturate(1.6)',
+            borderBottom: '1px solid rgba(0,212,255,0.07)',
+            boxShadow: '0 1px 0 rgba(0,212,255,0.04)'
+          }}
+        >
           <button
             onClick={() => setMobileOpen(true)}
             className="md:hidden p-1.5 rounded-lg hover:bg-secondary/60 transition-colors text-muted-foreground"
@@ -274,23 +299,30 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
             <Menu className="w-5 h-5" />
           </button>
           <div className="md:hidden flex items-center gap-2">
-            <Shield className="w-4.5 h-4.5 text-primary" />
-            <span className="font-bold text-sm tracking-tight">SEN<span className="text-primary">TEK</span></span>
+            <Shield className="w-4 h-4 text-primary" />
+            <span className="font-bold text-sm tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              <span className="text-white">SEN</span>
+              <span className="text-primary">TEK</span>
+            </span>
           </div>
 
           <div className="flex-1" />
 
           {/* System status */}
-          <div className="hidden md:flex items-center gap-1.5 mr-2">
+          <div className="hidden md:flex items-center gap-2 mr-2 px-3 py-1 rounded-full"
+            style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Sistem Aktif</span>
+            <span className="text-[10px] text-emerald-400/80 uppercase tracking-wider font-bold">Sistem Aktif</span>
           </div>
 
           <NotificationBell />
 
-          <div className="hidden md:flex items-center gap-2 pl-3 ml-1 border-l border-white/8">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.2) 0%, rgba(0,136,204,0.1) 100%)', border: '1px solid rgba(0,212,255,0.3)' }}>
+          <div className="hidden md:flex items-center gap-2 pl-3 ml-1"
+            style={{ borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.2) 0%, rgba(0,136,204,0.1) 100%)', border: '1px solid rgba(0,212,255,0.3)' }}
+            >
               <User className="w-3.5 h-3.5 text-primary" />
             </div>
             <div>

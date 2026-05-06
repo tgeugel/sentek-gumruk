@@ -116,7 +116,7 @@ export default function LabShipments() {
             { label: 'Analiz Sırasında', value: kpi.analiz, color: 'text-primary' },
             { label: 'Tamamlanan', value: kpi.tamam, color: 'text-emerald-400' },
           ].map(chip => (
-            <div key={chip.label} className="kpi-chip">
+            <div key={chip.label} className="kpi-chip glow-card">
               <span className="metric-label">{chip.label}</span>
               <span className={`text-xl font-bold ${chip.color}`}>{chip.value}</span>
             </div>
@@ -170,7 +170,7 @@ export default function LabShipments() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2, delay: i * 0.02 }}
               onClick={() => setSelected(sevk)}
-              className={`glass-card p-5 border-l-4 cursor-pointer group ${getDurumColor(sevk.durum)}`}
+              className={`glass-card glow-card p-5 border-l-4 cursor-pointer group ${getDurumColor(sevk.durum)}`}
             >
               <div className="flex justify-between items-start mb-4">
                 <div>

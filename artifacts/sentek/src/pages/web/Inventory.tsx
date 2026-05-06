@@ -207,19 +207,19 @@ export default function Inventory() {
 
         {/* 4-chip summary bar */}
         <div className="flex flex-wrap gap-4">
-          <div className="kpi-chip">
+          <div className="kpi-chip glow-card">
             <span className="metric-label">Toplam</span>
             <span className="text-xl font-bold text-cyan-400">{toplamAdedi.toLocaleString('tr-TR')}</span>
           </div>
-          <div className="kpi-chip">
+          <div className="kpi-chip glow-card">
             <span className="metric-label">Kullanılan</span>
             <span className="text-xl font-bold text-amber-400">{kullanilanAdedi.toLocaleString('tr-TR')}</span>
           </div>
-          <div className="kpi-chip">
+          <div className="kpi-chip glow-card">
             <span className="metric-label">Kalan</span>
             <span className={`text-xl font-bold ${kalanRenkSinifi}`}>{kalanAdedi.toLocaleString('tr-TR')}</span>
           </div>
-          <div className="kpi-chip">
+          <div className="kpi-chip glow-card">
             <span className="metric-label">Kritik</span>
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-red-500">{kritikler.length}</span>
@@ -261,7 +261,7 @@ export default function Inventory() {
             </div>
           </div>
 
-          <div className="glass-card-elevated overflow-hidden">
+          <div className="glass-card-elevated glow-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full premium-table">
                 <thead>

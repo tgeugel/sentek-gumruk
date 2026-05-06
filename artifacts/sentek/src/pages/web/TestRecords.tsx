@@ -69,6 +69,7 @@ function DetailDrawer({ kayit, onClose, labSevk }: { kayit: TestKaydi | null; on
         exit={{ x: '100%' }}
         transition={{ type: 'tween', duration: 0.26 }}
         className="fixed right-0 top-0 bottom-0 w-full max-w-lg bg-card border-l border-card-border z-50 flex flex-col"
+        style={{ boxShadow: '-20px 0 80px rgba(0,0,0,0.5), -1px 0 0 rgba(0,212,255,0.08)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -406,7 +407,7 @@ export default function TestRecords() {
             key={label}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`glass-card p-4 border ${border}`}
+            className={`glass-card glow-card p-4 border ${border}`}
           >
             <p className="section-title mb-1">{label}</p>
             <p className={`text-3xl font-bold font-mono ${renk}`}>{value}</p>
@@ -414,7 +415,7 @@ export default function TestRecords() {
         ))}
       </div>
 
-      <div className="glass-card-elevated overflow-hidden flex flex-col">
+      <div className="glass-card-elevated glow-card overflow-hidden flex flex-col">
         {/* Arama + Filtre */}
         <div className="p-4 border-b border-border flex flex-wrap gap-4 items-center bg-card/50">
           <div className="relative flex-1 min-w-[300px]">
