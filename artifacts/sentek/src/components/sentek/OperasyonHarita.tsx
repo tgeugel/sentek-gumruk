@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, memo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { TestKaydi } from '../../types';
+import { db } from '../../lib/db';
 import TR_ILLER from '../../data/turkiyeIller';
 
 type LokasyonTipi = 'sinir' | 'liman' | 'havalimanı' | 'karayolu' | 'antrepo' | 'posta' | 'mobil';
@@ -269,11 +271,16 @@ const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, secilenLokasy
 );
 
 interface OperasyonHaritaProps {
-  testKayitlari: TestKaydi[];
   compact?: boolean;
 }
 
-export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, compact }: OperasyonHaritaProps) {
+export const OperasyonHarita = memo(function OperasyonHarita({ compact }: OperasyonHaritaProps) {
+  const testKayitlari = (useLiveQuery(
+    () => db.testKayitlari.orderBy('tarih').reverse().toArray(),
+    [],
+    []
+  ) as TestKaydi[]) ?? [];
+
   const [secilenNokta, setSecilenNokta] = useState<NoktaDetay | null>(null);
   const [filtre, setFiltre] = useState<Filtre>('tumu');
 
@@ -578,6 +585,5 @@ export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, co
     </div>
   );
 }, (prev, next) =>
-  prev.compact === next.compact &&
-  prev.testKayitlari === next.testKayitlari
+  prev.compact === next.compact
 );
