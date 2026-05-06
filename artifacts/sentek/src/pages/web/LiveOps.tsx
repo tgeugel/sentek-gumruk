@@ -63,32 +63,30 @@ function AkisKarti({ olay }: { olay: AkisOlayi }) {
   const Icon = cfg.icon;
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20, scale: 0.97 }}
+      initial={{ opacity: 0, x: 16, scale: 0.97 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 20, scale: 0.96 }}
-      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-      className={`flex items-start gap-3 p-3 transition-all ${cfg.alertClass}`}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className={`flex items-start gap-2.5 p-2.5 transition-all ${cfg.alertClass}`}
     >
-      <div className={`w-8 h-8 rounded-xl border ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-        <Icon className={`w-4 h-4 ${cfg.renk}`} />
+      <div className={`w-7 h-7 rounded-lg border ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+        <Icon className={`w-3.5 h-3.5 ${cfg.renk}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-          <span className={`text-[10px] font-black tracking-widest ${cfg.renk}`}>{cfg.etiket}</span>
-          <span className="text-[10px] text-muted-foreground/30">·</span>
-          <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
-            <MapPin className="w-2.5 h-2.5" />{olay.lokasyon}
-          </span>
+        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+          <span className={`text-[9px] font-black tracking-widest ${cfg.renk}`}>{cfg.etiket}</span>
           {olay.operasyonNo && (
             <>
-              <span className="text-[10px] text-muted-foreground/30">·</span>
-              <span className="text-[10px] font-mono text-primary/80">{olay.operasyonNo}</span>
+              <span className="text-[9px] text-muted-foreground/25">·</span>
+              <span className="text-[9px] font-mono text-primary/70">{olay.operasyonNo}</span>
             </>
           )}
         </div>
-        <p className="text-xs text-foreground/90">{olay.mesaj}</p>
-        <p className="text-[10px] text-muted-foreground/40 mt-0.5 flex items-center gap-1">
-          <Clock className="w-2.5 h-2.5" />{timeAgo(olay.zaman)}
+        <p className="text-[11px] text-foreground/90 leading-snug">{olay.mesaj}</p>
+        <p className="text-[9px] text-muted-foreground/40 mt-0.5 flex items-center gap-1">
+          <MapPin className="w-2 h-2" />{olay.lokasyon}
+          <span className="text-muted-foreground/20 mx-0.5">·</span>
+          <Clock className="w-2 h-2" />{timeAgo(olay.zaman)}
         </p>
       </div>
     </motion.div>
@@ -147,21 +145,21 @@ export default function LiveOps() {
   });
 
   const kpiItems = [
-    { label: 'Bugün Toplam',        value: bugunTestler.length,   icon: Activity,      renk: 'text-cyan-400',   border: 'rgba(0,212,255,0.2)',   bg: 'bg-cyan-500/10' },
-    { label: 'Bugün Pozitif',       value: bugunPozitif.length,   icon: AlertTriangle, renk: 'text-red-400',    border: 'rgba(239,68,68,0.2)',   bg: 'bg-red-500/10' },
-    { label: 'Aktif Lab Sevk',      value: aktifSevkler.length,   icon: Truck,         renk: 'text-violet-400', border: 'rgba(139,92,246,0.2)',  bg: 'bg-violet-500/10' },
-    { label: 'Kritik / Tükenen',    value: kritikStok.length,     icon: Package,       renk: 'text-amber-400',  border: 'rgba(245,158,11,0.2)',  bg: 'bg-amber-500/10' },
-    { label: 'Düşük Güven Analizi', value: dusukGuven.length,     icon: Shield,        renk: 'text-orange-400', border: 'rgba(249,115,22,0.2)',  bg: 'bg-orange-500/10' },
-    { label: 'SKT Yaklaşan Kit',    value: sktYaklasan.length,    icon: Clock,         renk: 'text-blue-400',   border: 'rgba(59,130,246,0.2)',  bg: 'bg-blue-500/10' },
+    { label: 'Bugün Toplam',        value: bugunTestler.length,   icon: Activity,      renk: 'text-cyan-400',   border: 'rgba(0,212,255,0.25)',   bg: 'bg-cyan-500/15' },
+    { label: 'Bugün Pozitif',       value: bugunPozitif.length,   icon: AlertTriangle, renk: 'text-red-400',    border: 'rgba(239,68,68,0.25)',   bg: 'bg-red-500/15' },
+    { label: 'Aktif Lab Sevk',      value: aktifSevkler.length,   icon: Truck,         renk: 'text-violet-400', border: 'rgba(139,92,246,0.25)',  bg: 'bg-violet-500/15' },
+    { label: 'Kritik / Tükenen',    value: kritikStok.length,     icon: Package,       renk: 'text-amber-400',  border: 'rgba(245,158,11,0.25)',  bg: 'bg-amber-500/15' },
+    { label: 'Düşük Güven',         value: dusukGuven.length,     icon: Shield,        renk: 'text-orange-400', border: 'rgba(249,115,22,0.25)',  bg: 'bg-orange-500/15' },
+    { label: 'SKT Yaklaşan',        value: sktYaklasan.length,    icon: Clock,         renk: 'text-blue-400',   border: 'rgba(59,130,246,0.25)',  bg: 'bg-blue-500/15' },
   ];
 
   return (
-    <div className="p-6 space-y-6 animate-fade-slide-up">
+    <div className="p-6 space-y-5 animate-fade-slide-up">
+
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Double-ring live indicator */}
             <div className="live-indicator">
               <div className="ring-outer" />
               <div className="ring-middle" />
@@ -180,7 +178,7 @@ export default function LiveOps() {
           </div>
           <button
             onClick={() => setCanli(!canli)}
-            className={`group relative flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs transition-all overflow-hidden ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs transition-all ${
               canli
                 ? 'text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/15'
                 : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15'
@@ -193,47 +191,91 @@ export default function LiveOps() {
         <div className="gradient-divider" />
       </div>
 
-      {/* KPI Strip */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-        {kpiItems.map(({ label, value, icon: Icon, renk, border, bg }) => (
-          <div key={label} className={`glow-card kpi-chip flex-row items-center gap-3 min-w-[196px]`}
-            style={{ border: `1px solid ${border}` }}>
-            <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
-              <Icon className={`w-4 h-4 ${renk}`} />
-            </div>
-            <div>
-              <p className="metric-label">{label}</p>
-              <p className={`text-xl font-bold leading-none mt-0.5 ${renk}`} style={{ fontFamily: 'var(--font-display)' }}>{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Cinematic Hero: Map + Feed */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
 
-      {/* Map + Feed */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
-        {/* Map */}
-        <div className="xl:col-span-3 glow-card glass-card-elevated overflow-hidden flex flex-col">
-          <div className="px-4 py-2.5 flex items-center justify-between"
-            style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(0,212,255,0.08)' }}>
-            <div className="flex items-center gap-2.5">
-              <Map className="w-3.5 h-3.5 text-primary" style={{ filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.5))' }} />
-              <span className="text-[10px] font-black tracking-[0.2em] uppercase text-gradient-cyan">Canlı Harita</span>
-            </div>
-            {aktifLokasyon && (
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] text-primary font-semibold">{aktifLokasyon}</span>
-              </div>
-            )}
-          </div>
-          <div className="h-[420px]">
+        {/* Map hero — xl:col-span-4, h-[520px], gradient overlays + KPI chips */}
+        <div className="xl:col-span-4 relative rounded-2xl overflow-hidden"
+          style={{
+            height: '520px',
+            boxShadow: '0 0 80px rgba(0,212,255,0.07), 0 24px 80px rgba(0,0,0,0.55)',
+            border: '1px solid rgba(0,212,255,0.1)',
+          }}>
+
+          {/* Leaflet map fills the container */}
+          <div className="absolute inset-0">
             <OperasyonHarita testKayitlari={testKayitlari} canliOlay={aktifLokasyon} />
+          </div>
+
+          {/* Top gradient fade + title bar */}
+          <div className="absolute top-0 left-0 right-0 pointer-events-none"
+            style={{
+              height: '72px',
+              background: 'linear-gradient(to bottom, rgba(8,13,26,0.75) 0%, transparent 100%)',
+              zIndex: 450,
+            }}>
+            <div className="flex items-center justify-between px-4 pt-3 pointer-events-auto"
+              style={{ paddingLeft: '56px' }}>
+              <div className="flex items-center gap-2">
+                <Map className="w-3.5 h-3.5 text-primary"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.7))' }} />
+                <span className="text-[10px] font-black tracking-[0.22em] uppercase text-gradient-cyan">
+                  Türkiye Operasyon Haritası
+                </span>
+              </div>
+              {aktifLokasyon && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                  style={{
+                    background: 'rgba(0,212,255,0.12)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(0,212,255,0.28)',
+                  }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] text-primary font-bold">{aktifLokasyon}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom gradient fade + KPI overlay chips */}
+          <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(to top, rgba(8,13,26,0.96) 0%, rgba(8,13,26,0.55) 45%, transparent 100%)',
+              zIndex: 450,
+              paddingTop: '60px',
+              paddingBottom: '12px',
+              paddingLeft: '12px',
+              paddingRight: '12px',
+            }}>
+            <div className="flex flex-wrap gap-2 justify-end pointer-events-auto">
+              {kpiItems.map(({ label, value, icon: Icon, renk, border, bg }) => (
+                <div key={label} className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                  style={{
+                    background: 'rgba(6,10,20,0.82)',
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid ${border}`,
+                  }}>
+                  <div className={`w-6 h-6 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-3 h-3 ${renk}`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold leading-none ${renk}`}
+                      style={{ fontFamily: 'var(--font-display)' }}>
+                      {value}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground/60 uppercase tracking-wider leading-none mt-0.5 whitespace-nowrap">
+                      {label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Feed */}
-        <div className="xl:col-span-2 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+        {/* Feed — narrow right column, full height */}
+        <div className="xl:col-span-1 flex flex-col gap-3" style={{ height: '520px' }}>
+          <div className="flex items-center justify-between flex-shrink-0">
             <h2 className="section-title">
               <Zap className="w-3.5 h-3.5 text-primary" />
               Saha Akışı
@@ -244,16 +286,18 @@ export default function LiveOps() {
                 </span>
               )}
             </h2>
-            <button onClick={() => setAkis([])} className="text-[10px] font-bold text-muted-foreground/40 hover:text-foreground transition-colors uppercase tracking-widest">
+            <button onClick={() => setAkis([])}
+              className="text-[10px] font-bold text-muted-foreground/40 hover:text-foreground transition-colors uppercase tracking-widest">
               Temizle
             </button>
           </div>
-          <div className="h-[420px] overflow-y-auto pr-1 scrollbar-hide space-y-2">
+
+          <div className="flex-1 overflow-y-auto scrollbar-hide no-scrollbar space-y-1.5 glass-card p-2 rounded-xl">
             <AnimatePresence mode="popLayout">
               {akis.map(olay => <AkisKarti key={olay.id} olay={olay} />)}
             </AnimatePresence>
             {akis.length === 0 && (
-              <div className="glass-card-inset p-12 text-center border-dashed rounded-2xl">
+              <div className="glass-card-inset p-10 text-center border-dashed rounded-2xl mt-4">
                 <Radio className="w-10 h-10 text-muted-foreground/15 mx-auto mb-3" />
                 <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Veri bekleniyor</p>
               </div>
@@ -263,11 +307,12 @@ export default function LiveOps() {
       </div>
 
       {/* Bottom Panels */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
         {/* Son Pozitifler */}
         <div className="glow-card glass-card-elevated p-5 space-y-4">
           <h3 className="section-title">Son Pozitif Kayıtlar</h3>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {sonPozitifler.map(kayit => (
               <div key={kayit.id} className="alert-critical p-3">
                 <div className="flex justify-between items-start mb-1">
@@ -307,7 +352,7 @@ export default function LiveOps() {
                       initial={{ width: 0 }}
                       animate={{ width: `${oran}%` }}
                       transition={{ duration: 0.8, ease: 'easeOut' }}
-                      className={`h-full ${oran < 10 ? 'bg-red-500' : 'bg-amber-500'}`}
+                      className={`h-full rounded-full ${oran < 10 ? 'bg-red-500' : 'bg-amber-500'}`}
                     />
                   </div>
                   <p className="text-[10px] text-muted-foreground/50 mt-1.5 uppercase tracking-tighter">{s.depo} · {s.durum}</p>
@@ -326,7 +371,7 @@ export default function LiveOps() {
         {/* SKT Yaklaşan */}
         <div className="glow-card glass-card-elevated p-5 space-y-4">
           <h3 className="section-title">SKT Yaklaşan Kitler</h3>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {sktYaklasan.slice(0, 5).map(s => {
               const kalan = Math.ceil((new Date(s.skt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
               const acil = kalan <= 30;
