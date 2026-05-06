@@ -349,7 +349,8 @@ export const OperasyonHarita = memo(function OperasyonHarita({ compact }: Operas
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         width="100%"
         height="100%"
-        style={{ display: 'block', position: 'absolute', inset: 0, willChange: 'transform' }}
+        overflow="hidden"
+        style={{ display: 'block', position: 'absolute', inset: 0, willChange: 'transform', overflow: 'hidden' }}
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
