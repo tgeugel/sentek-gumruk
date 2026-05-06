@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, memo, useRef, useLayoutEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { TestKaydi } from '../../types';
 import { db } from '../../lib/db';
@@ -337,21 +337,46 @@ export const OperasyonHarita = memo(function OperasyonHarita({ compact }: Operas
     });
   }, []);
 
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const svgElemRef = useRef<SVGSVGElement>(null);
+
+  useLayoutEffect(() => {
+    const container = mapContainerRef.current;
+    const svg = svgElemRef.current;
+    if (!container || !svg) return;
+
+    const applyTransform = () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
+      const scale = Math.max(w / VB_W, h / VB_H);
+      const tx = (w - VB_W * scale) / 2;
+      const ty = (h - VB_H * scale) / 2;
+      svg.style.transform = `matrix(${scale},0,0,${scale},${tx},${ty})`;
+    };
+
+    applyTransform();
+    const ro = new ResizeObserver(applyTransform);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
+
   const gridLngs = [28, 30, 32, 34, 36, 38, 40, 42, 44];
   const gridLats = [37, 38, 39, 40, 41, 42];
 
   return (
-    <div className="relative w-full h-full overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)', isolation: 'isolate', willChange: 'transform' }}>
+    <div ref={mapContainerRef} className="relative w-full h-full overflow-hidden"
+      style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)', isolation: 'isolate' }}>
 
-      {/* ── SVG MAP — slice fills container fully, no gaps ───────────────── */}
+      {/* ── SVG MAP — fixed pixel size, ResizeObserver matrix transform, no preserveAspectRatio ── */}
       <svg
+        ref={svgElemRef}
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        width="100%"
-        height="100%"
+        width={VB_W}
+        height={VB_H}
         overflow="hidden"
-        style={{ display: 'block', position: 'absolute', inset: 0, willChange: 'transform', overflow: 'hidden' }}
-        preserveAspectRatio="xMidYMid slice"
+        style={{ display: 'block', position: 'absolute', top: 0, left: 0, transformOrigin: '0 0', overflow: 'hidden' }}
+        preserveAspectRatio="none"
       >
         <defs>
           {/* Province gradient — gives top-to-bottom depth */}

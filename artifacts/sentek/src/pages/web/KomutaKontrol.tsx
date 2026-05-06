@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, AlertTriangle, FlaskConical, Package, Truck,
@@ -94,6 +94,19 @@ function useCountUp(target: number, duration = 600) {
   return value;
 }
 
+const LiveClock = memo(function LiveClock() {
+  const [simdi, setSimdi] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setSimdi(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <p className="text-[10px] font-mono text-primary/50 tabular-nums hidden md:block">
+      {simdi.toLocaleDateString('tr-TR')} {simdi.toLocaleTimeString('tr-TR')}
+    </p>
+  );
+});
+
 function KpiTopCard({ label, value, sub, color, delay }: { label: string; value: number; sub: string; color: string; delay: number }) {
   const display = useCountUp(value);
   return (
@@ -154,13 +167,7 @@ export default function KomutaKontrol() {
   const [akis, setAkis] = useState<AkisOlayi[]>([]);
   const [canli, setCanli] = useState(true);
   const [aktifLokasyon, setAktifLokasyon] = useState<string | null>(null);
-  const [simdi, setSimdi] = useState(new Date());
   const olaySayacRef = useRef(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setSimdi(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     const baslangic: AkisOlayi[] = [
@@ -261,9 +268,7 @@ export default function KomutaKontrol() {
         </div>
 
         <div className="flex items-center gap-3">
-          <p className="text-[10px] font-mono text-primary/50 tabular-nums hidden md:block">
-            {simdi.toLocaleDateString('tr-TR')} {simdi.toLocaleTimeString('tr-TR')}
-          </p>
+          <LiveClock />
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold"
             style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.18)', color: '#34d399' }}>
