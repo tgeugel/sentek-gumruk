@@ -303,7 +303,7 @@ export default function KomutaKontrol() {
           <div className="flex-1 relative min-h-0" style={{ minHeight: 320 }}>
             {/* Map fills the full area */}
             <div className="absolute inset-0">
-              <OperasyonHarita testKayitlari={testKayitlari} canliOlay={aktifLokasyon} compact={false} />
+              <OperasyonHarita testKayitlari={testKayitlari} compact={false} />
             </div>
 
             {/* Top gradient + title */}

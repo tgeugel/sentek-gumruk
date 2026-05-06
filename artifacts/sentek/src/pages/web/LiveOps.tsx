@@ -204,7 +204,7 @@ export default function LiveOps() {
 
           {/* Leaflet map fills the container */}
           <div className="absolute inset-0">
-            <OperasyonHarita testKayitlari={testKayitlari} canliOlay={aktifLokasyon} />
+            <OperasyonHarita testKayitlari={testKayitlari} />
           </div>
 
           {/* Top gradient fade + title bar */}

@@ -164,23 +164,21 @@ const StaticMapLayer = memo(function StaticMapLayer() {
 /* ─── MARKERS LAYER ──────────────────────────────────────────────────────── */
 interface MarkersProps {
   gosterilecekler: NokData[];
-  canliOlay: string | null | undefined;
   secilenLokasyon: string | null;
   onSelect: (n: NokData) => void;
 }
 
-const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, canliOlay, secilenLokasyon, onSelect }: MarkersProps) {
+const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, secilenLokasyon, onSelect }: MarkersProps) {
   return (
     <g>
       {gosterilecekler.map(n => {
-        const isCanli = canliOlay === n.lokasyon;
         const isSecili = secilenLokasyon === n.lokasyon;
         return (
           <g key={n.lokasyon} className="svg-marker"
             onClick={() => onSelect(n)}>
 
-            {/* Triple-ring pulse — scale-based, cross-browser safe */}
-            {(n.hasPozitif || isCanli) && (
+            {/* Triple-ring pulse — all pozitif locations pulse; no re-render on feed change */}
+            {n.hasPozitif && (
               <>
                 <circle cx={n.svgX} cy={n.svgY} r={n.r}
                   fill="none" stroke={n.renk} strokeWidth="1.6" strokeOpacity="0.75"
@@ -260,36 +258,22 @@ const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, canliOlay, se
               </g>
             )}
 
-            {/* Live pulse — white ring blink */}
-            {isCanli && (
-              <>
-                <circle cx={n.svgX} cy={n.svgY} r={n.r + 1.5}
-                  fill="none" stroke="white" strokeWidth="1.5" strokeOpacity="0.6"
-                  className="svg-canli" />
-                {/* Live dot */}
-                <circle cx={n.svgX + n.r + 3} cy={n.svgY - n.r - 3} r={2.5}
-                  fill="#ef4444" stroke="rgba(0,0,0,0.6)" strokeWidth="0.8"
-                  className="svg-canli" />
-              </>
-            )}
           </g>
         );
       })}
     </g>
   );
 }, (prev, next) =>
-  prev.canliOlay === next.canliOlay &&
   prev.secilenLokasyon === next.secilenLokasyon &&
   prev.gosterilecekler === next.gosterilecekler
 );
 
 interface OperasyonHaritaProps {
   testKayitlari: TestKaydi[];
-  canliOlay?: string | null;
   compact?: boolean;
 }
 
-export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, canliOlay, compact }: OperasyonHaritaProps) {
+export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, compact }: OperasyonHaritaProps) {
   const [secilenNokta, setSecilenNokta] = useState<NoktaDetay | null>(null);
   const [filtre, setFiltre] = useState<Filtre>('tumu');
 
@@ -435,7 +419,6 @@ export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, ca
         {/* ── Dynamic markers ── */}
         <MarkersLayer
           gosterilecekler={gosterilecekler}
-          canliOlay={canliOlay}
           secilenLokasyon={secilenNokta?.lokasyon ?? null}
           onSelect={handleSelect}
         />
@@ -595,7 +578,6 @@ export const OperasyonHarita = memo(function OperasyonHarita({ testKayitlari, ca
     </div>
   );
 }, (prev, next) =>
-  prev.canliOlay === next.canliOlay &&
   prev.compact === next.compact &&
   prev.testKayitlari === next.testKayitlari
 );
