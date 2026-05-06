@@ -345,20 +345,37 @@ export const OperasyonHarita = memo(function OperasyonHarita({ compact }: Operas
     const svg = svgElemRef.current;
     if (!container || !svg) return;
 
-    const applyTransform = () => {
+    let lastW = 0;
+    let lastH = 0;
+
+    const applyTransform = (force = false) => {
       const w = container.clientWidth;
       const h = container.clientHeight;
       if (w === 0 || h === 0) return;
+      // HARD LOCK: ignore any container size fluctuation < 8px.
+      // Only deliberate resizes (window resize, sidebar toggle) update the transform.
+      // This prevents sub-pixel/layout-fluctuation zoom on every live feed update.
+      if (!force && Math.abs(w - lastW) < 8 && Math.abs(h - lastH) < 8) return;
+      lastW = w;
+      lastH = h;
       const scale = Math.max(w / VB_W, h / VB_H);
       const tx = (w - VB_W * scale) / 2;
       const ty = (h - VB_H * scale) / 2;
       svg.style.transform = `matrix(${scale},0,0,${scale},${tx},${ty})`;
     };
 
-    applyTransform();
-    const ro = new ResizeObserver(applyTransform);
+    // Initial measurement — force apply
+    applyTransform(true);
+    // Subsequent: only respond to window resize (real user action), not container fluctuations
+    const onWindowResize = () => applyTransform(true);
+    window.addEventListener('resize', onWindowResize);
+    // Container observer with 8px threshold guards against rare sidebar/layout shifts
+    const ro = new ResizeObserver(() => applyTransform(false));
     ro.observe(container);
-    return () => ro.disconnect();
+    return () => {
+      window.removeEventListener('resize', onWindowResize);
+      ro.disconnect();
+    };
   }, []);
 
   const gridLngs = [28, 30, 32, 34, 36, 38, 40, 42, 44];
