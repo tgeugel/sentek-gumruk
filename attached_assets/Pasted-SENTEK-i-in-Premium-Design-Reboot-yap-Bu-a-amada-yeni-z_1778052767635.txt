@@ -1,0 +1,263 @@
+SENTEK için Premium Design Reboot yap.
+
+Bu aşamada yeni özellik ekleme. Öncelik sadece tasarım kalitesi, ürün algısı, satış etkisi ve demo gücü.
+
+Amaç:
+Mevcut SENTEK uygulaması “iyi bir demo admin paneli” gibi değil; pahalı, ciddi, düşünülmüş, premium bir güvenlik teknolojisi platformu gibi görünmeli.
+
+Hedef kalite:
+Linear sadeliği, Vercel/Ramp premium SaaS dengesi, Stripe dashboard veri hiyerarşisi ve Palantir tarzı operasyon merkezi hissi.
+
+Bunları birebir kopyalama. Sadece kalite çıtası olarak kullan.
+
+Çok önemli:
+- Mevcut çalışan modülleri bozma.
+- Yeni özellik ekleme.
+- Baştan yazma.
+- Tüm metinler Türkçe kalsın.
+- Personel testi, biyolojik test, idrar, tükürük, kan, sürücü testi gibi ifadeler kullanılmasın.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, stok/seri no takibi, numune sevki ve laboratuvar doğrulama süreci olsun.
+- Gerçek kurum adı kullanma.
+
+1. Önce design system kur
+
+Tüm uygulama için tutarlı bir premium tasarım sistemi oluştur:
+
+- typography scale
+- 8pt spacing sistemi
+- semantic color palette
+- card sistemi
+- badge sistemi
+- table sistemi
+- form sistemi
+- modal/drawer sistemi
+- chart stili
+- motion sistemi
+
+Renk sistemi:
+- Arka plan: çok koyu lacivert / siyah
+- Kartlar: koyu füme
+- Ana vurgu: cyan / elektrik mavisi
+- Pozitif: kırmızı
+- Negatif: yeşil
+- Geçersiz: amber
+- Laboratuvar süreci: mavi / mor
+- Kritik stok: kırmızı
+- SKT yaklaşan: amber
+
+Amaç:
+Tüm ekranlar aynı premium ürün ailesinden çıkmış gibi görünmeli.
+
+2. Admin panel hissini yok et
+
+Şu görüntüyü azalt:
+- hazır template hissi
+- fazla glow
+- dağınık kartlar
+- küçük yazılar
+- sıkışık tablolar
+- rastgele renkler
+- çok fazla bilgi kalabalığı
+
+Yerine şunu kur:
+- net hiyerarşi
+- güçlü başlıklar
+- rafine kartlar
+- daha fazla boşluk
+- daha okunabilir tablolar
+- daha dengeli dashboard yapısı
+- enterprise product hissi
+
+3. Dashboard’u komuta merkezine çevir
+
+Dashboard açıldığında kullanıcı “bu ciddi bir sistem” demeli.
+
+Yeni dashboard hissi:
+- üstte güçlü KPI şeridi
+- ortada ana grafikler
+- sağda operasyonel uyarılar
+- altta kritik süreç kartları
+- sade ama güçlü veri hiyerarşisi
+
+Dashboard şu alanları çok iyi göstermeli:
+- bugünkü test
+- pozitif kayıt
+- lab sevk edilen
+- analiz bekleyen
+- kritik stok
+- SKT yaklaşan
+- en yoğun lokasyon
+- son operasyon akışı
+
+4. Canlı Operasyon ekranını premium command center yap
+
+Bu ekran satışta en etkileyici ekran olmalı.
+
+İyileştir:
+- harita daha premium görünsün
+- marker’lar daha rafine olsun
+- legend okunabilir olsun
+- canlı akış resmi ve sade olsun
+- sağ panel dengeli olsun
+- KPI kartları aynı hizada ve güçlü olsun
+- animasyon canlı ama yorucu olmasın
+
+Hedef:
+Kamu kurumu önünde gösterilebilecek ciddi bir operasyon merkezi.
+
+5. Test Detay ekranını delil zinciri ekranı gibi tasarla
+
+Test detay ekranı güven vermeli.
+
+İyileştir:
+- fotoğraf alanı
+- kit analiz kartları
+- güven skoru
+- QR / Etiket / Rapor aksiyonları
+- seri no / SKT alanı
+- lab sevk timeline
+- işlem geçmişi
+
+QR, Etiket ve Rapor butonlarını “İzlenebilirlik Aksiyonları” altında topla.
+
+6. Lab Sevk ve Laboratuvar ekranlarını operasyon kuyruğu gibi tasarla
+
+Lab ekranı sadece tablo gibi görünmesin.
+
+Üstte güçlü durum kartları olsun:
+- Beklenen
+- Yolda
+- Teslim Alındı
+- Analiz Bekliyor
+- Rapor Bekliyor
+
+Lab detayında zincir net görünsün:
+Pozitif Ön Tarama → Sevk → Teslim Alma → Analiz → Rapor → Dosya Kapatma
+
+7. Stok / Seri No / SKT ekranını stratejik hale getir
+
+Stok ekranı sadece depo tablosu gibi görünmesin.
+
+Şu akışı görsel olarak anlat:
+Merkez Depo → Bölge / Birim → Saha Kullanımı → Test Kaydı
+
+Üst KPI kartları:
+- Toplam Stok
+- Kullanılabilir Kit
+- Bugün Kullanılan
+- Kritik Stok
+- SKT Yaklaşan
+- Kullanılmış Seri No
+
+Tabloyu daha okunabilir yap.
+Satır detaylarında bağlı operasyon, bağlı test kaydı, kullanıcı ve kullanım tarihi net görünsün.
+
+8. Mobil saha uygulamasını gerçek mobil app gibi yap
+
+Mobil web küçültmesi gibi görünmesin.
+
+Mobil ana ekran:
+- Yeni Test
+- QR / Barkod Tara
+- Senkronize Et
+- Sevklerim
+
+Mobil wizard:
+6 ana adım olarak göster:
+1. Lokasyon
+2. Numune
+3. Kit
+4. Fotoğraf
+5. Sonuç
+6. Sevk
+
+Mobilde:
+- büyük butonlar
+- tek elle kullanım
+- kamera/fotoğraf alanı ön planda
+- dark UI okunabilir
+- pozitiften lab sevke geçiş çok net
+- alt navigasyon güçlü
+
+9. Raporlar ekranını yönetici sunumuna uygun hale getir
+
+Raporlar sadece kartlardan oluşmasın.
+
+Ek görünüm:
+- analitik dashboard
+- filtre paneli
+- grafik alanları
+- dışa aktarım aksiyonları
+
+Grafikler sade ve premium olsun:
+- test yoğunluğu
+- pozitif/negatif/geçersiz dağılımı
+- lokasyon bazlı analiz
+- numune türüne göre pozitiflik
+- lab sevk süreci
+- stok risk analizi
+- SKT trendi
+
+10. Sales / Executive demo katmanı oluştur
+
+Karar verici için özel etki alanları oluştur.
+
+Güçlü anlatılacak mesajlar:
+- saha testi kayıt altına alınır
+- seri no ve SKT izlenir
+- stok otomatik kontrol edilir
+- pozitif numune lab sürecine bağlanır
+- tüm zincir raporlanır
+- kurum operasyonel hafıza kazanır
+
+Gerekirse dashboard veya canlı operasyon içine “Önce / Sonra” veya “Zincirleme İzlenebilirlik” alanı ekle.
+
+Örnek zincir:
+Test → Fotoğraf → Sonuç → Seri No → Stok Düşümü → Sevk → Teslim Alma → Analiz → Rapor → Arşiv
+
+11. Motion / efektleri premiumlaştır
+
+Framer Motion varsa kontrollü kullan.
+
+Kullan:
+- kart reveal
+- tab geçişleri
+- modal/drawer geçişleri
+- timeline aktifleşmesi
+- canlı akış geçişleri
+- wizard geçişleri
+- buton hover/tap feedback
+
+Kullanma:
+- aşırı glow
+- sürekli dönen efekt
+- abartılı animasyon
+- performansı bozan hareket
+
+Hedef:
+Canlı ama ciddi. Etkileyici ama oyuncak değil.
+
+12. Son kalite kontrol
+
+Kontrol et:
+- tüm ekranlarda hizalama düzgün mü?
+- yazılar okunabilir mi?
+- tablolar sıkışık mı?
+- mobilde taşma var mı?
+- kartlar aynı tasarım dilinde mi?
+- renkler tutarlı mı?
+- modal/drawer ekran dışına taşıyor mu?
+- dark UI yormuyor mu?
+- animasyonlar ciddi mi?
+- Türkçe olmayan metin kaldı mı?
+- yanlış şekilde personel/biyolojik test çağrışımı yapan ifade var mı?
+
+İş sonunda rapor ver:
+- hangi ekranlar yeniden tasarlandı
+- tasarım sistemi nasıl kuruldu
+- dashboard nasıl değişti
+- canlı operasyon nasıl premiumlaştırıldı
+- mobil uygulama nasıl iyileştirildi
+- test detay / lab / stok / raporlar ekranlarında neler değişti
+- motion/efekt tarafında neler yapıldı
+- sistemin satış etkisi nasıl yükseltildi

@@ -3,5 +3,8 @@ type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/liveops-variants/IntelTimeline.tsx": () => import("../components/mockups/liveops-variants/IntelTimeline.tsx"),
   "./components/mockups/liveops-variants/SectorMatrix.tsx": () => import("../components/mockups/liveops-variants/SectorMatrix.tsx"),
-  "./components/mockups/liveops-variants/ThreatDominance.tsx": () => import("../components/mockups/liveops-variants/ThreatDominance.tsx")
+  "./components/mockups/liveops-variants/ThreatDominance.tsx": () => import("../components/mockups/liveops-variants/ThreatDominance.tsx"),
+  "./components/mockups/sentek-dashboard/CommandCore.tsx": () => import("../components/mockups/sentek-dashboard/CommandCore.tsx"),
+  "./components/mockups/sentek-dashboard/OperationsHub.tsx": () => import("../components/mockups/sentek-dashboard/OperationsHub.tsx"),
+  "./components/mockups/sentek-dashboard/PrecisionSuite.tsx": () => import("../components/mockups/sentek-dashboard/PrecisionSuite.tsx")
 };
