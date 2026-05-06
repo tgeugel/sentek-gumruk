@@ -179,18 +179,13 @@ const MarkersLayer = memo(function MarkersLayer({ gosterilecekler, secilenLokasy
           <g key={n.lokasyon} className="svg-marker"
             onClick={() => onSelect(n)}>
 
-            {/* Triple-ring pulse — all pozitif locations pulse; no re-render on feed change */}
+            {/* Static halo around pozitif locations — replaces pulse rings (map must stay still) */}
             {n.hasPozitif && (
               <>
-                <circle cx={n.svgX} cy={n.svgY} r={n.r}
-                  fill="none" stroke={n.renk} strokeWidth="1.6" strokeOpacity="0.75"
-                  className="svg-pulse-1" />
-                <circle cx={n.svgX} cy={n.svgY} r={n.r}
-                  fill="none" stroke={n.renk} strokeWidth="0.9" strokeOpacity="0.4"
-                  className="svg-pulse-2" />
-                <circle cx={n.svgX} cy={n.svgY} r={n.r}
-                  fill="none" stroke={n.renk} strokeWidth="0.4" strokeOpacity="0.18"
-                  className="svg-pulse-3" />
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 5}
+                  fill="none" stroke={n.renk} strokeWidth="1.2" strokeOpacity="0.45" />
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 9}
+                  fill="none" stroke={n.renk} strokeWidth="0.7" strokeOpacity="0.22" />
               </>
             )}
 
