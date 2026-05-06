@@ -13,9 +13,9 @@ SENTEK is a full MVP security technology platform for customs/narcotics field op
 ## Roles & Demo Credentials
 | Role | Email | Password | Route |
 |------|-------|----------|-------|
-| Sistem Yöneticisi | admin@sentek.local | admin123 | /panel/... |
+| Sistem Yöneticisi | admin@sentek.local | admin123 | /panel/dashboard |
 | Merkez Yönetici | merkez@sentek.local | merkez123 | /panel/dashboard |
-| Bölge Yetkilisi | bolge@sentek.local | bolge123 | /panel/... |
+| Bölge Yetkilisi | bolge@sentek.local | bolge123 | /panel/dashboard |
 | Saha Personeli | saha@sentek.local | saha123 | /mobile |
 | Laboratuvar Kullanıcısı | lab@sentek.local | lab123 | /panel/laboratuvar |
 
@@ -28,37 +28,27 @@ SENTEK is a full MVP security technology platform for customs/narcotics field op
 - `src/types/index.ts` — All TypeScript interfaces
 - `src/index.css` — 2026 premium design system (Space Grotesk, aurora blobs, glow-card system)
 - `src/main.tsx` — Mounts AuroraBackground, NoiseOverlay, MouseGlowInit (rAF mouse spotlight)
-- `src/components/sentek/OperasyonHarita.tsx` — Leaflet map, 33 locations, filter tabs, info panel
+- `src/pages/web/KomutaKontrol.tsx` — **MAIN PAGE**: Unified command center (map + KPIs + feed + charts)
+- `src/components/sentek/OperasyonHarita.tsx` — Leaflet map, Stadia dark tiles, 33 locations, tech overlays
 
 ## Design System (index.css)
-Premium dark enterprise 2026 — Space Grotesk display font, aurora background, noise texture overlay, mouse-tracked spotlight via `.glow-card::before`, all custom CSS classes:
-- **Aurora**: `.aurora-bg`, `.aurora-blob-1/2/3` (CSS keyframe drift), `.noise-overlay` (SVG feTurbulence)
-- **Mouse glow**: `.glow-card` — `position:relative; overflow:hidden; ::before` radial-gradient at `--mouse-x/--mouse-y`
+Premium dark enterprise 2026 — Space Grotesk display font, aurora background, noise texture overlay, mouse-tracked spotlight via `.glow-card::before`:
+- **Aurora**: `.aurora-bg`, `.aurora-blob-1/2/3`, `.noise-overlay`
+- **Mouse glow**: `.glow-card` — `position:relative; overflow:hidden; ::before` radial-gradient
 - **Glass cards**: `.glass-card`, `.glass-card-elevated`, `.glass-card-premium`, `.glass-card-inset`
 - **Alert variants**: `.alert-critical` (red), `.alert-warning` (amber), `.alert-info` (cyan), `.alert-lab` (violet)
-- **KPI**: `.kpi-chip`, `.metric-value`, `.metric-label`
-- **Nav**: `.nav-item`, `.mobile-nav-bar`, `.mobile-nav-item`
-- **Forms**: `.premium-input`, `.premium-table`
-- **Typography**: `.page-title` (gradient text), `.section-title` (cyan bar), `.display-title` (Space Grotesk)
-- **Utils**: `.scrollbar-hide`, `.no-scrollbar`, `.text-gradient-cyan`, `.text-gradient-white`
-- **Animations**: `fadeSlideUp`, `auroraDrift1/2/3`, `neonPulseOuter/Middle`, `chainFlow`, `.stagger-children`
 - **Live indicator**: `.live-indicator` with `.dot`, `.ring-middle`, `.ring-outer` for double-ring neon pulse
 
-## Completed Screen Redesigns (2026 Premium Reboot)
-- `main.tsx` — AuroraBackground (3 blobs), NoiseOverlay, MouseGlowInit (rAF throttled)
-- `Login.tsx` — cinematic card, Space Grotesk gradient logo, neon focus inputs, gradient CTA, per-role demo buttons
-- `WebPanelLayout.tsx` — grouped sidebar nav (Operasyon/Lojistik/Analiz/Yönetim), inner glow, nav-item.active neon
-- `Dashboard.tsx` — bento 12-col grid, animated İzlenebilirlik Zinciri, top 4 KPI bento cards, secondary KPI strip, 3-row chart layout
-- `LiveOps.tsx` — double-ring `.live-indicator`, glow-card KPI strip, Leaflet map, AnimatePresence feed, bottom panels
-- `Mobile/Home.tsx` — glow-card stat squares, gradient primary CTA, glass secondary actions, glass-card-elevated recent records
-- `TestRecords.tsx` — glow-card KPI chips + main table container, drawer neon box-shadow
-- `Inventory.tsx` — glow-card on all kpi-chips + table container
-- `Laboratory.tsx` — glow-card on sevk cards + all kpi-chips
-- `LabShipments.tsx` — glow-card on sevk cards + kpi-chips
-- `Reports.tsx` — glow-card on filter panel + tab nav
+## Komuta Kontrol Merkezi (main page — /panel/dashboard)
+Single unified page combining formerly separate Dashboard + LiveOps + Harita screens:
+- **Header bar**: live indicator, title, real-time clock, system status, canli/durdur toggle
+- **KPI strip**: 6 count-up metric cards (Toplam Test, Pozitif, Lab Sevk, Kritik Stok, Aktif Sevk, Bugün Pozitif)
+- **Tactical map** (left, flex-1): Stadia Alidade Smooth Dark tiles, scanline overlay, corner HUD brackets, vignette, attribution-free, filter tabs, location detail panel, animated markers with pulse rings
+- **Right feed panel** (280px): real-time Saha Akışı (5s interval), Son Pozitif Kayıtlar, Kritik Stok bars
+- **Bottom charts strip**: Area chart (son 7 gün), Donut (sonuç dağılımı), İzlenebilirlik Zinciri
 
-## Canlı Operasyon Haritası — Lokasyon Türleri (33 nokta)
-Real Turkish border gates on Leaflet map: Kapıkule, Hamzabeyli, Dereköy, İpsala, Pazarkule, Sarp, Gürbulak, Esendere, Habur, Nusaybin, Cilvegözü, Öncüpınar, Akçakale (Kara Sınır); İzmir Alsancak, Mersin Uluslararası, Ambarlı, Haydarpaşa, Derince (Liman); İstanbul Havalimanı Kargo, Sabiha Gökçen Kargo (Havalimanı); TEM, E-5, Araç Arama (Karayolu); Antrepo/Posta/Mobil types.
+## Map Tile Provider
+**Stadia Maps** `alidade_smooth_dark` — no API key needed for development, attribution-free display (`attributionControl: false`). Tech overlays: CSS scanlines + corner brackets + radial vignette + zoom control custom styled.
 
 ## Terminology Rules (NEVER violate)
 - NEVER: personel testi, biyolojik, idrar, tükürük, kan, sürücü
@@ -67,9 +57,8 @@ Real Turkish border gates on Leaflet map: Kapıkule, Hamzabeyli, Dereköy, İpsa
 ## Gotchas
 - Dexie DB only seeds if `count === 0` on first load. To reset data, clear IndexedDB in browser DevTools.
 - `scrollbar-hide` and `no-scrollbar` are defined in `index.css` (not Tailwind plugin).
-- Leaflet marker click handlers recreated on each `useEffect` run — `setSecilenNokta` is a stable setter, safe.
-- `rolRouteAl` / `useData` Fast Refresh warnings are benign.
-- Kit serial format: `LOT-YYYY-XX-KXXX` (e.g. `LOT-2026-A1-K045`)
-- Aurora blobs are `position:fixed; z-index:0` — content sits above via normal stacking
-- `glow-card` requires `position:relative; overflow:hidden` (already set in CSS) for `::before` pseudo-element spotlight
-- MouseGlowInit is disabled on `pointer:coarse` devices (mobile/touch)
+- Leaflet `attributionControl: false` — Stadia tiles allow this for development/demo use.
+- `glow-card` requires `position:relative; overflow:hidden` (set in CSS) for `::before` spotlight.
+- MouseGlowInit disabled on `pointer:coarse` devices (mobile/touch).
+- `/panel/canli-ops` and `/panel/harita` routes now redirect to `/panel/dashboard`.
+- KomutaKontrol uses `flex-1 flex flex-col h-full overflow-auto` — the map inside uses `flex-1` with `min-h-0` to prevent height overflow.

@@ -15,7 +15,7 @@ import MyShipments from "./pages/mobile/MyShipments";
 import NewTest from "./pages/mobile/NewTest";
 import QRTara from "./pages/mobile/QRTara";
 
-import Dashboard from "./pages/web/Dashboard";
+import KomutaKontrol from "./pages/web/KomutaKontrol";
 import TestRecords from "./pages/web/TestRecords";
 import Inventory from "./pages/web/Inventory";
 import LabShipments from "./pages/web/LabShipments";
@@ -23,8 +23,6 @@ import Laboratory from "./pages/web/Laboratory";
 import Reports from "./pages/web/Reports";
 import Users from "./pages/web/Users";
 import Settings from "./pages/web/Settings";
-import LiveOps from "./pages/web/LiveOps";
-import OperasyonHaritasi from "./pages/web/OperasyonHaritasi";
 
 import { UnauthorizedPage } from "./components/sentek/UnauthorizedPage";
 import { Role } from "./types";
@@ -133,26 +131,18 @@ function Router() {
       {/* ── Web Panel Routes ── */}
       <Route path="/panel/dashboard">
         {() => (
-          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Dashboard">
-            <WebPanelLayout><Dashboard /></WebPanelLayout>
+          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Komuta Kontrol Merkezi">
+            <WebPanelLayout><KomutaKontrol /></WebPanelLayout>
           </ProtectedRoute>
         )}
       </Route>
 
       <Route path="/panel/canli-ops">
-        {() => (
-          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Canlı Operasyon">
-            <WebPanelLayout><LiveOps /></WebPanelLayout>
-          </ProtectedRoute>
-        )}
+        {() => <Redirect to="/panel/dashboard" />}
       </Route>
 
       <Route path="/panel/harita">
-        {() => (
-          <ProtectedRoute webOnly allowedRoles={['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi']} screenName="Operasyon Haritası">
-            <WebPanelLayout><OperasyonHaritasi /></WebPanelLayout>
-          </ProtectedRoute>
-        )}
+        {() => <Redirect to="/panel/dashboard" />}
       </Route>
 
       <Route path="/panel/test-kayitlari">

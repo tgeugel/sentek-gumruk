@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Shield, LayoutDashboard, ClipboardList, Package,
+  Shield, ClipboardList, Package,
   Truck, FlaskConical, FileBarChart, Users, Settings,
-  ChevronLeft, ChevronRight, LogOut, User, Menu, Radio, Map,
-  ChevronDown, Zap
+  ChevronLeft, ChevronRight, LogOut, User, Menu, Radio,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
@@ -14,16 +14,14 @@ import { NotificationBell } from '../components/sentek/NotificationBell';
 interface NavItem {
   path: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof Radio;
   roles: Role[];
   badge?: 'live';
   group?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/panel/dashboard',      label: 'Dashboard',           icon: LayoutDashboard, roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'], group: 'Operasyon' },
-  { path: '/panel/canli-ops',      label: 'Canlı Operasyon',     icon: Radio,           roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'], badge: 'live', group: 'Operasyon' },
-  { path: '/panel/harita',         label: 'Operasyon Haritası',  icon: Map,             roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'], group: 'Operasyon' },
+  { path: '/panel/dashboard',      label: 'Komuta Kontrol',      icon: Radio,           roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'], badge: 'live', group: 'Operasyon' },
   { path: '/panel/test-kayitlari', label: 'Test Kayıtları',      icon: ClipboardList,   roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'], group: 'Operasyon' },
   { path: '/panel/stok',           label: 'Stok / Seri No',      icon: Package,         roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi'], group: 'Lojistik' },
   { path: '/panel/lab-sevk',       label: 'Lab Sevk Takibi',     icon: Truck,           roles: ['Sistem Yöneticisi', 'Merkez Yönetici', 'Bölge Yetkilisi', 'Laboratuvar Kullanıcısı'], group: 'Lojistik' },
