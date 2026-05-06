@@ -1,14 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { TestKaydi } from '../../types';
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
 
 type LokasyonTipi = 'sinir' | 'liman' | 'havalimanı' | 'karayolu' | 'antrepo' | 'posta' | 'mobil';
 type Filtre = 'tumu' | 'aktif' | 'pozitif';
@@ -16,14 +7,11 @@ type Filtre = 'tumu' | 'aktif' | 'pozitif';
 interface NoktaDetay {
   lokasyon: string;
   tip: LokasyonTipi;
-  lat: number;
-  lng: number;
   testSayisi: number;
   pozitifSayisi: number;
   negatifSayisi: number;
   gecersizSayisi: number;
   sonTestTarihi?: string;
-  sonTestSonucu?: string;
   sonMadde?: string;
 }
 
@@ -95,52 +83,38 @@ const TIP_RENK: Record<LokasyonTipi, string> = {
   karayolu: '#F59E0B', antrepo: '#6366F1', posta: '#EC4899', mobil: '#10B981',
 };
 
-function createDataMarker(testSayisi: number, pozitifSayisi: number, aktif: boolean, _tip: LokasyonTipi) {
-  const oran = testSayisi > 0 ? pozitifSayisi / testSayisi : 0;
-  const renk = pozitifSayisi > 0 ? (oran > 0.4 ? '#ef4444' : '#f97316') : '#00D4FF';
-  const boyut = Math.min(30 + testSayisi * 1.8, 54);
-  const ringSize = boyut + 16;
+const SVG_W = 840;
+const SVG_H = 430;
+const LNG_MIN = 25.5;
+const LAT_MAX = 43.5;
+const LNG_SCALE = 42;
+const LAT_SCALE = 52.5;
 
-  const pulseRings = aktif ? `
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      width:${ringSize + 20}px;height:${ringSize + 20}px;border-radius:50%;
-      border:1px solid ${renk}40;animation:senPulse2 2s infinite 0.3s;pointer-events:none;"></div>
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      width:${ringSize}px;height:${ringSize}px;border-radius:50%;
-      border:1.5px solid ${renk}70;animation:senPulse2 2s infinite;pointer-events:none;"></div>` : `
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      width:${ringSize}px;height:${ringSize}px;border-radius:50%;
-      border:1px solid ${renk}25;pointer-events:none;"></div>`;
-
-  const html = `
-    <div style="position:relative;width:${boyut}px;height:${boyut}px;">
-      ${pulseRings}
-      <div style="position:relative;z-index:2;width:${boyut}px;height:${boyut}px;border-radius:50%;
-        background:radial-gradient(circle at 35% 35%, ${renk}dd, ${renk}88);
-        border:2px solid ${renk};
-        box-shadow:0 0 20px ${renk}66, 0 0 40px ${renk}22, inset 0 1px 0 rgba(255,255,255,0.25);
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        color:white;font-weight:900;line-height:1.1;font-family:monospace;">
-        <span style="font-size:${boyut > 40 ? '13' : '10'}px;text-shadow:0 0 8px rgba(0,0,0,0.8);">${testSayisi}</span>
-        ${pozitifSayisi > 0 ? `<span style="font-size:8px;opacity:0.85;color:#fff;">+${pozitifSayisi}</span>` : ''}
-      </div>
-    </div>`;
-  return L.divIcon({ html, className: '', iconSize: [boyut, boyut], iconAnchor: [boyut / 2, boyut / 2] });
+function project(lat: number, lng: number): [number, number] {
+  return [
+    Math.round((lng - LNG_MIN) * LNG_SCALE),
+    Math.round((LAT_MAX - lat) * LAT_SCALE),
+  ];
 }
 
-function createEmptyMarker(tip: LokasyonTipi) {
-  const renk = TIP_RENK[tip];
-  const harf = TIP_HARF[tip];
-  const html = `
-    <div style="width:20px;height:20px;border-radius:50%;
-      background:${renk}12;border:1px solid ${renk}45;
-      display:flex;align-items:center;justify-content:center;
-      color:${renk}88;font-size:7px;font-weight:900;font-family:monospace;
-      box-shadow:0 0 8px ${renk}20;">
-      ${harf}
-    </div>`;
-  return L.divIcon({ html, className: '', iconSize: [20, 20], iconAnchor: [10, 10] });
-}
+const THRACE_PATH =
+  'M 34,76 L 81,81 L 101,95 L 146,118 L 146,131 ' +
+  'L 126,137 L 103,147 L 84,158 L 69,163 L 50,163 ' +
+  'L 29,142 L 29,118 L 29,95 Z';
+
+const ANATOLIA_PATH =
+  'M 38,176 L 29,210 L 42,242 L 59,255 L 69,268 L 73,286 ' +
+  'L 73,297 L 67,326 L 71,341 L 92,352 L 118,361 L 146,372 ' +
+  'L 171,383 L 231,365 L 273,368 L 294,367 L 357,362 L 384,351 ' +
+  'L 438,363 L 449,356 L 469,365 L 490,346 L 533,349 ' +
+  'L 609,337 L 660,339 L 714,332 ' +
+  'L 811,313 L 811,263 L 806,216 L 792,195 L 754,158 ' +
+  'L 735,129 L 672,105 ' +
+  'L 638,126 L 596,126 L 559,129 L 521,113 L 487,115 ' +
+  'L 441,102 L 403,89 L 361,74 ' +
+  'L 273,87 L 231,115 L 189,110 L 151,126 ' +
+  'L 147,129 L 147,133 L 164,141 L 183,143 L 179,146 L 178,152 ' +
+  'L 151,163 L 126,163 L 104,163 L 78,174 L 48,176 Z';
 
 interface OperasyonHaritaProps {
   testKayitlari: TestKaydi[];
@@ -149,62 +123,18 @@ interface OperasyonHaritaProps {
 }
 
 export function OperasyonHarita({ testKayitlari, canliOlay, compact }: OperasyonHaritaProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
   const [secilenNokta, setSecilenNokta] = useState<NoktaDetay | null>(null);
   const [filtre, setFiltre] = useState<Filtre>('tumu');
+  const [tick, setTick] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
-    const map = L.map(mapRef.current, {
-      center: [39.0, 35.5],
-      zoom: compact ? 4 : 5,
-      zoomControl: false,
-      attributionControl: false,
-    });
+    const id = setInterval(() => setTick(t => t + 1), 2000);
+    return () => clearInterval(id);
+  }, []);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 20,
-    }).addTo(map);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const style = document.createElement('style');
-    style.id = 'sentek-map-style';
-    style.textContent = `
-      @keyframes senPulse2 {
-        0%   { transform:translate(-50%,-50%) scale(0.85); opacity:0.8; }
-        50%  { transform:translate(-50%,-50%) scale(1.35); opacity:0.1; }
-        100% { transform:translate(-50%,-50%) scale(0.85); opacity:0.8; }
-      }
-      .leaflet-popup-content-wrapper { background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important; }
-      .leaflet-popup-content { margin:0!important; }
-      .leaflet-popup-tip-container { display:none!important; }
-      .leaflet-control-zoom { border:1px solid rgba(0,212,255,0.18)!important; border-radius:8px!important; overflow:hidden; }
-      .leaflet-control-zoom a { background:rgba(6,12,26,0.92)!important; color:#00D4FF!important; border-bottom:1px solid rgba(0,212,255,0.12)!important; font-weight:700!important; }
-      .leaflet-control-zoom a:hover { background:rgba(0,212,255,0.12)!important; }
-    `;
-    document.head.appendChild(style);
-    mapInstanceRef.current = map;
-    return () => { style.remove(); map.remove(); mapInstanceRef.current = null; };
-  }, [compact]);
-
-  useEffect(() => {
-    if (!canliOlay || !mapInstanceRef.current) return;
-    const coords = LOKASYON_KOORDINATLARI[canliOlay];
-    if (coords) mapInstanceRef.current.panTo(coords, { animate: true, duration: 0.8 });
-  }, [canliOlay]);
-
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-    const setNokta = setSecilenNokta;
-
-    Object.entries(LOKASYON_KOORDINATLARI).forEach(([lokasyon, [lat, lng]]) => {
+  const noktalar = useMemo(() => {
+    return Object.entries(LOKASYON_KOORDINATLARI).map(([lokasyon, [lat, lng]]) => {
       const tip = (LOKASYON_TIP[lokasyon] || 'mobil') as LokasyonTipi;
       const kayitlar = testKayitlari.filter(t => t.lokasyon === lokasyon);
       const pozitifler = kayitlar.filter(t => t.testSonucu === 'Pozitif');
@@ -212,62 +142,28 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
       const gecersizler = kayitlar.filter(t => t.testSonucu === 'Geçersiz');
       const testSayisi = kayitlar.length;
       const pozitifSayisi = pozitifler.length;
-      const hasData = testSayisi > 0;
-      const hasPozitif = pozitifSayisi > 0;
-
-      if (filtre === 'aktif' && !hasData) return;
-      if (filtre === 'pozitif' && !hasPozitif) return;
-
-      const aktif = canliOlay === lokasyon;
-      const icon = hasData
-        ? createDataMarker(testSayisi, pozitifSayisi, aktif, tip)
-        : createEmptyMarker(tip);
-
-      const sonKayit = kayitlar[0];
       const sonMadde = kayitlar.find(k => k.tespitEdilenMadde)?.tespitEdilenMadde;
-      const tipRenk = TIP_RENK[tip];
-      const pozRenk = pozitifSayisi > 0 ? '#f87171' : '#34d399';
-
-      const popupHtml = `
-        <div style="background:rgba(6,10,22,0.97);border:1px solid ${tipRenk}45;border-radius:12px;padding:12px;min-width:210px;font-family:system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.7),0 0 20px ${tipRenk}15;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <span style="font-size:9px;font-weight:900;letter-spacing:0.18em;color:${tipRenk};background:${tipRenk}15;border:1px solid ${tipRenk}30;padding:2px 7px;border-radius:5px;">${TIP_LABEL[tip].toUpperCase()}</span>
-          </div>
-          <p style="font-weight:700;font-size:12px;color:#e2e8f0;margin:0 0 8px;line-height:1.3;">${lokasyon}</p>
-          ${hasData ? `
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
-            <div style="background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.1);border-radius:7px;padding:5px;text-align:center;">
-              <p style="color:#64748b;margin:0;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">Test</p>
-              <p style="font-weight:900;color:#00D4FF;margin:0;font-size:17px;font-family:monospace;">${testSayisi}</p>
-            </div>
-            <div style="background:${pozitifSayisi > 0 ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.07)'};border:1px solid ${pozitifSayisi > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.15)'};border-radius:7px;padding:5px;text-align:center;">
-              <p style="color:#64748b;margin:0;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">Poz</p>
-              <p style="font-weight:900;color:${pozRenk};margin:0;font-size:17px;font-family:monospace;">${pozitifSayisi}</p>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:5px;text-align:center;">
-              <p style="color:#64748b;margin:0;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">Neg</p>
-              <p style="font-weight:900;color:#94a3b8;margin:0;font-size:17px;font-family:monospace;">${negatifler.length}</p>
-            </div>
-          </div>
-          ${sonMadde ? `<p style="margin:4px 0 0;font-size:10px;color:#f87171;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);border-radius:6px;padding:4px 8px;">⚠ ${sonMadde}</p>` : ''}
-          ${sonKayit ? `<p style="margin:5px 0 0;font-size:9px;color:#475569;font-family:monospace;">Son kayıt: ${new Date(sonKayit.tarih).toLocaleDateString('tr-TR')}</p>` : ''}
-          ` : `<p style="margin:0;font-size:10px;color:#475569;font-style:italic;">Henüz test kaydı yok</p>`}
-        </div>`;
-
-      const popup = L.popup({ className: 'sentek-popup', closeButton: false, maxWidth: 250, offset: [0, -8] })
-        .setContent(popupHtml);
-
-      const marker = L.marker([lat, lng], { icon })
-        .bindPopup(popup)
-        .addTo(map);
-
-      marker.on('click', () => {
-        setNokta({ lokasyon, tip, lat, lng, testSayisi, pozitifSayisi, negatifSayisi: negatifler.length, gecersizSayisi: gecersizler.length, sonTestTarihi: sonKayit?.tarih, sonTestSonucu: sonKayit?.testSonucu, sonMadde });
-      });
-
-      markersRef.current.push(marker);
+      const sonTestTarihi = kayitlar[0]?.tarih;
+      const [svgX, svgY] = project(lat, lng);
+      const oran = testSayisi > 0 ? pozitifSayisi / testSayisi : 0;
+      const renk = pozitifSayisi > 0 ? (oran > 0.4 ? '#ef4444' : '#f97316') : TIP_RENK[tip];
+      const r = testSayisi > 0 ? Math.min(8 + testSayisi * 0.9, 18) : 5;
+      return {
+        lokasyon, tip, lat, lng, svgX, svgY,
+        testSayisi, pozitifSayisi, negatifSayisi: negatifler.length,
+        gecersizSayisi: gecersizler.length, sonMadde, sonTestTarihi,
+        renk, r, hasData: testSayisi > 0, hasPozitif: pozitifSayisi > 0,
+      };
     });
-  }, [testKayitlari, canliOlay, filtre]);
+  }, [testKayitlari]);
+
+  const gosterilecekler = useMemo(() => {
+    return noktalar.filter(n => {
+      if (filtre === 'aktif') return n.hasData;
+      if (filtre === 'pozitif') return n.hasPozitif;
+      return true;
+    });
+  }, [noktalar, filtre]);
 
   const FILTRE_LABELS: Record<Filtre, string> = {
     tumu: `Tümü (${Object.keys(LOKASYON_KOORDINATLARI).length})`,
@@ -275,50 +171,223 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
     pozitif: 'Pozitif',
   };
 
+  const gridLngs = [27, 29, 31, 33, 35, 37, 39, 41, 43, 45];
+  const gridLats = [37, 38, 39, 40, 41, 42, 43];
+
   return (
-    <div className="relative w-full h-full" style={{ background: '#060c1a' }}>
-      {/* Map tile layer */}
-      <div ref={mapRef} className="w-full h-full" style={{ background: '#060c1a' }} />
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ background: '#03060f' }}>
+      <style>{`
+        @keyframes svgPulse1 {
+          0%   { r: var(--pr1); opacity: 0.7; }
+          100% { r: calc(var(--pr1) + 10); opacity: 0; }
+        }
+        @keyframes svgPulse2 {
+          0%   { r: var(--pr2); opacity: 0.5; }
+          100% { r: calc(var(--pr2) + 18); opacity: 0; }
+        }
+        @keyframes svgBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .svg-pulse-1 { animation: svgPulse1 1.8s ease-out infinite; }
+        .svg-pulse-2 { animation: svgPulse2 1.8s ease-out infinite 0.4s; }
+        .svg-marker { cursor: pointer; transition: all 0.15s ease; }
+        .svg-marker:hover { filter: brightness(1.4); }
+        .svg-canli { animation: svgBlink 1.2s ease-in-out infinite; }
+      `}</style>
 
-      {/* Scanline tech overlay */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,212,255,0.012) 3px, rgba(0,212,255,0.012) 4px)',
-        zIndex: 200,
-      }} />
+      <svg
+        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        width="100%"
+        height="100%"
+        style={{ display: 'block' }}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#060d1f" />
+            <stop offset="100%" stopColor="#02040b" />
+          </radialGradient>
+          <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+            <stop offset="40%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(2,4,12,0.65)" />
+          </radialGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="glowStrong">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <pattern id="scanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="1" height="3" fill="transparent" />
+            <rect x="0" y="3" width="1" height="1" fill="rgba(0,212,255,0.012)" />
+          </pattern>
+        </defs>
 
-      {/* Subtle vignette */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 90% 80% at 50% 50%, transparent 40%, rgba(4,8,20,0.55) 100%)',
-        zIndex: 201,
-      }} />
+        <rect width={SVG_W} height={SVG_H} fill="url(#bgGrad)" />
 
-      {/* Corner brackets — top-left */}
-      <div className="absolute top-0 left-0 pointer-events-none" style={{ zIndex: 600 }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path d="M2 20 L2 2 L20 2" stroke="rgba(0,212,255,0.5)" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </div>
-      {/* Corner brackets — top-right */}
-      <div className="absolute top-0 right-0 pointer-events-none" style={{ zIndex: 600 }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path d="M38 20 L38 2 L20 2" stroke="rgba(0,212,255,0.5)" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </div>
-      {/* Corner brackets — bottom-left */}
-      <div className="absolute bottom-0 left-0 pointer-events-none" style={{ zIndex: 600 }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path d="M2 20 L2 38 L20 38" stroke="rgba(0,212,255,0.5)" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </div>
-      {/* Corner brackets — bottom-right */}
-      <div className="absolute bottom-0 right-0 pointer-events-none" style={{ zIndex: 600 }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path d="M38 20 L38 38 L20 38" stroke="rgba(0,212,255,0.5)" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </div>
+        {gridLngs.map(lng => {
+          const x = (lng - LNG_MIN) * LNG_SCALE;
+          return (
+            <g key={`vg-${lng}`}>
+              <line x1={x} y1={0} x2={x} y2={SVG_H} stroke="rgba(0,212,255,0.045)" strokeWidth="0.5" />
+              <text x={x} y={SVG_H - 4} fontSize="7" fill="rgba(0,212,255,0.22)" textAnchor="middle" fontFamily="monospace">{lng}°E</text>
+            </g>
+          );
+        })}
+        {gridLats.map(lat => {
+          const y = (LAT_MAX - lat) * LAT_SCALE;
+          return (
+            <g key={`hg-${lat}`}>
+              <line x1={0} y1={y} x2={SVG_W} y2={y} stroke="rgba(0,212,255,0.045)" strokeWidth="0.5" />
+              <text x={4} y={y - 2} fontSize="7" fill="rgba(0,212,255,0.22)" fontFamily="monospace">{lat}°N</text>
+            </g>
+          );
+        })}
 
-      {/* Filter tabs */}
-      <div className="absolute top-2.5 left-10 flex gap-1" style={{ zIndex: 1000 }}>
+        <path d={THRACE_PATH} fill="rgba(6,18,42,0.9)" stroke="rgba(0,212,255,0.35)" strokeWidth="1" strokeLinejoin="round" />
+        <path d={ANATOLIA_PATH} fill="rgba(6,18,42,0.9)" stroke="rgba(0,212,255,0.35)" strokeWidth="1" strokeLinejoin="round" />
+
+        <path d={THRACE_PATH} fill="none" stroke="rgba(0,212,255,0.12)" strokeWidth="4" strokeLinejoin="round" />
+        <path d={ANATOLIA_PATH} fill="none" stroke="rgba(0,212,255,0.12)" strokeWidth="4" strokeLinejoin="round" />
+
+        {gosterilecekler.map(n => {
+          const isCanli = canliOlay === n.lokasyon;
+          const isSecili = secilenNokta?.lokasyon === n.lokasyon;
+          const pr1 = n.r + 5;
+          const pr2 = n.r + 10;
+          return (
+            <g
+              key={n.lokasyon}
+              className="svg-marker"
+              onClick={() => setSecilenNokta(isSecili ? null : {
+                lokasyon: n.lokasyon, tip: n.tip,
+                testSayisi: n.testSayisi, pozitifSayisi: n.pozitifSayisi,
+                negatifSayisi: n.negatifSayisi, gecersizSayisi: n.gecersizSayisi,
+                sonTestTarihi: n.sonTestTarihi, sonMadde: n.sonMadde,
+              })}
+            >
+              {(n.hasPozitif || isCanli) && (
+                <>
+                  <circle
+                    cx={n.svgX} cy={n.svgY}
+                    style={{ ['--pr1' as string]: `${pr1}px` }}
+                    r={pr1}
+                    fill="none"
+                    stroke={n.renk}
+                    strokeWidth="1"
+                    strokeOpacity="0.6"
+                    className="svg-pulse-1"
+                  />
+                  <circle
+                    cx={n.svgX} cy={n.svgY}
+                    style={{ ['--pr2' as string]: `${pr2}px` }}
+                    r={pr2}
+                    fill="none"
+                    stroke={n.renk}
+                    strokeWidth="0.7"
+                    strokeOpacity="0.35"
+                    className="svg-pulse-2"
+                  />
+                </>
+              )}
+
+              {isSecili && (
+                <circle cx={n.svgX} cy={n.svgY} r={n.r + 7}
+                  fill="none" stroke={n.renk} strokeWidth="1.5" strokeOpacity="0.8"
+                  strokeDasharray="3 2" />
+              )}
+
+              {n.hasData ? (
+                <>
+                  <circle
+                    cx={n.svgX} cy={n.svgY} r={n.r}
+                    fill={n.renk + 'cc'}
+                    stroke={n.renk}
+                    strokeWidth="1.5"
+                    filter="url(#glow)"
+                  />
+                  <text
+                    x={n.svgX} y={n.svgY + 1}
+                    fontSize={n.r > 13 ? '8' : '6.5'}
+                    fontWeight="900"
+                    fontFamily="monospace"
+                    fill="white"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {n.testSayisi}
+                  </text>
+                  {n.pozitifSayisi > 0 && n.r > 11 && (
+                    <text
+                      x={n.svgX} y={n.svgY + n.r + 6}
+                      fontSize="5.5"
+                      fontWeight="700"
+                      fontFamily="monospace"
+                      fill={n.renk}
+                      textAnchor="middle"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      +{n.pozitifSayisi}
+                    </text>
+                  )}
+                </>
+              ) : (
+                <>
+                  <circle
+                    cx={n.svgX} cy={n.svgY} r={n.r}
+                    fill={n.renk + '18'}
+                    stroke={n.renk + '55'}
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={n.svgX} y={n.svgY + 1}
+                    fontSize="5"
+                    fontWeight="900"
+                    fontFamily="monospace"
+                    fill={n.renk + '88'}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {TIP_HARF[n.tip]}
+                  </text>
+                </>
+              )}
+
+              {isCanli && (
+                <circle cx={n.svgX} cy={n.svgY} r={n.r}
+                  fill="none" stroke="white" strokeWidth="1" strokeOpacity="0.5"
+                  className="svg-canli" />
+              )}
+            </g>
+          );
+        })}
+
+        <rect width={SVG_W} height={SVG_H} fill="url(#scanlines)" style={{ pointerEvents: 'none' }} />
+        <rect width={SVG_W} height={SVG_H} fill="url(#vignette)" style={{ pointerEvents: 'none' }} />
+
+        <path d="M 2,22 L 2,2 L 22,2" stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M ${SVG_W - 2},22 L ${SVG_W - 2},2 L ${SVG_W - 22},2`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M 2,${SVG_H - 22} L 2,${SVG_H - 2} L 22,${SVG_H - 2}`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+        <path d={`M ${SVG_W - 2},${SVG_H - 22} L ${SVG_W - 2},${SVG_H - 2} L ${SVG_W - 22},${SVG_H - 2}`} stroke="rgba(0,212,255,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+
+        <text x={8} y={14} fontSize="8" fontWeight="900" fontFamily="monospace" fill="rgba(0,212,255,0.5)" letterSpacing="2" style={{ pointerEvents: 'none' }}>
+          TÜRKİYE · TAKTİK HARITA v2
+        </text>
+        <text x={SVG_W - 8} y={14} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.35)" textAnchor="end" style={{ pointerEvents: 'none' }}>
+          {tick % 2 === 0 ? '●' : '○'} CANLI
+        </text>
+
+        <text x={SVG_W - 8} y={SVG_H - 6} fontSize="7" fontFamily="monospace" fill="rgba(0,212,255,0.2)" textAnchor="end" style={{ pointerEvents: 'none' }}>
+          SENTEK COĞRAFYA MODELİ · {gosterilecekler.length} NOKTA AKTİF
+        </text>
+      </svg>
+
+      <div className="absolute top-3 left-8 flex gap-1" style={{ zIndex: 10 }}>
         {(Object.keys(FILTRE_LABELS) as Filtre[]).map(f => (
           <button key={f} onClick={() => setFiltre(f)}
             className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all border ${
@@ -332,20 +401,18 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
         ))}
       </div>
 
-      {/* Selected location panel */}
       {secilenNokta && (
         <div className="absolute top-12 right-2 w-56 rounded-xl border p-3 text-xs space-y-2"
-          style={{ zIndex: 1000, background: 'rgba(5,9,22,0.96)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+          style={{ zIndex: 10, background: 'rgba(5,9,22,0.96)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,212,255,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <span className="text-[9px] font-black tracking-[0.18em] uppercase px-1.5 py-0.5 rounded mr-1"
+              <span className="text-[9px] font-black tracking-[0.18em] uppercase px-1.5 py-0.5 rounded"
                 style={{ backgroundColor: `${TIP_RENK[secilenNokta.tip]}15`, color: TIP_RENK[secilenNokta.tip], border: `1px solid ${TIP_RENK[secilenNokta.tip]}30` }}>
                 {TIP_LABEL[secilenNokta.tip]}
               </span>
               <p className="font-bold text-foreground mt-1.5 leading-tight">{secilenNokta.lokasyon}</p>
             </div>
-            <button onClick={() => setSecilenNokta(null)}
-              className="text-muted-foreground/60 hover:text-foreground text-base leading-none flex-shrink-0 mt-0.5">×</button>
+            <button onClick={() => setSecilenNokta(null)} className="text-muted-foreground/60 hover:text-foreground text-base leading-none flex-shrink-0 mt-0.5">×</button>
           </div>
 
           {secilenNokta.testSayisi > 0 ? (
@@ -387,18 +454,15 @@ export function OperasyonHarita({ testKayitlari, canliOlay, compact }: Operasyon
         </div>
       )}
 
-      {/* Legend */}
       {!compact && (
         <div className="absolute bottom-3 left-3 rounded-xl p-3 text-xs space-y-1.5" style={{
-          zIndex: 1000,
+          zIndex: 10,
           background: 'rgba(5,9,22,0.93)',
           backdropFilter: 'blur(12px)',
           border: '1px solid rgba(0,212,255,0.1)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
         }}>
-          <p className="font-black text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-2">
-            Gösterge
-          </p>
+          <p className="font-black text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-2">Gösterge</p>
           {[
             { renk: '#ef4444', label: 'Yüksek pozitif' },
             { renk: '#f97316', label: 'Orta pozitif' },
