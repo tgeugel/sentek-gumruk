@@ -282,44 +282,54 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={son7Gun} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#00D4FF" stopOpacity={0.28} />
-                  <stop offset="95%" stopColor="#00D4FF" stopOpacity={0.02} />
-                </linearGradient>
-                <linearGradient id="gPoz" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#EF4444" stopOpacity={0.22} />
-                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0.01} />
-                </linearGradient>
-                <linearGradient id="gNeg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#10B981" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.01} />
-                </linearGradient>
-                <filter id="glowCyan" x="-20%" y="-60%" width="140%" height="220%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="gun" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dy={10} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
-              <Tooltip {...TOOLTIP_STYLE} />
-              <Area type="monotone" dataKey="Toplam" stroke="#00D4FF" strokeWidth={3} fillOpacity={1} fill="url(#gTotal)"
-                dot={{ r: 4, fill: '#00D4FF', strokeWidth: 2, stroke: '#080d1a' }}
-                activeDot={{ r: 6, fill: '#00D4FF', stroke: '#080d1a', strokeWidth: 2 }} />
-              <Area type="monotone" dataKey="Pozitif" stroke="#EF4444" strokeWidth={2.5} fillOpacity={1} fill="url(#gPoz)"
-                dot={{ r: 3.5, fill: '#EF4444', strokeWidth: 2, stroke: '#080d1a' }}
-                activeDot={{ r: 5, fill: '#EF4444', stroke: '#080d1a', strokeWidth: 2 }} />
-              <Area type="monotone" dataKey="Negatif" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#gNeg)"
-                dot={{ r: 3, fill: '#10B981', strokeWidth: 2, stroke: '#080d1a' }}
-                activeDot={{ r: 5, fill: '#10B981', stroke: '#080d1a', strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          {/* CSS drop-shadow applies glow to rendered SVG strokes/fills */}
+          <div style={{ filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.38)) drop-shadow(0 0 2px rgba(0,212,255,0.22))' }}>
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={son7Gun} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#00D4FF" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="#00D4FF" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="gPoz" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#EF4444" stopOpacity={0.22} />
+                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0.01} />
+                  </linearGradient>
+                  <linearGradient id="gNeg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#10B981" stopOpacity={0.18} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.01} />
+                  </linearGradient>
+                  <filter id="glowCyan" x="-20%" y="-60%" width="140%" height="220%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  <filter id="glowRed" x="-20%" y="-60%" width="140%" height="220%">
+                    <feGaussianBlur stdDeviation="2.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="gun" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Area type="monotone" dataKey="Toplam" stroke="#00D4FF" strokeWidth={3} fillOpacity={1} fill="url(#gTotal)"
+                  dot={{ r: 4, fill: '#00D4FF', strokeWidth: 2, stroke: '#080d1a' }}
+                  activeDot={{ r: 6, fill: '#00D4FF', stroke: '#080d1a', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="Pozitif" stroke="#EF4444" strokeWidth={2.5} fillOpacity={1} fill="url(#gPoz)"
+                  dot={{ r: 3.5, fill: '#EF4444', strokeWidth: 2, stroke: '#080d1a' }}
+                  activeDot={{ r: 5, fill: '#EF4444', stroke: '#080d1a', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="Negatif" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#gNeg)"
+                  dot={{ r: 3, fill: '#10B981', strokeWidth: 2, stroke: '#080d1a' }}
+                  activeDot={{ r: 5, fill: '#10B981', stroke: '#080d1a', strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
 
         {/* Right column — alerts + recent tests */}
