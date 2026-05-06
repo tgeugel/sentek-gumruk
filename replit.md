@@ -61,4 +61,4 @@ Single unified page combining formerly separate Dashboard + LiveOps + Harita scr
 - `glow-card` requires `position:relative; overflow:hidden` (set in CSS) for `::before` spotlight.
 - MouseGlowInit disabled on `pointer:coarse` devices (mobile/touch).
 - `/panel/canli-ops` and `/panel/harita` routes now redirect to `/panel/dashboard`.
-- KomutaKontrol uses `flex-1 flex flex-col h-full overflow-auto` — the map inside uses `flex-1` with `min-h-0` to prevent height overflow.
+- **CRITICAL — Map stability**: WebPanelLayout root MUST use `h-screen overflow-hidden` (NOT `min-h-screen`) and main column must have `min-h-0`. Otherwise live feed updates make the page grow vertically, cascading through flex layout to grow the map (visible as periodic zoom-in). Map container in KomutaKontrol uses `contain: strict` for extra isolation. OperasyonHarita SVG uses native `preserveAspectRatio="xMidYMid meet"` — do NOT add ResizeObserver/matrix transforms (they amplify any container fluctuation into visible zoom).

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo, useRef, useLayoutEffect } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { TestKaydi } from '../../types';
 import { db } from '../../lib/db';
@@ -332,63 +332,25 @@ export const OperasyonHarita = memo(function OperasyonHarita({ compact }: Operas
     });
   }, []);
 
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const svgElemRef = useRef<SVGSVGElement>(null);
-
-  useLayoutEffect(() => {
-    const container = mapContainerRef.current;
-    const svg = svgElemRef.current;
-    if (!container || !svg) return;
-
-    let lastW = 0;
-    let lastH = 0;
-
-    const applyTransform = (force = false) => {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      if (w === 0 || h === 0) return;
-      // HARD LOCK: ignore any container size fluctuation < 8px.
-      // Only deliberate resizes (window resize, sidebar toggle) update the transform.
-      // This prevents sub-pixel/layout-fluctuation zoom on every live feed update.
-      if (!force && Math.abs(w - lastW) < 8 && Math.abs(h - lastH) < 8) return;
-      lastW = w;
-      lastH = h;
-      const scale = Math.max(w / VB_W, h / VB_H);
-      const tx = (w - VB_W * scale) / 2;
-      const ty = (h - VB_H * scale) / 2;
-      svg.style.transform = `matrix(${scale},0,0,${scale},${tx},${ty})`;
-    };
-
-    // Initial measurement — force apply
-    applyTransform(true);
-    // Subsequent: only respond to window resize (real user action), not container fluctuations
-    const onWindowResize = () => applyTransform(true);
-    window.addEventListener('resize', onWindowResize);
-    // Container observer with 8px threshold guards against rare sidebar/layout shifts
-    const ro = new ResizeObserver(() => applyTransform(false));
-    ro.observe(container);
-    return () => {
-      window.removeEventListener('resize', onWindowResize);
-      ro.disconnect();
-    };
-  }, []);
-
   const gridLngs = [28, 30, 32, 34, 36, 38, 40, 42, 44];
   const gridLats = [37, 38, 39, 40, 41, 42];
 
   return (
-    <div ref={mapContainerRef} className="relative w-full h-full overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)', isolation: 'isolate' }}>
+    <div className="relative w-full h-full overflow-hidden"
+      style={{
+        background: 'radial-gradient(ellipse at 50% 60%, #03091e 0%, #010408 100%)',
+        isolation: 'isolate',
+        contain: 'strict',
+      }}>
 
-      {/* ── SVG MAP — fixed pixel size, ResizeObserver matrix transform, no preserveAspectRatio ── */}
+      {/* ── SVG MAP — native preserveAspectRatio scaling, no JS resizing ── */}
       <svg
-        ref={svgElemRef}
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        width={VB_W}
-        height={VB_H}
+        width="100%"
+        height="100%"
         overflow="hidden"
-        style={{ display: 'block', position: 'absolute', top: 0, left: 0, transformOrigin: '0 0', overflow: 'hidden' }}
-        preserveAspectRatio="none"
+        style={{ display: 'block', position: 'absolute', top: 0, left: 0, overflow: 'hidden' }}
+        preserveAspectRatio="xMidYMid meet"
       >
         <defs>
           {/* Province gradient — gives top-to-bottom depth */}

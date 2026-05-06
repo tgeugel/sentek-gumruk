@@ -234,7 +234,7 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen overflow-hidden bg-background flex">
       {/* Desktop Sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 60 : 244 }}
@@ -279,7 +279,7 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
       </AnimatePresence>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Header */}
         <header
           className="sticky top-0 z-30 px-5 py-3 flex items-center gap-3"

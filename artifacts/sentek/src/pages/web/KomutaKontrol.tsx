@@ -304,10 +304,9 @@ export default function KomutaKontrol() {
         {/* LEFT: Map + charts column */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-          {/* Tactical Map */}
-          <div className="flex-1 relative min-h-0" style={{ minHeight: 320, background: '#02060f', isolation: 'isolate' }}>
-            {/* Map fills the full area — translateZ(0) promotes to own GPU layer; opaque bg blocks aurora bleed-through */}
-            <div className="absolute inset-0" style={{ transform: 'translateZ(0)', willChange: 'transform', background: '#02060f' }}>
+          {/* Tactical Map — contain:strict locks layout so map dimensions are completely isolated from page reflows */}
+          <div className="flex-1 relative min-h-0" style={{ minHeight: 320, background: '#02060f', isolation: 'isolate', contain: 'strict' }}>
+            <div className="absolute inset-0" style={{ background: '#02060f' }}>
               <OperasyonHarita compact={false} />
             </div>
 
