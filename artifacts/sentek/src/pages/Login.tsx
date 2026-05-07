@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, AlertCircle, Zap, Shield } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Zap, Shield, MonitorPlay, BookOpen } from 'lucide-react';
 import { useAuth, rolRouteAl } from '../contexts/AuthContext';
 import { Role } from '../types';
 
@@ -255,6 +255,66 @@ export default function Login() {
               </motion.button>
             ))}
           </div>
+        </motion.div>
+
+        {/* Sunum & Tanıtım Kitapçığı Linkleri */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+          className="mt-3 grid grid-cols-2 gap-2"
+        >
+          <a
+            href="/sunum"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border transition-all text-xs font-semibold"
+            style={{
+              background: 'rgba(0,212,255,0.06)',
+              border: '1px solid rgba(0,212,255,0.18)',
+              color: 'rgba(0,212,255,0.85)',
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(0,212,255,0.12)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,212,255,0.35)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 20px rgba(0,212,255,0.12)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(0,212,255,0.06)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,212,255,0.18)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none';
+            }}
+          >
+            <MonitorPlay className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>Sunum</span>
+          </a>
+
+          <a
+            href="/tanitim-kitapcigi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border transition-all text-xs font-semibold"
+            style={{
+              background: 'rgba(139,92,246,0.06)',
+              border: '1px solid rgba(139,92,246,0.18)',
+              color: 'rgba(167,139,250,0.85)',
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.12)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.35)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 20px rgba(139,92,246,0.12)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.06)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.18)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none';
+            }}
+          >
+            <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>Tanıtım Kitapçığı</span>
+          </a>
         </motion.div>
 
         <p className="text-center text-[10px] text-muted-foreground/25 mt-4 tracking-widest uppercase">
