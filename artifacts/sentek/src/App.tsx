@@ -6,6 +6,7 @@ import { AuthProvider, useAuth, rolRouteAl } from "./contexts/AuthContext";
 import { DataProvider } from "./contexts/DataContext";
 
 import Login from "./pages/Login";
+import TanitimKitapcigi from "./pages/TanitimKitapcigi";
 import MobileLayout from "./layouts/MobileLayout";
 import WebPanelLayout from "./layouts/WebPanelLayout";
 
@@ -90,6 +91,8 @@ function Router() {
     <Switch>
       <Route path="/" component={AppRoot} />
       <Route path="/login" component={Login} />
+      <Route path="/tanitim-kitapcigi" component={TanitimKitapcigi} />
+      <Route path="/tanitim" component={TanitimKitapcigi} />
 
       {/* ── Mobile Routes ── */}
       <Route path="/mobile">

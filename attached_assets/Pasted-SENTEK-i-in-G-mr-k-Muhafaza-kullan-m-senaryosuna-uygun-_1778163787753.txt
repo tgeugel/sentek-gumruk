@@ -1,0 +1,324 @@
+SENTEK için Gümrük Muhafaza kullanım senaryosuna uygun, ekran görüntülerinin yer aldığı premium bir tanıtım kitapçığı hazırla.
+
+Amaç:
+SENTEK yazılımını karar vericilere sunmak için, gerçek ekran görüntülerini kullanan, çok temiz tasarlanmış, kurumsal, ikna edici, premium hissi veren ve satışta kullanılabilecek profesyonel bir ürün tanıtım dosyası oluşturmak.
+
+Bu çalışma sıradan bir broşür değil.
+Bu, yazılımın ekranlarını gösteren, ürün değerini anlatan, A4 baskıya uygun, PDF çıktısı sorunsuz alınabilen, ekran görüntülü bir ürün kitapçığı olmalı.
+
+Çok önemli:
+- Tüm içerik Türkçe olacak.
+- Türkçe karakterlerde (ç, ğ, ı, İ, ö, ş, ü) hiçbir bozulma olmayacak.
+- Font seçimi Türkçe karakter desteği yüksek, baskıda temiz çıkan profesyonel fontlardan yapılmalı.
+- Personel testi, biyolojik test, idrar, tükürük, kan, sürücü testi gibi ifadeler kesinlikle kullanılmamalı.
+- Konu yalnızca şüpheli materyal, doğrudan madde testi, saha operasyonu, seri no / stok takibi, numune sevki ve laboratuvar doğrulama sürecidir.
+- Gerçek kurum adı yerine “Gümrük Muhafaza saha operasyonları”, “sınır ve gümrük kontrolleri”, “narkotik saha süreçleri” gibi genel anlatımlar kullanılabilir.
+- Tasarım premium, kurumsal, dengeli ve baskıya uygun olmalı.
+- Son çıktı “ürün dosyası / satış kitapçığı” kalitesinde olmalı.
+
+1. Çıktı formatı ve baskı standardı
+
+Kitapçık premium A4 baskı kalitesine uygun hazırlanmalı.
+
+Zorunlu teknik kurallar:
+- Sayfa boyutu: A4
+- Ölçü: 210 x 297 mm
+- Baskı odaklı tasarım yapılmalı
+- PDF çıktısı alınabilir olmalı
+- Print CSS düzgün kurgulanmalı
+- @media print ve @page kuralları doğru tanımlanmalı
+- Sayfa taşmaları olmamalı
+- Başlıklar, görseller ve metin blokları kesime girmemeli
+- Güvenli kenar boşlukları bırakılmalı
+- Önerilen iç boşluk: en az 12–15 mm
+- Ekran görüntüleri yüksek kaliteli ve net olmalı
+- Düşük çözünürlüklü, bulanık veya bozuk ekran görüntüsü kullanılmamalı
+- A4 PDF export alındığında düzen bozulmamalı
+- Dijitalde güzel görünebilir ama öncelik baskı ve PDF kalitesidir
+
+Ayrıca:
+- HTML print sayfası oluştur
+- Browser print ile düzgün PDF alınabilecek yapı kur
+- Eğer uygun ise ayrıca ayrı bir “PDF indir” aksiyonu da ekle
+- Print preview ile son kontrol yap
+
+2. Font ve Türkçe karakter standardı
+
+Türkçe karakter desteği güçlü ve baskıda temiz çıkan profesyonel font kullan.
+
+Uygun font örnekleri:
+- Inter
+- IBM Plex Sans
+- Source Sans 3
+- Noto Sans
+- Manrope
+- Plus Jakarta Sans
+
+Kurallar:
+- Kullanılan font Türkçe karakterleri tam desteklemeli
+- PDF export sırasında karakterler bozulmamalı
+- Başlıklarda ve gövde metninde aynı aile veya uyumlu kombinasyon kullanılmalı
+- Fazla süslü fontlardan kaçın
+- Kurumsal, premium ve baskıda çok okunaklı bir font sistemi kur
+
+3. Tasarım dili
+
+Kitapçık tasarım dili:
+- premium
+- modern
+- kurumsal
+- dengeli
+- sade ama etkileyici
+- ekran görüntülerini öne çıkaran
+- satışta güven veren
+- 2026 premium ürün dosyası hissi taşıyan
+
+Tasarım referans hissi:
+- Premium product booklet
+- Modern enterprise solution deck
+- Temiz sayfa düzeni
+- Güçlü başlıklar
+- Kısa ama etkili açıklamalar
+- Ekran görüntülerine geniş yer
+- Dengeli beyaz alan kullanımı
+- Fazla metin yerine güçlü görsel anlatım
+
+Görsel yaklaşım:
+- Kapakta daha premium ve etkileyici bir sahne kurulabilir
+- İç sayfalarda okunabilirlik öncelikli olabilir
+- İstenirse kapak ve bazı vurgu sayfalarında koyu/premium dil
+- İç sayfalarda açık zemin + koyu tipografi + kontrollü vurgu renkleri tercih edilebilir
+
+Renk yaklaşımı:
+- Açık zemin + koyu metin ağırlıklı olabilir
+- Premium vurgu için cyan / grafit / beyaz / çok kontrollü koyu tonlar kullanılabilir
+- Baskıyı zorlayacak aşırı koyu arka planlardan kaçın
+- Her sayfada temiz, dengeli, üst seviye ürün sunumu hissi olmalı
+
+4. Sayfa kompozisyon kuralları
+
+Her sayfada:
+- maksimum 1 ana mesaj
+- 1 ana görsel veya 1 ana ekran görüntüsü
+- en fazla 3–5 kısa madde veya kısa açıklama bloğu
+- gereksiz paragraf kalabalığı olmasın
+
+Amaç:
+Karar verici kişi kitapçığı hızlı taradığında ana fikri hemen alsın.
+Sayfalar yoğun bilgi yığını gibi değil, güçlü mesaj blokları gibi çalışsın.
+
+5. Ekran görüntüleri
+
+Önce sistemden kullanılacak ekran görüntülerini belirle.
+Gerekirse uygulama içinden en iyi görselleri otomatik ekran görüntüsü olarak al.
+
+Kullanılacak ekranlar:
+- Komuta Merkezi / Dashboard
+- Canlı Operasyon görünümü
+- Mobil saha ana ekranı
+- Yeni test kaydı akışı
+- Test detay ekranı
+- QR / Etiket alanı
+- Stok / Seri No / SKT ekranı
+- Lab sevk takibi ekranı
+- Laboratuvar ekranı
+- Raporlar / Analitik ekranı
+
+Kurallar:
+- Boş, eksik, loading, hatalı veya görsel olarak zayıf ekran kullanılmasın
+- Yetkisiz ekran veya uyarı ekranı kullanılmasın
+- Screenshot almadan önce uygun demo kullanıcıyla giriş yap
+- En iyi veri yoğunluğuna ve en iyi görsel kaliteye sahip ekranları seç
+- Gerekirse en iyi görünen durum için demo veri görünümünü ayarla
+- Ekran görüntüleri kırpılırken kalite bozulmasın
+- Gerekirse premium frame / mock device frame kullanılabilir
+- Ama ekran görüntüsü asıl kahraman olmalı
+
+6. Kitapçık route / modül yapısı
+
+Kitapçık ayrı bir sayfa/route olarak oluştur:
+- /tanitim-kitapcigi
+veya
+- /brochure
+veya
+- /gumruk-tanitim-dosyasi
+
+Bu route:
+- print dostu olsun
+- A4 PDF için optimize olsun
+- tüm sayfalar tek akışta düzenli görünsün
+- istenirse webde önizleme, sonra print / PDF alınabilsin
+
+7. Sayfa akışı
+
+Sayfa 1 — Kapak
+Başlık:
+SENTEK
+
+Alt başlık:
+Saha Entegre Narkotik Test Yazılımı
+
+Açıklama:
+Gümrük Muhafaza saha operasyonları için dijital test, izlenebilirlik ve laboratuvar süreç yönetimi
+
+Kapakta ayrıca şunlar olabilir:
+- premium bir ekran görüntüsü crop’u
+- Komuta Merkezi’nden seçilmiş güçlü bir görsel
+- kısa bir vurgu cümlesi
+- versiyon / tarih alanı
+
+Kapak güçlü, sade ve premium olmalı.
+
+Sayfa 2 — Operasyonel İhtiyaç
+Başlık:
+Saha Operasyonlarında Temel İhtiyaç
+
+Kısa maddeler:
+- Saha testlerinin dağınık yürütülmesi
+- Fotoğraf ve kayıt süreçlerinin manuel kalması
+- Seri numarası ve SKT takibinin zorlaşması
+- Pozitif numune sevk zincirinin kopuk ilerlemesi
+- Merkezden görünürlük ve raporlama eksikliği
+
+Sayfa 3 — SENTEK Çözümü
+Başlık:
+SENTEK Ne Sağlar?
+
+Kısa maddeler:
+- Mobil saha kaydı
+- Test fotoğrafı ve analiz desteği
+- Sonuç yönetimi
+- Seri no / SKT / stok takibi
+- Pozitif numune sevki
+- Laboratuvar ön bildirim ve takip
+- Raporlama ve kurumsal hafıza
+
+Sayfa 4 — Komuta Merkezi
+Başlık:
+Komuta Merkezi
+
+Büyük ekran görüntüsü kullan.
+Kısa açıklamalarla:
+- Operasyon görünürlüğü
+- Canlı akış
+- Kritik uyarılar
+- Karar destek görünümü
+
+Sayfa 5 — Mobil Saha Uygulaması
+Başlık:
+Mobil Saha Kullanımı
+
+Mobil ekran görüntüsü + kısa kullanım akışı:
+- Yeni test
+- Fotoğraf
+- Sonuç
+- Sevk
+
+Sayfa 6 — Test Kaydı ve Analiz
+Başlık:
+Test Kaydı ve Sonuç Yönetimi
+
+Test ekranı + analiz ekranı + kısa açıklamalar
+
+Sayfa 7 — Zincirleme İzlenebilirlik
+Başlık:
+Zincirleme İzlenebilirlik
+
+Akış:
+Test → Fotoğraf → Sonuç → Seri No → Stok → Sevk → Teslim Alma → Analiz → Rapor
+
+Bu sayfa daha şematik ve güçlü olmalı.
+
+Sayfa 8 — Stok / Seri No / SKT Yönetimi
+Başlık:
+Stok ve Seri No Kontrolü
+
+Ekran görüntüsü + kısa fayda cümleleri:
+- Kullanılan kitin izlenmesi
+- Seri no eşleşmesi
+- SKT takibi
+- Operasyonel hazırlık
+
+Sayfa 9 — Lab Sevk ve Laboratuvar Süreci
+Başlık:
+Numune Sevki ve Laboratuvar Takibi
+
+Lab sevk ekranı + laboratuvar ekranı + süreç anlatımı
+
+Sayfa 10 — Raporlama ve Analitik
+Başlık:
+Raporlama ve Analitik Görünürlük
+
+Ekran görüntüsü + kısa fayda maddeleri
+
+Sayfa 11 — Kuruma Sağladığı Kazanımlar
+Başlık:
+Kurumsal Kazanımlar
+
+Maddeler:
+- Merkezi görünürlük
+- İzlenebilirlik
+- Delil zinciri desteği
+- Stok ve seri no kontrolü
+- Hızlı karar desteği
+- Laboratuvar süreç takibi
+- Kurumsal hafıza
+
+Sayfa 12 — Demo Sunum Akışı
+Başlık:
+Önerilen Demo Akışı
+
+Kısa akış:
+1. Komuta Merkezi
+2. Mobil Test Kaydı
+3. Pozitif Sonuç
+4. Lab Sevk
+5. Stok / Seri No
+6. Raporlama
+
+Bu sayfa satış görüşmesinde anlatım sırasını desteklesin.
+
+Sayfa 13 — Kapanış
+Başlık:
+SENTEK ile Uçtan Uca Operasyon Yönetimi
+
+Kısa kapanış metni:
+SENTEK, doğrudan madde testinden laboratuvar doğrulamasına kadar tüm operasyon zincirini dijital olarak yönetir.
+
+8. Yazım ve içerik kalitesi
+
+Kurallar:
+- Tüm metinler profesyonel Türkçe ile yazılsın
+- Türkçe karakter hatası olmasın
+- Çok uzun paragraf yazılmasın
+- Kısa, güçlü ve temiz metinler kullanılsın
+- Başlıklar kurumsal ve etkili olsun
+- Yapay ve gereksiz abartılı cümlelerden kaçınılsın
+- Metinler ikna edici ama ciddi olsun
+- Her sayfa tek ana fikir taşısın
+
+9. Baskı / PDF kalite kontrolü
+
+Aşağıdakiler mutlaka test edilsin:
+- PDF çıktıda font bozuluyor mu?
+- Türkçe karakter bozuluyor mu?
+- Sayfa taşması var mı?
+- Görseller bulanık mı?
+- A4 oranları doğru mu?
+- Boşluklar dengeli mi?
+- Yazılar çok küçük mü?
+- İçerik kenarlara fazla yaklaşıyor mu?
+- Print preview ile son kontrol yapıldı mı?
+
+10. Çıktı beklentisi
+
+İş sonunda şunları ver:
+- kitapçığın route’u
+- kaç sayfa olduğu
+- kullanılan ekran görüntüleri listesi
+- PDF/print alma yöntemi
+- A4 baskı için yapılan teknik ayarlar
+- Türkçe karakter sorununun nasıl çözüldüğü
+- kullanılan font ailesi
+- içeriklerin ileride kolay güncellenebilmesi için yapı açıklaması
+- sayfa bazlı kısa özet
