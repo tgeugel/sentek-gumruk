@@ -58,9 +58,9 @@ export async function buildKitOverlayComposite(
   ctx.textAlign = 'left';
 
   // Panel test pencereleri + C/T kırmızı çizgileri
-  // Test window boyutu (panel merkezine göre)
-  const winW = W * 0.14;
-  const winH = H * 0.16;
+  // Gerçek kanal boyutuna oturmuş ölçü: kanal genişliği ~5%, yüksekliği ~10%
+  const winW = W * 0.052;
+  const winH = H * 0.105;
 
   panels.forEach((p) => {
     const cx = (parseFloat(p.pos.left) / 100) * W;
@@ -76,38 +76,37 @@ export async function buildKitOverlayComposite(
     roundRect(ctx, x, y, winW, winH, 6);
     ctx.stroke();
 
-    // Panel kodu — sol üst köşe
+    // Panel kodu — pencerenin üstünde küçük rozet
     ctx.fillStyle = isInvalid ? 'rgba(245,158,11,0.95)' : 'rgba(0,212,255,0.95)';
-    const codeFont = Math.round(H * 0.018);
+    const codeFont = Math.round(H * 0.013);
     ctx.font = `bold ${codeFont}px sans-serif`;
     const codeMetrics = ctx.measureText(p.kod);
-    const tagPad = 4;
-    roundRect(ctx, x, y - codeFont - tagPad * 2 - 2, codeMetrics.width + tagPad * 2, codeFont + tagPad * 2, 4);
+    const tagPad = 3;
+    const tagW = codeMetrics.width + tagPad * 2;
+    const tagH = codeFont + tagPad * 2;
+    roundRect(ctx, x + winW / 2 - tagW / 2, y - tagH - 4, tagW, tagH, 3);
     ctx.fill();
     ctx.fillStyle = '#0b1220';
     ctx.textBaseline = 'middle';
-    ctx.fillText(p.kod, x + tagPad, y - codeFont / 2 - tagPad - 2);
+    ctx.fillText(p.kod, x + winW / 2 - codeMetrics.width / 2, y - tagH / 2 - 4);
 
-    // C ve T çizgileri (gerçek kırmızı kontrol/test çizgileri)
-    const lineThickness = Math.max(3, Math.round(H * 0.006));
-    const lineInset = winW * 0.18;
+    // C ve T çizgileri (gerçek kırmızı kontrol/test çizgileri) — kanal içindeki gerçek konuma oturtulmuş
+    const lineThickness = Math.max(2, Math.round(H * 0.0035));
+    const lineInset = winW * 0.12;
     const lineLen = winW - lineInset * 2;
     const lineX = x + lineInset;
 
-    // C çizgisi: üst üçte birde
-    const cY = y + winH * 0.32;
+    // C çizgisi: kanalın üst kısmında (yaklaşık %28)
+    const cY = y + winH * 0.28;
     if (p.C) {
       drawTestLine(ctx, lineX, cY, lineLen, lineThickness);
     }
-    // C etiketi
-    drawSideTag(ctx, x + winW + 4, cY, 'C', codeFont, p.C);
 
-    // T çizgisi: alt üçte ikide
-    const tY = y + winH * 0.66;
+    // T çizgisi: kanalın alt kısmında (yaklaşık %72)
+    const tY = y + winH * 0.72;
     if (p.T) {
       drawTestLine(ctx, lineX, tY, lineLen, lineThickness);
     }
-    drawSideTag(ctx, x + winW + 4, tY, 'T', codeFont, p.T);
 
     ctx.textBaseline = 'alphabetic';
   });
@@ -139,16 +138,6 @@ function drawTestLine(
   ctx.fillStyle = 'rgba(220,38,38,0.95)';
   roundRect(ctx, x, y - thickness / 2, len, thickness, thickness / 2);
   ctx.fill();
-}
-
-function drawSideTag(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, letter: string, font: number, present: boolean,
-) {
-  ctx.font = `bold ${Math.round(font * 0.85)}px sans-serif`;
-  ctx.fillStyle = present ? 'rgba(220,38,38,0.95)' : 'rgba(148,163,184,0.7)';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(letter, x, y);
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

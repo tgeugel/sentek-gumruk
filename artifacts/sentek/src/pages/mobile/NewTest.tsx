@@ -35,13 +35,15 @@ const PANEL_MADDELERI: Record<string, string> = {
   MET: 'Metamfetamin', MOP: 'Eroin türevi', MBP: 'Buprenorfin türevi',
 };
 
+// SENTEK kit görselindeki 6 dikey test kanalı tek sırada — gerçek kanal merkezlerine oturtulmuş yüzdeler.
+// Image 1024x1536; kanallar yatay olarak ~x=300..700 arası, dikey olarak C üstte ~y=52% T altta ~y=60%.
 const PANEL_POSITIONS: Array<{ kod: string; pos: { left: string; top: string } }> = [
-  { kod: 'AMP', pos: { left: '12%', top: '38%' } },
-  { kod: 'THC', pos: { left: '38%', top: '38%' } },
-  { kod: 'COC', pos: { left: '64%', top: '38%' } },
-  { kod: 'MET', pos: { left: '12%', top: '70%' } },
-  { kod: 'MOP', pos: { left: '38%', top: '70%' } },
-  { kod: 'MBP', pos: { left: '64%', top: '70%' } },
+  { kod: 'AMP', pos: { left: '29.5%', top: '56%' } },
+  { kod: 'THC', pos: { left: '37.3%', top: '56%' } },
+  { kod: 'COC', pos: { left: '45.1%', top: '56%' } },
+  { kod: 'MET', pos: { left: '52.9%', top: '56%' } },
+  { kod: 'MOP', pos: { left: '60.7%', top: '56%' } },
+  { kod: 'MBP', pos: { left: '68.5%', top: '56%' } },
 ];
 
 function generateOpNo() {
@@ -378,7 +380,7 @@ export default function NewTest() {
       setAnalizYapiliyor(false);
       // Acceptance kriteri: simülasyon tamamlanır tamamlanmaz Sonuç adımına geç
       setAdim(4);
-    }, 1500 + Math.floor(Math.random() * 900)); // 1500-2400 ms aralığı
+    }, 3800 + Math.floor(Math.random() * 1400)); // 3.8-5.2 s — sunum hızında, izlenebilir tarama
   };
 
   // ---- KAYDET ----
@@ -674,7 +676,7 @@ export default function NewTest() {
                       {(analizYapiliyor || !form.fotografCekildi) && form.fotografOverlayUrl && (
                         <>
                           <motion.div initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
-                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
                             className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]" />
                           <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/0 via-cyan-500/5 to-cyan-500/0" />
                         </>
