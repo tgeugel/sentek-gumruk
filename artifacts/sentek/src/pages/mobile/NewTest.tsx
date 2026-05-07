@@ -35,15 +35,15 @@ const PANEL_MADDELERI: Record<string, string> = {
   MET: 'Metamfetamin', MOP: 'Eroin türevi', MBP: 'Buprenorfin türevi',
 };
 
-// SENTEK kit görselindeki 6 dikey test kanalı tek sırada — gerçek kanal merkezlerine oturtulmuş yüzdeler.
-// Image 1024x1536; kanallar yatay olarak ~x=300..700 arası, dikey olarak C üstte ~y=52% T altta ~y=60%.
+// SENTEK kit görselindeki 6 dikey test kanalı tek sırada — gerçek kanal merkezlerine oturtulmuş.
+// Image 1024x1536; kanal merkezleri x≈295..705, y merkezi ≈840 (~%54.7).
 const PANEL_POSITIONS: Array<{ kod: string; pos: { left: string; top: string } }> = [
-  { kod: 'AMP', pos: { left: '29.5%', top: '56%' } },
-  { kod: 'THC', pos: { left: '37.3%', top: '56%' } },
-  { kod: 'COC', pos: { left: '45.1%', top: '56%' } },
-  { kod: 'MET', pos: { left: '52.9%', top: '56%' } },
-  { kod: 'MOP', pos: { left: '60.7%', top: '56%' } },
-  { kod: 'MBP', pos: { left: '68.5%', top: '56%' } },
+  { kod: 'AMP', pos: { left: '28.8%', top: '54.7%' } },
+  { kod: 'THC', pos: { left: '36.6%', top: '54.7%' } },
+  { kod: 'COC', pos: { left: '44.4%', top: '54.7%' } },
+  { kod: 'MET', pos: { left: '52.2%', top: '54.7%' } },
+  { kod: 'MOP', pos: { left: '60.0%', top: '54.7%' } },
+  { kod: 'MBP', pos: { left: '67.8%', top: '54.7%' } },
 ];
 
 function generateOpNo() {
@@ -378,8 +378,7 @@ export default function NewTest() {
         tespitEdilenMadde: tespit,
       }));
       setAnalizYapiliyor(false);
-      // Acceptance kriteri: simülasyon tamamlanır tamamlanmaz Sonuç adımına geç
-      setAdim(4);
+      // Otomatik geçiş YOK — kullanıcı sonucu inceleyip "İleri"ye basınca Sonuç adımına geçer.
     }, 3800 + Math.floor(Math.random() * 1400)); // 3.8-5.2 s — sunum hızında, izlenebilir tarama
   };
 
