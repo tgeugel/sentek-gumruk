@@ -413,6 +413,7 @@ export default function NewTest() {
       aiOnerisi: form.aiSonucu as TestSonucu,
       kullaniciOverrideAciklamasi: overrideVar ? form.overrideAciklamasi : undefined,
       fotografOverlayUrl: form.fotografOverlayUrl || undefined,
+      panelSonuclari: form.panelSonuclari.map(p => ({ kod: p.kod, C: p.C, T: p.T })),
     }, form.seciliStokId || undefined);
 
     if (form.labSevkIstiyor && form.testSonucu === 'Pozitif') {

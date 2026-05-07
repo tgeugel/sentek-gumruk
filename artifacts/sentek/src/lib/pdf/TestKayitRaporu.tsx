@@ -61,20 +61,20 @@ interface Props {
 
 function makeStyles(t: TemaRenkleri) {
   return StyleSheet.create({
-    page: { fontFamily: 'Roboto', fontSize: 9, paddingTop: 78, paddingBottom: 58, paddingHorizontal: 36, backgroundColor: '#fff', color: t.text },
+    page: { fontFamily: 'Roboto', fontSize: 9, paddingTop: 92, paddingBottom: 58, paddingHorizontal: 36, backgroundColor: '#fff', color: t.text },
     pageCover: { fontFamily: 'Roboto', fontSize: 10, padding: 0, backgroundColor: '#fff', color: t.text },
 
     classificationTop: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: t.classification, color: '#fff', textAlign: 'center', padding: 5, fontSize: 8.5, fontFamily: 'Roboto', fontWeight: 'bold', letterSpacing: 3 },
     classificationBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: t.classification, color: '#fff', textAlign: 'center', padding: 4, fontSize: 7.5, fontFamily: 'Roboto', fontWeight: 'bold', letterSpacing: 2 },
 
-    headerBar: { position: 'absolute', top: 22, left: 36, right: 36, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1.2px solid ${t.primary}`, paddingBottom: 6 },
-    headerLeft: { flexDirection: 'row', alignItems: 'center' },
-    headerLogos: { flexDirection: 'row', alignItems: 'center', marginRight: 8 },
-    logoMini: { width: 24, height: 24, objectFit: 'contain' },
-    logoMiniSent: { width: 22, height: 22, marginLeft: 4, objectFit: 'contain' },
-    headerKurum: { fontSize: 7.5, fontFamily: 'Roboto', fontWeight: 'bold', color: t.primary, maxWidth: 280 },
-    headerBirim: { fontSize: 6.5, color: t.muted, maxWidth: 280, marginTop: 1 },
-    headerRight: { textAlign: 'right' },
+    headerBar: { position: 'absolute', top: 18, left: 28, right: 28, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1.2px solid ${t.primary}`, paddingBottom: 6 },
+    headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    headerLogoGmgm: { width: 42, height: 42, objectFit: 'contain', marginRight: 8 },
+    headerLogoSent: { width: 42, height: 42, objectFit: 'contain', marginLeft: 8 },
+    headerCenter: { flex: 1, alignItems: 'center', paddingHorizontal: 6 },
+    headerRight: { flex: 1, alignItems: 'flex-end' },
+    headerKurum: { fontSize: 8, fontFamily: 'Roboto', fontWeight: 'bold', color: t.primary, textAlign: 'center' },
+    headerBirim: { fontSize: 6.5, color: t.muted, marginTop: 1, textAlign: 'center' },
     headerBelgeNo: { fontSize: 7, color: t.muted, fontFamily: 'Roboto', fontWeight: 'bold' },
     headerSayfa: { fontSize: 7, color: t.muted, marginTop: 1 },
 
@@ -83,17 +83,17 @@ function makeStyles(t: TemaRenkleri) {
 
     watermark: { position: 'absolute', top: 360, left: 0, right: 0, textAlign: 'center', fontSize: 90, fontFamily: 'Roboto', fontWeight: 'bold', color: t.classification, opacity: 0.05 },
 
-    coverWrap: { padding: 44, paddingTop: 60, paddingBottom: 60, height: '100%' },
-    coverHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `1.5px solid ${t.primary}`, paddingBottom: 14 },
-    coverLogoBlock: { flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 12 },
-    coverLogoGmgm: { width: 60, height: 60, objectFit: 'contain', marginRight: 10 },
-    coverLogoSent: { width: 46, height: 46, objectFit: 'contain', marginRight: 12 },
-    coverLogoText: { flex: 1 },
-    coverKurum: { fontSize: 11, fontFamily: 'Roboto', fontWeight: 'bold', color: t.primary, lineHeight: 1.2 },
-    coverBirim: { fontSize: 8.5, color: t.muted, marginTop: 3, lineHeight: 1.3 },
-    coverAdres: { fontSize: 7, color: t.muted, marginTop: 3, lineHeight: 1.3 },
-    coverSeal: { borderWidth: 1.5, borderColor: t.classification, borderStyle: 'solid', padding: 7, alignItems: 'center', borderRadius: 3, minWidth: 120 },
-    coverSealText: { fontSize: 13, fontFamily: 'Roboto', fontWeight: 'bold', color: t.classification, letterSpacing: 3 },
+    coverWrap: { padding: 36, paddingTop: 50, paddingBottom: 50, height: '100%' },
+    coverHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1.5px solid ${t.primary}`, paddingBottom: 18 },
+    coverLogoGmgm: { width: 110, height: 110, objectFit: 'contain' },
+    coverLogoSent: { width: 110, height: 110, objectFit: 'contain' },
+    coverLogoCenter: { flex: 1, alignItems: 'center', paddingHorizontal: 14 },
+    coverKurum: { fontSize: 12, fontFamily: 'Roboto', fontWeight: 'bold', color: t.primary, lineHeight: 1.2, textAlign: 'center' },
+    coverBirim: { fontSize: 8.5, color: t.muted, marginTop: 4, lineHeight: 1.3, textAlign: 'center' },
+    coverAdres: { fontSize: 7, color: t.muted, marginTop: 3, lineHeight: 1.3, textAlign: 'center' },
+    coverSealRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 14 },
+    coverSeal: { borderWidth: 1.5, borderColor: t.classification, borderStyle: 'solid', paddingVertical: 6, paddingHorizontal: 18, alignItems: 'center', borderRadius: 3 },
+    coverSealText: { fontSize: 12, fontFamily: 'Roboto', fontWeight: 'bold', color: t.classification, letterSpacing: 3 },
     coverSealSub: { fontSize: 5.5, color: t.classification, marginTop: 2, letterSpacing: 0.8, textAlign: 'center' },
 
     coverCenter: { alignItems: 'center', paddingTop: 30, paddingBottom: 20 },
@@ -191,11 +191,24 @@ export function TestKayitRaporuDoc({ kayit, ayarlar, qrDataUrl }: Props) {
   const kurumLogoSrc = ayarlar.kurumLogoDataUrl || gmgmLogo;
 
   const panelRows = PANEL_SIRASI.map((kod) => {
-    const isInvalid = kayit.testSonucu === 'Geçersiz';
-    const isPositivePanel = kayit.testSonucu === 'Pozitif' && kayit.tespitEdilenMadde && PANEL_MADDELERI[kod] === kayit.tespitEdilenMadde;
-    const C = !isInvalid;
-    const T = !isPositivePanel;
-    const sonuc: TestKaydi['testSonucu'] = isInvalid ? 'Geçersiz' : isPositivePanel ? 'Pozitif' : 'Negatif';
+    const stored = kayit.panelSonuclari?.find(p => p.kod === kod);
+    let C: boolean;
+    let T: boolean;
+    if (stored) {
+      C = stored.C;
+      T = stored.T;
+    } else {
+      // Geriye dönük uyumluluk: panel seviyesinde veri yoksa testSonucu'ndan türet
+      const isInvalid = kayit.testSonucu === 'Geçersiz';
+      const isPositivePanel = kayit.testSonucu === 'Pozitif' && !!kayit.tespitEdilenMadde && PANEL_MADDELERI[kod] === kayit.tespitEdilenMadde;
+      C = !isInvalid;
+      T = !isPositivePanel;
+    }
+    // Panel başına sonuç: lateral-flow konvansiyonu
+    //   C yok            → Geçersiz
+    //   C var, T yok     → Pozitif
+    //   C var, T var     → Negatif
+    const sonuc: TestKaydi['testSonucu'] = !C ? 'Geçersiz' : !T ? 'Pozitif' : 'Negatif';
     return { kod, madde: PANEL_MADDELERI[kod] || kod, C, T, sonuc };
   });
 
@@ -209,18 +222,16 @@ export function TestKayitRaporuDoc({ kayit, ayarlar, qrDataUrl }: Props) {
   const Header = () => (
     <View style={styles.headerBar} fixed>
       <View style={styles.headerLeft}>
-        <View style={styles.headerLogos}>
-          <Image src={kurumLogoSrc} style={styles.logoMini} />
-          <Image src={sentekLogo} style={styles.logoMiniSent} />
-        </View>
-        <View>
-          <Text style={styles.headerKurum}>{ayarlar.kurumAdi}</Text>
-          <Text style={styles.headerBirim}>{ayarlar.birimAdi}</Text>
-        </View>
+        <Image src={kurumLogoSrc} style={styles.headerLogoGmgm} />
       </View>
-      <View style={styles.headerRight}>
+      <View style={styles.headerCenter}>
+        <Text style={styles.headerKurum}>{ayarlar.kurumAdi}</Text>
+        <Text style={styles.headerBirim}>{ayarlar.birimAdi}</Text>
         <Text style={styles.headerBelgeNo}>Belge No: {belgeNo}</Text>
         <Text style={styles.headerSayfa} render={({ pageNumber, totalPages }) => `Sayfa ${pageNumber} / ${totalPages}`} />
+      </View>
+      <View style={styles.headerRight}>
+        <Image src={sentekLogo} style={styles.headerLogoSent} />
       </View>
     </View>
   );
@@ -245,15 +256,15 @@ export function TestKayitRaporuDoc({ kayit, ayarlar, qrDataUrl }: Props) {
           <TopBanner />
           <View style={styles.coverWrap}>
             <View style={styles.coverHeader}>
-              <View style={styles.coverLogoBlock}>
-                <Image src={kurumLogoSrc} style={styles.coverLogoGmgm} />
-                <Image src={sentekLogo} style={styles.coverLogoSent} />
-                <View style={styles.coverLogoText}>
-                  <Text style={styles.coverKurum}>{ayarlar.kurumAdi}</Text>
-                  <Text style={styles.coverBirim}>{ayarlar.birimAdi}</Text>
-                  <Text style={styles.coverAdres}>{ayarlar.kurumAdresi}</Text>
-                </View>
+              <Image src={kurumLogoSrc} style={styles.coverLogoGmgm} />
+              <View style={styles.coverLogoCenter}>
+                <Text style={styles.coverKurum}>{ayarlar.kurumAdi}</Text>
+                <Text style={styles.coverBirim}>{ayarlar.birimAdi}</Text>
+                <Text style={styles.coverAdres}>{ayarlar.kurumAdresi}</Text>
               </View>
+              <Image src={sentekLogo} style={styles.coverLogoSent} />
+            </View>
+            <View style={styles.coverSealRow}>
               <View style={styles.coverSeal}>
                 <Text style={styles.coverSealText}>{ayarlar.gizlilikSeviyesi}</Text>
                 <Text style={styles.coverSealSub}>SAHA OPERASYON BELGESİ</Text>

@@ -40,6 +40,13 @@ export interface TestKaydi {
   aiOnerisi?: TestSonucu;
   kullaniciOverrideAciklamasi?: string;
   fotografOverlayUrl?: string;
+  panelSonuclari?: PanelSonuc[];
+}
+
+export interface PanelSonuc {
+  kod: string;
+  C: boolean;
+  T: boolean;
 }
 
 export type LabSevkDurumu =
