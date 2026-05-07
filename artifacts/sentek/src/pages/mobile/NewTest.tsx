@@ -15,7 +15,7 @@ import { buildKitOverlayComposite, type PanelOverlay } from '../../lib/kitOverla
 
 const ADIMLAR = [
   'Operasyon', 'Numune Türü', 'Açıklama',
-  'Kit QR', 'Foto & AI', 'Sonuç', 'Tamamla',
+  'Kit & Analiz', 'Sonuç', 'Tamamla',
 ];
 
 const NUMUNE_TURLERI = [
@@ -218,11 +218,43 @@ export default function NewTest() {
       kitPanelTipi: stok.panelTipi,
       qrTarandi: true,
       qrKaynagi: kaynak,
+      // Otomatik kit görüntü yakalama + analiz, alttaki effect tarafından zincirlenir
+      fotografCekildi: false,
+      panelSonuclari: [],
+      fotografOverlayUrl: '',
+      aiSonucu: '',
+      aiPozitifPaneller: [],
+      analizGuven: 0,
+      testSonucu: '',
+      overrideAciklamasi: '',
+      tespitEdilenMadde: '',
     }));
     setQrHataMesaji('');
     setQrMod('menu');
     stopCamera();
   };
+
+  // Otomatik kit görüntü yakalama: QR doğrulanır doğrulanmaz simüle çekim çalışır
+  useEffect(() => {
+    if (adim === 3 && form.qrTarandi && !form.fotografCekildi && form.kitSeriNo) {
+      void handleFotoCek();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adim, form.qrTarandi, form.fotografCekildi, form.kitSeriNo]);
+
+  // Otomatik AI analiz: kompozit hazırsa hemen başlar
+  useEffect(() => {
+    if (
+      adim === 3 &&
+      form.fotografCekildi &&
+      form.panelSonuclari.length > 0 &&
+      !form.aiSonucu &&
+      !analizYapiliyor
+    ) {
+      handleAnaliz();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adim, form.fotografCekildi, form.panelSonuclari.length, form.aiSonucu, analizYapiliyor]);
 
   // ---- Kamera başlat ----
   const stopCamera = () => {
@@ -345,7 +377,7 @@ export default function NewTest() {
       }));
       setAnalizYapiliyor(false);
       // Acceptance kriteri: simülasyon tamamlanır tamamlanmaz Sonuç adımına geç
-      setAdim(5);
+      setAdim(4);
     }, 1500 + Math.floor(Math.random() * 900)); // 1500-2400 ms aralığı
   };
 
@@ -415,9 +447,8 @@ export default function NewTest() {
     if (adim === 0) return true;
     if (adim === 1) return !!form.numuneTuru;
     if (adim === 2) return true;
-    if (adim === 3) return form.qrTarandi && !!form.kitSeriNo;
-    if (adim === 4) return form.fotografCekildi && !!form.aiSonucu && !analizYapiliyor;
-    if (adim === 5) return !!form.testSonucu && (!overrideVar || overrideAciklamasiYeterli);
+    if (adim === 3) return form.qrTarandi && form.fotografCekildi && !!form.aiSonucu && !analizYapiliyor;
+    if (adim === 4) return !!form.testSonucu && (!overrideVar || overrideAciklamasiYeterli);
     return true;
   };
 
@@ -610,41 +641,101 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 3: KIT QR — gerçek kamera + manuel + demo */}
+            {/* ADIM 3: KIT TARA & ANALİZ — birleşik (QR + foto + AI tek akışta) */}
             {adim === 3 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Kit QR Tara</h2>
-                <p className="text-sm text-muted-foreground">Test kiti üzerindeki SENTEK:KIT:* QR'ı kameradan okutun, manuel girin veya demo modunu kullanın.</p>
+                <h2 className="text-lg font-bold text-foreground">Kit Tara & Analiz</h2>
+                <p className="text-sm text-muted-foreground">Kamera açıldığında kit QR'ı ve panel görüntüsü aynı anda okunur. Sistem otomatik olarak C/T çizgilerini tarar ve sonucu üretir.</p>
 
                 {form.qrTarandi ? (
                   <div className="space-y-3">
-                    <div className="glass-card border border-emerald-500/30 p-4 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-5 h-5 text-emerald-400" />
+                    <div className="glass-card border border-emerald-500/30 p-3 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-emerald-400 font-bold">Kit Tarandı ({form.qrKaynagi})</p>
-                        <p className="text-xs text-muted-foreground truncate">{form.kitPanelTipi}</p>
+                        <p className="text-xs text-emerald-400 font-bold">Kit Tarandı ({form.qrKaynagi}) • {form.kitSeriNo}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{form.kitPanelTipi}</p>
                       </div>
                     </div>
-                    <div className="glass-card p-4 space-y-2.5">
-                      {[
-                        ['Kit Seri No', form.kitSeriNo, 'font-mono text-primary'],
-                        ['Panel Tipi', form.kitPanelTipi, ''],
-                        ['SKT', form.kitSKT, ''],
-                      ].map(([k, v, c]) => (
-                        <div key={k} className="flex justify-between items-center">
-                          <span className="text-xs text-muted-foreground">{k}</span>
-                          <span className={`text-xs font-semibold text-foreground text-right ${c} max-w-[60%] truncate`}>{v}</span>
+
+                    {/* KOMPOZİT KİT GÖRÜNTÜSÜ — gerçek C/T kırmızı çizgileri */}
+                    <div className="relative w-full bg-slate-950 rounded-2xl overflow-hidden border border-cyan-500/20">
+                      {form.fotografOverlayUrl ? (
+                        <img src={form.fotografOverlayUrl} alt="Saha çekim kompozit" className="w-full h-auto block" data-testid="img-kit-foto" />
+                      ) : (
+                        <div className="w-full aspect-square flex items-center justify-center bg-slate-900">
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                            <p className="text-xs">Kit görüntüsü hazırlanıyor...</p>
+                          </div>
                         </div>
-                      ))}
+                      )}
+                      {(analizYapiliyor || !form.fotografCekildi) && form.fotografOverlayUrl && (
+                        <>
+                          <motion.div initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                            className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]" />
+                          <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/0 via-cyan-500/5 to-cyan-500/0" />
+                        </>
+                      )}
                     </div>
+
+                    {(analizYapiliyor || !form.aiSonucu) && (
+                      <div className="glass-card p-4 flex items-center gap-3">
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Görüntü işleniyor</p>
+                          <p className="text-xs text-muted-foreground">6 panel C/T çizgileri taranıyor...</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {form.aiSonucu && !analizYapiliyor && (
+                      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                        data-testid="ai-sonuc-card"
+                        className={`glass-card p-4 border ${
+                          form.aiSonucu === 'Pozitif' ? 'border-red-500/30' :
+                          form.aiSonucu === 'Geçersiz' ? 'border-amber-500/30' :
+                          'border-emerald-500/30'
+                        }`}>
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Analiz Sonucu</p>
+                            <p className={`text-xl font-bold mt-1 ${
+                              form.aiSonucu === 'Pozitif' ? 'text-red-400' :
+                              form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
+                            }`}>{form.aiSonucu}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Güven</p>
+                            <p className="text-2xl font-bold text-foreground">%{form.analizGuven}</p>
+                          </div>
+                        </div>
+                        {form.aiPozitifPaneller.length > 0 && (
+                          <div className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                            Pozitif paneller: <span className="font-bold">{form.aiPozitifPaneller.join(', ')}</span> → {form.aiPozitifPaneller.map(k => PANEL_MADDELERI[k]).join(' / ')}
+                          </div>
+                        )}
+                        {form.aiSonucu === 'Geçersiz' && (
+                          <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                            Bir veya daha fazla panelde kontrol çizgisi (C) algılanmadı. Kit geçersiz sayılabilir.
+                          </div>
+                        )}
+                        {form.aiSonucu === 'Negatif' && (
+                          <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
+                            Tüm 6 panelde kontrol çizgisi (C) ve test çizgisi (T) belirgin — hiçbir panelde madde tepkisi yok.
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
                     <button
                       data-testid="btn-tekrar-tara"
                       onClick={resetKitVeAnaliz}
                       className="w-full py-2.5 text-xs text-muted-foreground/70 flex items-center justify-center gap-1.5"
                     >
-                      <RotateCcw className="w-3 h-3" /> Tekrar Tara (önceki analiz silinir)
+                      <RotateCcw className="w-3 h-3" /> Tekrar Tara (yeni kit + yeni analiz)
                     </button>
                   </div>
                 ) : qrMod === 'kamera' ? (
@@ -716,7 +807,7 @@ export default function NewTest() {
                   <div className="space-y-3">
                     <button data-testid="btn-kamera-tara" onClick={baslatKamera}
                       className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,212,255,0.3)]">
-                      <Camera className="w-5 h-5" /> Kameradan QR Tara
+                      <Camera className="w-5 h-5" /> Kamerayı Aç (QR + Kit Otomatik Yakala)
                     </button>
                     <button data-testid="btn-manuel-qr-mod" onClick={() => { setQrMod('manuel'); setQrHataMesaji(''); }}
                       className="w-full py-3 glass-card border border-card-border rounded-xl text-sm font-semibold text-foreground flex items-center justify-center gap-2">
@@ -736,114 +827,8 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 4: FOTO + AI */}
+            {/* ADIM 4: SONUÇ + OVERRIDE */}
             {adim === 4 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Fotoğraf & AI Analizi</h2>
-
-                {!form.fotografCekildi ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">Kit fotoğrafını çekin — sistem panel C/T çizgilerini eş zamanlı işaretleyecek.</p>
-                    <button
-                      data-testid="btn-foto-cek"
-                      onClick={handleFotoCek}
-                      className="w-full h-44 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors group"
-                    >
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                        <Camera className="w-7 h-7 text-primary" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-semibold text-foreground">Fotoğraf Çek</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Kit ve numuneyi çerçeveleyin</p>
-                      </div>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {/* KOMPOZİT FOTO (overlay'li) — foto adımında oluşturuldu */}
-                    <div className="relative w-full bg-slate-950 rounded-2xl overflow-hidden border border-cyan-500/20">
-                      {form.fotografOverlayUrl ? (
-                        <img src={form.fotografOverlayUrl} alt="Saha çekim kompozit" className="w-full h-auto block" data-testid="img-kit-foto" />
-                      ) : (
-                        <img src={sentekKitImg} alt="SENTEK Kit" className="w-full h-auto block" data-testid="img-kit-foto" />
-                      )}
-                      {analizYapiliyor && (
-                        <>
-                          <motion.div initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
-                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-                            className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]" />
-                          <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/0 via-cyan-500/5 to-cyan-500/0" />
-                        </>
-                      )}
-                    </div>
-
-                    {!form.aiSonucu && !analizYapiliyor && (
-                      <button data-testid="btn-analiz-baslat" onClick={handleAnaliz}
-                        className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                        <Sparkles className="w-4 h-4" /> AI Analizini Başlat
-                      </button>
-                    )}
-
-                    {analizYapiliyor && (
-                      <div className="glass-card p-4 flex items-center gap-3">
-                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Görüntü işleniyor</p>
-                          <p className="text-xs text-muted-foreground">6 panel C/T çizgileri taranıyor...</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {form.aiSonucu && !analizYapiliyor && (
-                      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                        data-testid="ai-sonuc-card"
-                        className={`glass-card p-4 border ${
-                          form.aiSonucu === 'Pozitif' ? 'border-red-500/30' :
-                          form.aiSonucu === 'Geçersiz' ? 'border-amber-500/30' :
-                          'border-emerald-500/30'
-                        }`}>
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Analiz Sonucu</p>
-                            <p className={`text-xl font-bold mt-1 ${
-                              form.aiSonucu === 'Pozitif' ? 'text-red-400' :
-                              form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
-                            }`}>{form.aiSonucu}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Güven</p>
-                            <p className="text-2xl font-bold text-foreground">%{form.analizGuven}</p>
-                          </div>
-                        </div>
-                        {form.aiPozitifPaneller.length > 0 && (
-                          <div className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
-                            Pozitif paneller: <span className="font-bold">{form.aiPozitifPaneller.join(', ')}</span> → {form.aiPozitifPaneller.map(k => PANEL_MADDELERI[k]).join(' / ')}
-                          </div>
-                        )}
-                        {form.aiSonucu === 'Geçersiz' && (
-                          <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
-                            Bir veya daha fazla panelde kontrol çizgisi (C) algılanmadı. Kit geçersiz sayılabilir.
-                          </div>
-                        )}
-                        {form.aiSonucu === 'Negatif' && (
-                          <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
-                            Tüm 6 panelde kontrol çizgisi (C) ve test çizgisi (T) belirgin — hiçbir panelde madde tepkisi yok.
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-
-                    <button onClick={handleFotoCek}
-                      className="w-full py-2.5 text-xs text-muted-foreground/70 flex items-center justify-center gap-1.5">
-                      <RotateCcw className="w-3 h-3" /> Yeniden Çek (yeni patern)
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* ADIM 5: SONUÇ + OVERRIDE */}
-            {adim === 5 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Sonucu Doğrula</h2>
 
@@ -926,8 +911,8 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 6: TESPİT + NOTLAR + TAMAMLA */}
-            {adim === 6 && (
+            {/* ADIM 5: TESPİT + NOTLAR + TAMAMLA */}
+            {adim === 5 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Tespit, Notlar ve Tamamlama</h2>
 
@@ -1004,7 +989,7 @@ export default function NewTest() {
       </div>
 
       {/* Footer */}
-      {adim < 6 && (
+      {adim < 5 && (
         <div className="px-4 pb-4 pt-2 flex-shrink-0 border-t border-border/20">
           <button data-testid="btn-ileri" onClick={() => setAdim(a => a + 1)} disabled={!canProceed()}
             className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
@@ -1012,9 +997,9 @@ export default function NewTest() {
               : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
             }`}>
             {adim === 3 && !form.qrTarandi ? 'Önce kit QR tara' :
-             adim === 4 && !form.fotografCekildi ? 'Önce fotoğraf çek' :
-             adim === 4 && !form.aiSonucu ? 'AI analizini başlat' :
-             adim === 5 && overrideVar && !overrideAciklamasiYeterli ? 'Override gerekçesi gerekli' :
+             adim === 3 && analizYapiliyor ? 'Analiz devam ediyor...' :
+             adim === 3 && !form.aiSonucu ? 'AI analizi bekleniyor' :
+             adim === 4 && overrideVar && !overrideAciklamasiYeterli ? 'Override gerekçesi gerekli' :
              'İleri'}
             <ArrowRight className="w-4 h-4" />
           </button>

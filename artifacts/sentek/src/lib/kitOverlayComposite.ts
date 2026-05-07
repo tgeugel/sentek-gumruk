@@ -2,9 +2,9 @@ import sentekKitImg from '../assets/sentek-kit.png';
 
 export interface PanelOverlay {
   kod: string;
-  pos: { left: string; top: string };
-  T: boolean;
-  C: boolean;
+  pos: { left: string; top: string }; // panel test penceresi merkezi (%)
+  T: boolean; // T çizgisi GÖRÜNÜR mü? (görünür ⇒ negatif)
+  C: boolean; // C çizgisi GÖRÜNÜR mü? (yok ⇒ geçersiz)
 }
 
 let kitImgPromise: Promise<HTMLImageElement> | null = null;
@@ -22,9 +22,8 @@ function loadKitImage(): Promise<HTMLImageElement> {
 }
 
 /**
- * Kit fotoğrafının üzerine simüle edilmiş C/T çizgi etiketlerini bindiren
- * bir kompozit PNG üretir ve data URL olarak döner. Saha çekim kaydı olarak
- * Dexie'ye saklanır ve PDF raporunda kullanılır.
+ * Saha kit fotoğrafı üzerine her panel için gerçek C/T kırmızı çizgileri çizer.
+ * Etiket/POZ-NEG yazısı yok — yorum tamamen çizgilere göre yapılır.
  */
 export async function buildKitOverlayComposite(
   panels: PanelOverlay[],
@@ -39,93 +38,130 @@ export async function buildKitOverlayComposite(
   const ctx = canvas.getContext('2d');
   if (!ctx) return sentekKitImg;
 
-  // Arka plan + kit
   ctx.drawImage(img, 0, 0, W, H);
 
-  // Üst koyu bant (saha kayıt damgası)
+  // Üst koyu bant — saha kayıt damgası
   ctx.fillStyle = 'rgba(8,13,26,0.78)';
-  ctx.fillRect(0, 0, W, Math.round(H * 0.08));
+  ctx.fillRect(0, 0, W, Math.round(H * 0.075));
   ctx.fillStyle = '#00D4FF';
-  ctx.font = `bold ${Math.round(H * 0.028)}px sans-serif`;
+  ctx.font = `bold ${Math.round(H * 0.026)}px sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(`SENTEK SAHA KAYIT • ${meta.operasyonNo}`, Math.round(W * 0.02), Math.round(H * 0.04));
+  ctx.fillText(`SENTEK SAHA ÇEKİM • ${meta.operasyonNo}`, Math.round(W * 0.02), Math.round(H * 0.0375));
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = `${Math.round(H * 0.018)}px sans-serif`;
+  ctx.font = `${Math.round(H * 0.016)}px sans-serif`;
   ctx.textAlign = 'right';
   ctx.fillText(
     `${meta.personel} • ${new Date(meta.tarih).toLocaleString('tr-TR')} • Kit ${meta.kitSeri}`,
     Math.round(W * 0.98),
-    Math.round(H * 0.04)
+    Math.round(H * 0.0375)
   );
   ctx.textAlign = 'left';
 
-  // Panel etiketleri
-  const fontSize = Math.round(H * 0.024);
-  ctx.font = `bold ${fontSize}px sans-serif`;
+  // Panel test pencereleri + C/T kırmızı çizgileri
+  // Test window boyutu (panel merkezine göre)
+  const winW = W * 0.14;
+  const winH = H * 0.16;
+
   panels.forEach((p) => {
-    const x = (parseFloat(p.pos.left) / 100) * W;
-    const y = (parseFloat(p.pos.top) / 100) * H;
-    // Lateral-flow rekabetçi immunoassay:
-    //   T çizgisi GÖRÜNÜR (T:true)  ⇒ NEGATİF (madde yok)
-    //   T çizgisi YOK     (T:false) ⇒ POZİTİF (madde var)
-    //   C çizgisi YOK     (C:false) ⇒ GEÇERSİZ
-    const label = !p.C
-      ? `${p.kod}  GEÇERSİZ (C-)`
-      : p.T
-        ? `${p.kod}  NEGATİF (C+T+)`
-        : `${p.kod}  POZİTİF (T-)`;
-    const padX = 14;
-    const padY = 8;
-    const metrics = ctx.measureText(label);
-    const w = metrics.width + padX * 2;
-    const h = fontSize + padY * 2;
+    const cx = (parseFloat(p.pos.left) / 100) * W;
+    const cy = (parseFloat(p.pos.top) / 100) * H;
+    const x = cx - winW / 2;
+    const y = cy - winH / 2;
 
-    // Renk: T+ → yeşil (negatif), T- → kırmızı (pozitif), C- → amber (geçersiz)
-    let bg = 'rgba(16,185,129,0.85)';
-    let stroke = '#10b981';
-    if (!p.C) { bg = 'rgba(245,158,11,0.9)'; stroke = '#f59e0b'; }
-    else if (!p.T) { bg = 'rgba(239,68,68,0.9)'; stroke = '#ef4444'; }
-
-    // Pin çizgisi
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = Math.max(2, Math.round(H * 0.003));
-    ctx.beginPath();
-    ctx.arc(x, y, Math.max(6, Math.round(H * 0.012)), 0, Math.PI * 2);
+    // Pencere çerçevesi (saydam)
+    const isInvalid = !p.C;
+    const frameColor = isInvalid ? '#f59e0b' : '#00D4FF';
+    ctx.strokeStyle = frameColor;
+    ctx.lineWidth = Math.max(2, Math.round(H * 0.0028));
+    roundRect(ctx, x, y, winW, winH, 6);
     ctx.stroke();
 
-    // Etiket
-    const lx = x + Math.round(W * 0.02);
-    const ly = y - h / 2;
-    ctx.fillStyle = bg;
-    roundRect(ctx, lx, ly, w, h, 8);
+    // Panel kodu — sol üst köşe
+    ctx.fillStyle = isInvalid ? 'rgba(245,158,11,0.95)' : 'rgba(0,212,255,0.95)';
+    const codeFont = Math.round(H * 0.018);
+    ctx.font = `bold ${codeFont}px sans-serif`;
+    const codeMetrics = ctx.measureText(p.kod);
+    const tagPad = 4;
+    roundRect(ctx, x, y - codeFont - tagPad * 2 - 2, codeMetrics.width + tagPad * 2, codeFont + tagPad * 2, 4);
     ctx.fill();
-    ctx.strokeStyle = stroke;
-    ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.fillText(label, lx + padX, ly + h / 2);
+    ctx.fillStyle = '#0b1220';
     ctx.textBaseline = 'middle';
+    ctx.fillText(p.kod, x + tagPad, y - codeFont / 2 - tagPad - 2);
+
+    // C ve T çizgileri (gerçek kırmızı kontrol/test çizgileri)
+    const lineThickness = Math.max(3, Math.round(H * 0.006));
+    const lineInset = winW * 0.18;
+    const lineLen = winW - lineInset * 2;
+    const lineX = x + lineInset;
+
+    // C çizgisi: üst üçte birde
+    const cY = y + winH * 0.32;
+    if (p.C) {
+      drawTestLine(ctx, lineX, cY, lineLen, lineThickness);
+    }
+    // C etiketi
+    drawSideTag(ctx, x + winW + 4, cY, 'C', codeFont, p.C);
+
+    // T çizgisi: alt üçte ikide
+    const tY = y + winH * 0.66;
+    if (p.T) {
+      drawTestLine(ctx, lineX, tY, lineLen, lineThickness);
+    }
+    drawSideTag(ctx, x + winW + 4, tY, 'T', codeFont, p.T);
+
+    ctx.textBaseline = 'alphabetic';
   });
 
   // Alt damga
   ctx.fillStyle = 'rgba(8,13,26,0.78)';
-  ctx.fillRect(0, Math.round(H * 0.94), W, Math.round(H * 0.06));
+  ctx.fillRect(0, Math.round(H * 0.945), W, Math.round(H * 0.055));
   ctx.fillStyle = '#00D4FF';
-  ctx.font = `${Math.round(H * 0.018)}px sans-serif`;
-  ctx.fillText(`AI Foto-Analiz • C/T çizgi tespiti • SENTEK Multi-Panel`, Math.round(W * 0.02), Math.round(H * 0.97));
+  ctx.font = `${Math.round(H * 0.016)}px sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`AI Foto-Analiz • Kırmızı çizgi = mevcut C/T tepkisi • SENTEK Multi-Panel`, Math.round(W * 0.02), Math.round(H * 0.972));
 
   return canvas.toDataURL('image/png');
 }
 
+function drawTestLine(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, len: number, thickness: number,
+) {
+  // Asıl kırmızı çizgi
+  ctx.fillStyle = 'rgba(220,38,38,0.92)';
+  roundRect(ctx, x, y - thickness / 2, len, thickness, thickness / 2);
+  ctx.fill();
+  // Hafif glow / yumuşak kenar
+  ctx.fillStyle = 'rgba(239,68,68,0.35)';
+  roundRect(ctx, x - 1, y - thickness / 2 - 1, len + 2, thickness + 2, thickness / 2);
+  ctx.fill();
+  // Tekrar üstten net kırmızı
+  ctx.fillStyle = 'rgba(220,38,38,0.95)';
+  roundRect(ctx, x, y - thickness / 2, len, thickness, thickness / 2);
+  ctx.fill();
+}
+
+function drawSideTag(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, letter: string, font: number, present: boolean,
+) {
+  ctx.font = `bold ${Math.round(font * 0.85)}px sans-serif`;
+  ctx.fillStyle = present ? 'rgba(220,38,38,0.95)' : 'rgba(148,163,184,0.7)';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(letter, x, y);
+}
+
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+  ctx.lineTo(x + rr, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+  ctx.lineTo(x, y + rr);
+  ctx.quadraticCurveTo(x, y, x + rr, y);
   ctx.closePath();
 }
