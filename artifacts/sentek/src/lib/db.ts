@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { TestKaydi, LabSevk, Stok, Bildirim, AuditLog, OfflineSyncKaydi } from '../types';
+import { TestKaydi, LabSevk, Stok, Bildirim, AuditLog, OfflineSyncKaydi, RaporAyarlari } from '../types';
 
 interface SenkronKuyruguKaydi {
   id: string;
@@ -17,6 +17,7 @@ class SentekDB extends Dexie {
   auditLog!: EntityTable<AuditLog, 'id'>;
   bildirimler!: EntityTable<Bildirim, 'id'>;
   senkronKuyrugu!: EntityTable<SenkronKuyruguKaydi, 'id'>;
+  raporAyarlari!: EntityTable<RaporAyarlari, 'id'>;
 
   constructor() {
     super('SentekDB');
@@ -37,6 +38,16 @@ class SentekDB extends Dexie {
       auditLog: 'id, islemTipi, tarih, kullanici, kayitNo',
       bildirimler: 'id, tarih, okundu, tur',
       senkronKuyrugu: 'id, tarih, durum, tur',
+    });
+    // v3: rapor ayarları tek-kayıtlı yapılandırma tablosu (admin tarafından düzenlenir)
+    this.version(3).stores({
+      testKayitlari: 'id, operasyonNo, tarih, lokasyon, testSonucu, syncDurumu, personelAdi',
+      labSevkKayitlari: 'id, numuneTakipNo, operasyonNo, durum, testKaydiId',
+      stokHareketleri: 'id, lotSeriNo, durum, panelTipi',
+      auditLog: 'id, islemTipi, tarih, kullanici, kayitNo',
+      bildirimler: 'id, tarih, okundu, tur',
+      senkronKuyrugu: 'id, tarih, durum, tur',
+      raporAyarlari: 'id',
     });
   }
 }

@@ -40,20 +40,23 @@ export async function buildKitOverlayComposite(
 
   ctx.drawImage(img, 0, 0, W, H);
 
-  // Üst koyu bant — saha kayıt damgası
-  ctx.fillStyle = 'rgba(8,13,26,0.78)';
-  ctx.fillRect(0, 0, W, Math.round(H * 0.075));
+  // Üst koyu bant — saha kayıt damgası (kit görselindeki kendi başlık alanının altına çekildi)
+  const bandTop = Math.round(H * 0.205);
+  const bandH = Math.round(H * 0.060);
+  const bandMid = bandTop + bandH / 2;
+  ctx.fillStyle = 'rgba(8,13,26,0.82)';
+  ctx.fillRect(0, bandTop, W, bandH);
   ctx.fillStyle = '#00D4FF';
-  ctx.font = `bold ${Math.round(H * 0.026)}px sans-serif`;
+  ctx.font = `bold ${Math.round(H * 0.022)}px sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(`SENTEK SAHA ÇEKİM • ${meta.operasyonNo}`, Math.round(W * 0.02), Math.round(H * 0.0375));
+  ctx.fillText(`SENTEK SAHA ÇEKİM • ${meta.operasyonNo}`, Math.round(W * 0.02), bandMid);
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = `${Math.round(H * 0.016)}px sans-serif`;
+  ctx.font = `${Math.round(H * 0.014)}px sans-serif`;
   ctx.textAlign = 'right';
   ctx.fillText(
     `${meta.personel} • ${new Date(meta.tarih).toLocaleString('tr-TR')} • Kit ${meta.kitSeri}`,
     Math.round(W * 0.98),
-    Math.round(H * 0.0375)
+    bandMid
   );
   ctx.textAlign = 'left';
 

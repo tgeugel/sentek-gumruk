@@ -8,6 +8,7 @@ import {
 import { useData } from '../../contexts/DataContext';
 import { pdf } from '@react-pdf/renderer';
 import { TestKayitRaporuDoc } from '../../lib/pdf/TestKayitRaporu';
+import { getRaporAyarlari } from '../../lib/raporAyarlari';
 import { StokSeriNoRaporuDoc } from '../../lib/pdf/StokSeriNoRaporu';
 
 const TOOLTIP_STYLE = {
@@ -108,7 +109,8 @@ function PdfIndir({ tip }: { tip: string }) {
       } else {
         const kayitlar = tip === 'pozitif' ? testKayitlari.filter(t => t.testSonucu === 'Pozitif') : testKayitlari;
         if (kayitlar.length === 0) return;
-        blob = await pdf(<TestKayitRaporuDoc kayit={kayitlar[0]} />).toBlob();
+        const ayarlar = await getRaporAyarlari();
+        blob = await pdf(<TestKayitRaporuDoc kayit={kayitlar[0]} ayarlar={ayarlar} />).toBlob();
       }
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

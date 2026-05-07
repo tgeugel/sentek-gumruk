@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Shield, Database, Bell, Lock, Info, Check } from 'lucide-react';
+import { Database, Bell, Lock, Info, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '../../hooks/use-toast';
+import RaporAyarlariCard from '../../components/sentek/RaporAyarlariCard';
 
 export default function Settings() {
   const { toast } = useToast();
@@ -37,6 +38,9 @@ export default function Settings() {
           </div>
         ))}
       </motion.div>
+
+      {/* PDF Rapor Ayarları (yöneticiye özel düzenleme) */}
+      <RaporAyarlariCard />
 
       {/* Notifications */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl border border-card-border p-5 space-y-4">

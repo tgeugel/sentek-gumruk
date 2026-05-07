@@ -143,3 +143,34 @@ export interface OfflineSyncKaydi {
   tarih: string;
   durum: SyncDurumu;
 }
+
+export interface RaporImzaSatiri {
+  unvan: string;
+  ad: string;
+}
+
+export type RaporRenkTema = 'kurumsal' | 'koyu' | 'klasik';
+export type RaporGizlilikSeviyesi = 'GİZLİ' | 'ÖZEL' | 'HİZMETE ÖZEL' | 'TASNİF DIŞI';
+
+export interface RaporAyarlari {
+  id: 'singleton';
+  kurumAdi: string;
+  birimAdi: string;
+  kurumAdresi: string;
+  iletisim: string;
+  belgeNoOnEki: string;
+  gizlilikSeviyesi: RaporGizlilikSeviyesi;
+  ustBilgi: string;
+  altBilgi: string;
+  watermarkGoster: boolean;
+  watermarkMetin: string;
+  kapakSayfasiGoster: boolean;
+  qrGoster: boolean;
+  aiDetayGoster: boolean;
+  panelTablosuGoster: boolean;
+  zincirGoster: boolean;
+  fotoGoster: boolean;
+  imzaSatirlari: RaporImzaSatiri[];
+  renkTema: RaporRenkTema;
+  guncellemeTarihi: string;
+}
