@@ -62,27 +62,32 @@ function parseKitQR(raw: string): string | null {
 }
 
 /**
- * Foto adımında deterministik panel paterni üret. Analiz buradan okur,
- * yeniden hesaplama yapmaz. Tek-pozitif, çoklu-pozitif ve geçersiz
- * paternler kapsanır.
+ * Foto adımında deterministik panel paterni üret. Analiz bu paterni okur,
+ * yeniden hesaplama yapmaz.
+ *
+ * Lateral-flow rekabetçi immunoassay konvansiyonu:
+ *   - T çizgisi GÖRÜNÜR (T:true) ⇒ panelde madde YOK ⇒ NEGATİF
+ *   - T çizgisi YOK (T:false)    ⇒ panelde madde VAR ⇒ POZİTİF
+ *   - C çizgisi YOK (C:false)    ⇒ panel GEÇERSİZ
  */
 function generatePanelPattern(): PanelOverlay[] {
   const r = Math.random();
-  const base: PanelOverlay[] = PANEL_POSITIONS.map(p => ({ ...p, T: false, C: true }));
+  // Varsayılan: tüm paneller C+T (yani 6 panel de NEGATİF)
+  const base: PanelOverlay[] = PANEL_POSITIONS.map(p => ({ ...p, T: true, C: true }));
   if (r < 0.08) {
     // Geçersiz: 1-2 panel C kaybetmiş
     const n = Math.random() < 0.6 ? 1 : 2;
     const idxs = pickN(base.length, n);
     idxs.forEach(i => { base[i].C = false; });
   } else if (r < 0.40) {
-    // Pozitif: 1 panel
+    // Pozitif: 1 panel — bir panelin T çizgisi kayboldu
     const idx = Math.floor(Math.random() * base.length);
-    base[idx].T = true;
+    base[idx].T = false;
   } else if (r < 0.50) {
     // Çoklu pozitif: 2 panel
     const idxs = pickN(base.length, 2);
-    idxs.forEach(i => { base[i].T = true; });
-  } // else: tüm C var, hiç T yok → Negatif
+    idxs.forEach(i => { base[i].T = false; });
+  } // else: tüm C+T var → Negatif
   return base;
 }
 
@@ -95,12 +100,27 @@ function pickN(max: number, n: number): number[] {
   return out;
 }
 
+/**
+ * Deterministik AI değerlendirme. Güven skoru yalnız panel paterninden
+ * türetilir (rastgele değildir):
+ *   - Geçersiz (35-55): 35 + (eksik C * 8) + (eksik T * 3)
+ *   - Pozitif  (78-97): 78 + (pozitif panel sayısı * 4) + (eksik T toplamı * 2)
+ *   - Negatif  (88-97): 88 + (görünür T sayısı)  →  6 panelde 94
+ *  Tüm değerler ilgili aralığa clamp edilir.
+ */
 function evaluatePattern(panels: PanelOverlay[]): { sonuc: TestSonucu; pozitifPaneller: string[]; guven: number } {
-  const invalid = panels.some(p => !p.C);
-  const pozitifPaneller = panels.filter(p => p.T && p.C).map(p => p.kod);
-  if (invalid) return { sonuc: 'Geçersiz', pozitifPaneller: [], guven: 35 + Math.floor(Math.random() * 21) };
-  if (pozitifPaneller.length > 0) return { sonuc: 'Pozitif', pozitifPaneller, guven: 80 + Math.floor(Math.random() * 16) };
-  return { sonuc: 'Negatif', pozitifPaneller: [], guven: 88 + Math.floor(Math.random() * 10) };
+  const eksikC = panels.filter(p => !p.C).length;
+  const eksikT = panels.filter(p => p.C && !p.T).length;
+  const gorunurT = panels.filter(p => p.C && p.T).length;
+  const pozitifPaneller = panels.filter(p => p.C && !p.T).map(p => p.kod);
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  if (eksikC > 0) {
+    return { sonuc: 'Geçersiz', pozitifPaneller: [], guven: clamp(35 + eksikC * 8 + eksikT * 3, 35, 55) };
+  }
+  if (eksikT > 0) {
+    return { sonuc: 'Pozitif', pozitifPaneller, guven: clamp(78 + eksikT * 4 + gorunurT * 2, 78, 97) };
+  }
+  return { sonuc: 'Negatif', pozitifPaneller: [], guven: clamp(88 + gorunurT, 88, 97) };
 }
 
 export default function NewTest() {
@@ -121,7 +141,7 @@ export default function NewTest() {
   const [qrHataMesaji, setQrHataMesaji] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<{ reset?: () => void } | null>(null);
   const mountedRef = useRef(true);
 
   const [form, setForm] = useState({
@@ -207,7 +227,7 @@ export default function NewTest() {
   // ---- Kamera başlat ----
   const stopCamera = () => {
     if (scannerRef.current) {
-      try { scannerRef.current.reset(); } catch {}
+      try { scannerRef.current.reset?.(); } catch {}
       scannerRef.current = null;
     }
     if (streamRef.current) {
@@ -232,11 +252,11 @@ export default function NewTest() {
       }
       const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
-      scannerRef.current = reader;
+      scannerRef.current = reader as unknown as { reset?: () => void };
       if (videoRef.current) {
-        reader.decodeFromStream(stream, videoRef.current, (result: any) => {
+        reader.decodeFromStream(stream, videoRef.current, (result, _err) => {
           if (result && mountedRef.current) {
-            const text = result.getText() as string;
+            const text = result.getText();
             const eslesme = stokEsle(text);
             if (eslesme.ok && eslesme.stok) {
               kitiUygula(eslesme.stok, 'kamera');
@@ -246,9 +266,10 @@ export default function NewTest() {
           }
         }).catch(() => {});
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!mountedRef.current) return;
-      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+      const name = err instanceof Error ? err.name : '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
         setQrKameraIzni('reddedildi');
         setQrMod('manuel');
       } else {
@@ -323,6 +344,8 @@ export default function NewTest() {
         tespitEdilenMadde: tespit,
       }));
       setAnalizYapiliyor(false);
+      // Acceptance kriteri: simülasyon tamamlanır tamamlanmaz Sonuç adımına geç
+      setAdim(5);
     }, 1900);
   };
 
@@ -804,7 +827,7 @@ export default function NewTest() {
                         )}
                         {form.aiSonucu === 'Negatif' && (
                           <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
-                            Tüm 6 panelde kontrol çizgisi belirgin, hiçbirinde test çizgisi yok.
+                            Tüm 6 panelde kontrol çizgisi (C) ve test çizgisi (T) belirgin — hiçbir panelde madde tepkisi yok.
                           </div>
                         )}
                       </motion.div>

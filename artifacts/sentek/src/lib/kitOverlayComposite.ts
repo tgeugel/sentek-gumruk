@@ -65,17 +65,26 @@ export async function buildKitOverlayComposite(
   panels.forEach((p) => {
     const x = (parseFloat(p.pos.left) / 100) * W;
     const y = (parseFloat(p.pos.top) / 100) * H;
-    const label = !p.C ? `${p.kod}  GEÇERSİZ` : p.T ? `${p.kod}  POZİTİF (T+)` : `${p.kod}  NEG`;
+    // Lateral-flow rekabetçi immunoassay:
+    //   T çizgisi GÖRÜNÜR (T:true)  ⇒ NEGATİF (madde yok)
+    //   T çizgisi YOK     (T:false) ⇒ POZİTİF (madde var)
+    //   C çizgisi YOK     (C:false) ⇒ GEÇERSİZ
+    const label = !p.C
+      ? `${p.kod}  GEÇERSİZ (C-)`
+      : p.T
+        ? `${p.kod}  NEGATİF (C+T+)`
+        : `${p.kod}  POZİTİF (T-)`;
     const padX = 14;
     const padY = 8;
     const metrics = ctx.measureText(label);
     const w = metrics.width + padX * 2;
     const h = fontSize + padY * 2;
 
+    // Renk: T+ → yeşil (negatif), T- → kırmızı (pozitif), C- → amber (geçersiz)
     let bg = 'rgba(16,185,129,0.85)';
     let stroke = '#10b981';
     if (!p.C) { bg = 'rgba(245,158,11,0.9)'; stroke = '#f59e0b'; }
-    else if (p.T) { bg = 'rgba(239,68,68,0.9)'; stroke = '#ef4444'; }
+    else if (!p.T) { bg = 'rgba(239,68,68,0.9)'; stroke = '#ef4444'; }
 
     // Pin çizgisi
     ctx.strokeStyle = stroke;
