@@ -1,52 +1,40 @@
-# SENTEK — Demo Deployment Kılavuzu
+# SENTEK — VPS Deployment Kılavuzu
+
+**Domain:** https://gumruk.foryoutag.com
 
 ## Mimari
 - Tamamen statik PWA (React + Vite build)
 - Veritabanı: tarayıcı IndexedDB (Dexie.js) — backend gerekmez
 - İlk açılışta mock demo verisi otomatik yüklenir
+- Docker + nginx + Let's Encrypt SSL
 
 ---
 
-## 1. GitHub'a Push
+## Hızlı Kurulum (Ubuntu 22.04+)
 
 ```bash
-# Replit'te terminal açın:
-git remote add origin https://github.com/KULLANICIADINIZ/sentek.git
-git push -u origin main
-```
-
----
-
-## 2. VPS'e Deploy (Docker ile)
-
-### Ön koşullar
-- Ubuntu 22.04+ VPS
-- Root veya sudo erişimi
-- Git kurulu
-
-### Tek komutla deploy
-
-```bash
-# VPS'e SSH ile bağlanın
 ssh root@VPS_IP
 
-# Repoyu klonlayın
-git clone https://github.com/KULLANICIADINIZ/sentek.git
-cd sentek
+git clone https://github.com/tgeugel/sentek-gumruk.git
+cd sentek-gumruk
 
-# Deploy edin (Docker yoksa otomatik kurar)
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-Uygulama `http://VPS_IP` adresinde erişilebilir olacak.
+Script otomatik olarak:
+1. Docker kurar (yoksa)
+2. Certbot kurar (yoksa)
+3. `gumruk.foryoutag.com` için Let's Encrypt SSL sertifikası alır
+4. Docker image build eder ve başlatır
+5. Otomatik sertifika yenileme için cron kurar
 
 ---
 
-## 3. Güncelleme (yeni versiyon)
+## Güncelleme
 
 ```bash
-cd sentek
+cd sentek-gumruk
 git pull
 docker compose build --no-cache
 docker compose up -d
@@ -54,11 +42,13 @@ docker compose up -d
 
 ---
 
-## 4. HTTPS (SSL) — Opsiyonel
+## Servis Yönetimi
 
 ```bash
-apt install -y certbot python3-certbot-nginx
-certbot --nginx -d sentek.alanadi.com
+docker compose ps          # Durum
+docker compose logs -f     # Loglar
+docker compose restart     # Yeniden başlat
+docker compose down        # Durdur
 ```
 
 ---
@@ -78,7 +68,6 @@ certbot --nginx -d sentek.alanadi.com
 ## Manuel Build (Docker olmadan)
 
 ```bash
-# Node 22 + pnpm 10 gerekli
 npm i -g pnpm@10
 pnpm install --frozen-lockfile
 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/sentek run build
