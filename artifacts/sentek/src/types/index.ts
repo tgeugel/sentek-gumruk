@@ -172,5 +172,6 @@ export interface RaporAyarlari {
   fotoGoster: boolean;
   imzaSatirlari: RaporImzaSatiri[];
   renkTema: RaporRenkTema;
+  kurumLogoDataUrl?: string;
   guncellemeTarihi: string;
 }

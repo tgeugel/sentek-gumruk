@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Save, RotateCcw, Plus, Trash2, ShieldCheck } from 'lucide-react';
+import { FileText, Save, RotateCcw, Plus, Trash2, ShieldCheck, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -63,6 +63,23 @@ export default function RaporAyarlariCard() {
     toast({ title: 'Varsayılanlar geri yüklendi' });
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Geçersiz dosya', description: 'Lütfen bir görsel dosyası seçin (PNG, JPG).', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 800 * 1024) {
+      toast({ title: 'Dosya çok büyük', description: 'Logo en fazla 800 KB olabilir.', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => set('kurumLogoDataUrl', reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   const addImzaSatiri = () => set('imzaSatirlari', [...ayarlar.imzaSatirlari, { unvan: 'YENİ ROL', ad: '' }]);
   const removeImzaSatiri = (i: number) => set('imzaSatirlari', ayarlar.imzaSatirlari.filter((_, idx) => idx !== i));
   const updateImzaSatiri = (i: number, field: 'unvan' | 'ad', val: string) =>
@@ -98,8 +115,45 @@ export default function RaporAyarlariCard() {
         )}
       </div>
 
-      {/* Kurum bilgileri */}
+      {/* Kurum logosu */}
       <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Kurum Logosu</p>
+        <div className="flex items-center gap-4">
+          <div className="w-24 h-24 rounded-xl border border-border/60 bg-secondary/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {ayarlar.kurumLogoDataUrl ? (
+              <img src={ayarlar.kurumLogoDataUrl} alt="Kurum logosu" className="w-full h-full object-contain p-2" />
+            ) : (
+              <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Logoyu değiştir (PNG / JPG, en fazla 800 KB). Boş bırakılırsa varsayılan GMGM logosu kullanılır. Tüm yeni PDF raporlarda görünür.
+            </p>
+            <div className="flex gap-2">
+              <label className={`flex items-center gap-2 px-3 py-1.5 rounded-md border border-cyan-400/40 text-cyan-300 text-xs cursor-pointer hover:bg-cyan-400/10 ${!isAdmin ? 'opacity-40 cursor-not-allowed' : ''}`}>
+                <Upload className="w-3.5 h-3.5" />
+                Logo Yükle
+                <input type="file" accept="image/*" className="hidden" disabled={!isAdmin} onChange={handleLogoUpload} data-testid="input-kurum-logo" />
+              </label>
+              {ayarlar.kurumLogoDataUrl && (
+                <button
+                  type="button"
+                  disabled={!isAdmin}
+                  onClick={() => set('kurumLogoDataUrl', undefined)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-40"
+                  data-testid="button-kurum-logo-sil"
+                >
+                  <X className="w-3.5 h-3.5" /> Kaldır
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Kurum bilgileri */}
+      <div className="space-y-3 pt-3 border-t border-border/40">
         <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Kurum Bilgileri</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Field label="Kurum Adı">

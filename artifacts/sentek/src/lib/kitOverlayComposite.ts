@@ -40,25 +40,32 @@ export async function buildKitOverlayComposite(
 
   ctx.drawImage(img, 0, 0, W, H);
 
-  // Üst koyu bant — saha kayıt damgası (kit görselindeki kendi başlık alanının altına çekildi)
-  const bandTop = Math.round(H * 0.205);
-  const bandH = Math.round(H * 0.060);
-  const bandMid = bandTop + bandH / 2;
-  ctx.fillStyle = 'rgba(8,13,26,0.82)';
+  // Üst koyu bant — en üstte iki satır halinde (altlı üstlü), kit görselinin kendi başlığına/lot'una dokunmaz
+  const bandTop = 0;
+  const bandH = Math.round(H * 0.085);
+  const lineGap = Math.round(H * 0.005);
+  const line1Y = bandTop + Math.round(bandH * 0.32);
+  const line2Y = bandTop + Math.round(bandH * 0.72) + lineGap;
+  ctx.fillStyle = 'rgba(8,13,26,0.92)';
   ctx.fillRect(0, bandTop, W, bandH);
+  // 1. satır: SENTEK SAHA ÇEKİM • OPS-...
   ctx.fillStyle = '#00D4FF';
-  ctx.font = `bold ${Math.round(H * 0.022)}px sans-serif`;
+  ctx.font = `bold ${Math.round(H * 0.024)}px sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(`SENTEK SAHA ÇEKİM • ${meta.operasyonNo}`, Math.round(W * 0.02), bandMid);
+  ctx.textAlign = 'left';
+  ctx.fillText(`SENTEK SAHA ÇEKİM • ${meta.operasyonNo}`, Math.round(W * 0.02), line1Y);
+  // 2. satır: personel • tarih • kit seri (altta)
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = `${Math.round(H * 0.014)}px sans-serif`;
-  ctx.textAlign = 'right';
+  ctx.font = `${Math.round(H * 0.015)}px sans-serif`;
+  ctx.textAlign = 'left';
   ctx.fillText(
     `${meta.personel} • ${new Date(meta.tarih).toLocaleString('tr-TR')} • Kit ${meta.kitSeri}`,
-    Math.round(W * 0.98),
-    bandMid
+    Math.round(W * 0.02),
+    line2Y
   );
-  ctx.textAlign = 'left';
+  // Alt sınır cyan vurgu çizgisi
+  ctx.fillStyle = 'rgba(0,212,255,0.6)';
+  ctx.fillRect(0, bandTop + bandH - 2, W, 2);
 
   // Panel test pencereleri + C/T kırmızı çizgileri
   // Gerçek piksel ölçümü: kanal genişliği ~2.4%, yüksekliği ~7.5% (kit görseli 1024x1536).

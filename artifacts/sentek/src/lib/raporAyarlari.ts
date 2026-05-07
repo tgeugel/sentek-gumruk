@@ -25,6 +25,7 @@ export const VARSAYILAN_RAPOR_AYARLARI: RaporAyarlari = {
     { unvan: 'ONAYLAYAN', ad: '' },
   ],
   renkTema: 'kurumsal',
+  kurumLogoDataUrl: undefined,
   guncellemeTarihi: new Date().toISOString(),
 };
 
