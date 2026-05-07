@@ -8,6 +8,8 @@ export interface Kullanici {
   birim: string;
   durum: 'Aktif' | 'Pasif';
   sonGiris: string;
+  varsayilanLokasyon?: string;
+  varsayilanKontrolNokta?: string;
 }
 
 export type TestSonucu = 'Pozitif' | 'Negatif' | 'Geçersiz';
@@ -35,6 +37,9 @@ export interface TestKaydi {
   stokId?: string;
   syncDurumu?: SyncDurumu;
   qrKodu?: string;
+  aiOnerisi?: TestSonucu;
+  kullaniciOverrideAciklamasi?: string;
+  fotografOverlayUrl?: string;
 }
 
 export type LabSevkDurumu =

@@ -4,9 +4,9 @@ export const mockUsers: Kullanici[] = [
   { id: '1', ad: 'A. Yılmaz', email: 'admin@sentek.local', rol: 'Sistem Yöneticisi', birim: 'Merkez IT', durum: 'Aktif', sonGiris: '2026-05-05T08:30:00Z' },
   { id: '2', ad: 'M. Çelik', email: 'merkez@sentek.local', rol: 'Merkez Yönetici', birim: 'Operasyon Merkezi', durum: 'Aktif', sonGiris: '2026-05-05T09:15:00Z' },
   { id: '3', ad: 'A. Demir', email: 'bolge@sentek.local', rol: 'Bölge Yetkilisi', birim: 'Marmara Bölge Müdürlüğü', durum: 'Aktif', sonGiris: '2026-05-05T10:05:00Z' },
-  { id: '4', ad: 'K. Yıldız', email: 'saha@sentek.local', rol: 'Saha Personeli', birim: 'Mobil Ekip 4', durum: 'Aktif', sonGiris: '2026-05-05T07:45:00Z' },
+  { id: '4', ad: 'K. Yıldız', email: 'saha@sentek.local', rol: 'Saha Personeli', birim: 'Mobil Ekip 4', durum: 'Aktif', sonGiris: '2026-05-05T07:45:00Z', varsayilanLokasyon: 'Kapıkule Sınır Kapısı', varsayilanKontrolNokta: 'Peron 3' },
   { id: '5', ad: 'S. Kaya', email: 'lab@sentek.local', rol: 'Laboratuvar Kullanıcısı', birim: 'Merkez Laboratuvar', durum: 'Aktif', sonGiris: '2026-05-05T08:00:00Z' },
-  { id: '6', ad: 'B. Öztürk', email: 'b.ozturk@sentek.local', rol: 'Saha Personeli', birim: 'Mobil Ekip 2', durum: 'Aktif', sonGiris: '2026-05-04T16:30:00Z' },
+  { id: '6', ad: 'B. Öztürk', email: 'b.ozturk@sentek.local', rol: 'Saha Personeli', birim: 'Mobil Ekip 2', durum: 'Aktif', sonGiris: '2026-05-04T16:30:00Z', varsayilanLokasyon: 'Habur Sınır Kapısı', varsayilanKontrolNokta: 'TIR Geçiş Hattı' },
 ];
 
 export const mockTestRecords: TestKaydi[] = [

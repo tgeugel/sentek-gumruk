@@ -1,67 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, ArrowRight, Check, MapPin, FlaskConical, Package,
-  Camera, AlertTriangle, CheckCircle, XCircle, RotateCcw,
-  Shield, Loader2, ChevronRight, Info, Clock, Hash, Calendar
+  ArrowLeft, ArrowRight, Check, MapPin, FlaskConical, Camera, AlertTriangle,
+  CheckCircle, XCircle, RotateCcw, Shield, Loader2, ChevronRight, Info, Clock,
+  Hash, QrCode, ScanLine, Sparkles, FileDown, Edit3,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { TestSonucu } from '../../types';
+import { TestSonucu, TestKaydi } from '../../types';
+import sentekKitImg from '../../assets/sentek-kit.png';
+import { downloadTestRaporu } from '../../lib/pdf/downloadTestRaporu';
 
 const ADIMLAR = [
-  'Operasyon', 'Lokasyon', 'Numune Türü', 'Açıklama',
-  'Kit Seçimi', 'Fotoğraf', 'AI Analizi', 'Sonuç', 'Tespit & Notlar', 'Tamamla'
+  'Operasyon', 'Numune Türü', 'Açıklama',
+  'Kit QR', 'Foto & AI', 'Sonuç', 'Tamamla',
 ];
-
-const LOKASYONLAR = [
-  // Kara Sınır Kapıları — Batı
-  'Kapıkule Sınır Kapısı', 'Hamzabeyli Sınır Kapısı', 'Dereköy Sınır Kapısı',
-  'İpsala Sınır Kapısı', 'Pazarkule Sınır Kapısı',
-  // Kara Sınır Kapıları — Doğu/Güney
-  'Sarp Sınır Kapısı', 'Gürbulak Sınır Kapısı', 'Esendere Sınır Kapısı',
-  'Habur Sınır Kapısı', 'Nusaybin Sınır Kapısı',
-  'Cilvegözü Sınır Kapısı', 'Öncüpınar Sınır Kapısı', 'Akçakale Sınır Kapısı',
-  // Deniz Limanları
-  'İzmir Alsancak Limanı', 'Mersin Uluslararası Limanı',
-  'Ambarlı Limanı', 'Haydarpaşa Limanı', 'Derince Limanı',
-  // Havalimanları
-  'İstanbul Havalimanı Kargo', 'Sabiha Gökçen Kargo',
-  // Karayolu / İç
-  'TEM Karayolu Kontrol', 'E-5 Karayolu Kontrol', 'Araç Arama Noktası',
-  // Antrepo / Posta
-  'Merkez Antrepo', 'Posta / Kargo Merkezi', 'Mobil Saha Ekibi',
-];
-
-const KONTROL_NOKTALARI: Record<string, string[]> = {
-  'Kapıkule Sınır Kapısı': ['TIR Giriş Hattı', 'Yolcu Terminali', 'Peron 1', 'Peron 2', 'Peron 3', 'Gümrük Binası', 'Araç Denetim Sahası'],
-  'Hamzabeyli Sınır Kapısı': ['Giriş Kapısı', 'Peron A', 'Araç Kontrol'],
-  'Dereköy Sınır Kapısı': ['Ana Geçiş', 'TIR Hattı', 'Kontrol Noktası'],
-  'İpsala Sınır Kapısı': ['TIR Parkı', 'Yolcu Kapısı', 'Peron 1', 'Peron 2', 'Araç Arama Sahası'],
-  'Pazarkule Sınır Kapısı': ['Ana Geçiş', 'Yolcu Hattı', 'Araç Denetim'],
-  'Sarp Sınır Kapısı': ['TIR Terminali', 'Yolcu Kapısı', 'Araç Kontrol', 'Gümrük Binası'],
-  'Gürbulak Sınır Kapısı': ['TIR Giriş Hattı', 'Araç Kontrol Sahası', 'Gümrük Binası', 'Depo Alanı'],
-  'Esendere Sınır Kapısı': ['Ana Geçiş', 'Kontrol Noktası', 'Araç Denetim'],
-  'Habur Sınır Kapısı': ['TIR Geçiş Hattı', 'Ticari Araç Kontrol', 'Gümrük Binası', 'Depolama Alanı', 'Araç Bekleme Sahası'],
-  'Nusaybin Sınır Kapısı': ['Ana Geçiş', 'TIR Hattı', 'Araç Denetim', 'Gümrük Binası'],
-  'Cilvegözü Sınır Kapısı': ['TIR Terminali', 'Araç Kontrol', 'Yolcu Hattı', 'Gümrük Binası'],
-  'Öncüpınar Sınır Kapısı': ['Ana Geçiş', 'Araç Kontrol', 'Gümrük Noktası'],
-  'Akçakale Sınır Kapısı': ['Ana Geçiş', 'Araç Denetim', 'Kontrol Noktası'],
-  'İzmir Alsancak Limanı': ['Konteyner Sahası', 'Ro-Ro Terminali', 'Gemi Ambarı', 'İç Liman'],
-  'Mersin Uluslararası Limanı': ['Konteyner Terminali', 'Gemi Ambarı', 'Kargo Sahası', 'Depo Alanı'],
-  'Ambarlı Limanı': ['Konteyner Sahası', 'Ro-Ro Terminali', 'Yükleme Sahası'],
-  'Haydarpaşa Limanı': ['Konteyner Alanı', 'Gemi Rıhtımı', 'Kargo Sahası'],
-  'Derince Limanı': ['Konteyner Terminali', 'Kargo Alanı', 'Gemi Rıhtımı'],
-  'İstanbul Havalimanı Kargo': ['İç Hat Terminal', 'Dış Hat Terminal', 'Kargo Ambarı', 'X-Ray Denetim'],
-  'Sabiha Gökçen Kargo': ['Kargo Terminali', 'Dış Hat Kargo', 'X-Ray Kontrol'],
-  'TEM Karayolu Kontrol': ['Kuzey Hat', 'Orta Hat', 'Güney Hat', 'Araç Arama Noktası'],
-  'E-5 Karayolu Kontrol': ['Güzergah 1', 'Güzergah 2', 'Güzergah 3'],
-  'Araç Arama Noktası': ['Kuzey Hat', 'Orta Hat', 'Güney Hat', 'Araç Arama Noktası 2'],
-  'Merkez Antrepo': ['Depo A', 'Depo B', 'Depo Girişi', 'İç Terminal'],
-  'Posta / Kargo Merkezi': ['X-Ray Denetim', 'Sortaj Alanı', 'Giriş Lobi'],
-  'Mobil Saha Ekibi': ['Güney Güzergah', 'Kuzey Güzergah', 'Saha Kontrol Noktası'],
-};
 
 const NUMUNE_TURLERI = [
   'Toz madde', 'Sıvı numune', 'Emdirilmiş kumaş', 'Emdirilmiş pamuk',
@@ -70,108 +24,35 @@ const NUMUNE_TURLERI = [
 ];
 
 const TESPITLER = [
-  'Kokain', 'Kokain analogu', 'Eroin türevi', 'Metamfetamin', 'Amfetamin grubu',
-  'Esrar türevi', 'Fentanil türevi', 'Fentanil analogu', 'GHB benzeri madde',
-  'Ketamin', 'MDMA / Ekstazi', 'Sentetik kanabinoid', 'Bilinmeyen madde',
+  'Kokain', 'Eroin türevi', 'Metamfetamin', 'Amfetamin grubu',
+  'Esrar türevi', 'Fentanil türevi', 'GHB benzeri madde',
+  'MDMA / Ekstazi', 'Buprenorfin türevi', 'Bilinmeyen madde',
+];
+
+const PANEL_MADDELERI: Record<string, string> = {
+  AMP: 'Amfetamin grubu', THC: 'Esrar türevi', COC: 'Kokain',
+  MET: 'Metamfetamin', MOP: 'Eroin türevi', MBP: 'Buprenorfin türevi',
+};
+
+interface PanelOverlay { kod: string; pos: { left: string; top: string }; T: boolean; C: boolean }
+
+const PANEL_POSITIONS: Array<{ kod: string; pos: { left: string; top: string } }> = [
+  { kod: 'AMP', pos: { left: '12%', top: '38%' } },
+  { kod: 'THC', pos: { left: '38%', top: '38%' } },
+  { kod: 'COC', pos: { left: '64%', top: '38%' } },
+  { kod: 'MET', pos: { left: '12%', top: '70%' } },
+  { kod: 'MOP', pos: { left: '38%', top: '70%' } },
+  { kod: 'MBP', pos: { left: '64%', top: '70%' } },
 ];
 
 function generateOpNo() {
-  const n = 167 + Math.floor(Math.random() * 50);
+  const n = 200 + Math.floor(Math.random() * 99);
   return `OPS-2026-0${n}`;
 }
 
 function generateKitSeriNo(lotSeriNo: string) {
   const n = String(Math.floor(Math.random() * 900) + 100);
   return `${lotSeriNo}-K${n}`;
-}
-
-function getSKTDurumu(skt: string) {
-  const diff = new Date(skt).getTime() - Date.now();
-  const days = Math.ceil(diff / 86400000);
-  if (days < 0) return { label: 'SKT Geçmiş', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30' };
-  if (days < 90) return { label: `SKT Yaklaşıyor (${days} gün)`, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' };
-  return { label: 'Kullanılabilir', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' };
-}
-
-function AnalysisVisual({ guven, sonuc }: { guven: number; sonuc: TestSonucu | '' }) {
-  const pozitif = sonuc === 'Pozitif';
-  const gecersiz = sonuc === 'Geçersiz';
-
-  return (
-    <div className="glass-card p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Kit Görüntüsü</p>
-        <div className={`text-xs px-2 py-1 rounded-full font-bold ${
-          pozitif ? 'bg-red-500/20 text-red-400' : gecersiz ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
-        }`}>
-          {sonuc || '—'}
-        </div>
-      </div>
-
-      <div className="relative bg-background/50 border border-border/50 rounded-xl h-28 flex items-center justify-center gap-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
-        <div className="flex flex-col items-center gap-1">
-          <div className={`w-1 h-14 rounded-full transition-all ${!gecersiz ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,212,255,0.6)]' : 'bg-slate-700'}`} />
-          <span className="text-xs text-muted-foreground/60">C</span>
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <div className={`w-1 h-14 rounded-full transition-all ${pozitif ? 'bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-slate-700/30'}`} />
-          <span className="text-xs text-muted-foreground/60">T1</span>
-        </div>
-        {pozitif && (
-          <div className="flex flex-col items-center gap-1">
-            <div className="w-1 h-10 rounded-full bg-red-300/60" />
-            <span className="text-xs text-muted-foreground/60">T2</span>
-          </div>
-        )}
-        <div className="absolute left-2 top-2 text-xs text-muted-foreground/30 font-mono select-none">SENTEK®</div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        {[
-          { label: 'Kontrol (C)', val: gecersiz ? 'Yok' : 'Belirgin', cls: gecersiz ? 'text-slate-500' : 'text-emerald-400', bg: gecersiz ? 'bg-slate-800/30 border-slate-700/30' : 'bg-emerald-500/10 border-emerald-500/30' },
-          { label: 'Test (T1)', val: pozitif ? 'Belirgin' : 'Yok', cls: pozitif ? 'text-red-400' : 'text-slate-500', bg: pozitif ? 'bg-red-500/10 border-red-500/30' : 'bg-slate-800/30 border-slate-700/30' },
-          { label: 'Güven', val: `%${guven}`, cls: guven >= 80 ? 'text-emerald-400' : guven >= 55 ? 'text-amber-400' : 'text-red-400', bg: guven >= 80 ? 'bg-emerald-500/10 border-emerald-500/30' : guven >= 55 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-red-500/10 border-red-500/30' },
-        ].map(({ label, val, cls, bg }) => (
-          <div key={label} className={`rounded-lg p-2 border text-center ${bg}`}>
-            <p className="text-muted-foreground/70 mb-0.5">{label}</p>
-            <p className={`font-bold ${cls}`}>{val}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Analiz Güven Skoru</span>
-          <span className={`font-bold ${guven >= 80 ? 'text-emerald-400' : guven >= 55 ? 'text-amber-400' : 'text-red-400'}`}>%{guven}</span>
-        </div>
-        <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${guven}%` }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className={`h-full rounded-full ${guven >= 80 ? 'bg-emerald-400' : guven >= 55 ? 'bg-amber-400' : 'bg-red-400'}`}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground/70">
-          {guven >= 80 ? 'Yüksek güven — sonuç güvenilir' : guven >= 55 ? 'Orta güven — manuel kontrol önerilir' : 'Düşük güven — fotoğraf kalitesini kontrol edin'}
-        </p>
-      </div>
-
-      {pozitif && (
-        <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
-          <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-red-300">Pozitif sonuç tespit edildi. Laboratuvar doğrulaması zorunludur.</p>
-        </div>
-      )}
-      {gecersiz && (
-        <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-300">Kontrol çizgisi algılanmadı. Test geçersiz sayılabilir, tekrar yapınız.</p>
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function NewTest() {
@@ -182,55 +63,125 @@ export default function NewTest() {
   const [adim, setAdim] = useState(0);
   const [analizYapiliyor, setAnalizYapiliyor] = useState(false);
   const [kaydedildi, setKaydedildi] = useState(false);
+  const [savedKayit, setSavedKayit] = useState<TestKaydi | null>(null);
+  const [pdfIndiriliyor, setPdfIndiriliyor] = useState(false);
 
   const [form, setForm] = useState({
     operasyonNo: generateOpNo(),
-    lokasyon: '',
-    kontrolNokta: '',
+    lokasyon: kullanici?.varsayilanLokasyon || 'Saha Operasyon Noktası',
+    kontrolNokta: kullanici?.varsayilanKontrolNokta || 'Sahada',
     numuneTuru: '',
     sahisAciklamasi: '',
     seciliStokId: '',
     kitSeriNo: '',
     kitSKT: '',
     kitPanelTipi: '',
-    fotografVar: false,
+    qrTarandi: false,
+    fotografCekildi: false,
+    panelSonuclari: [] as PanelOverlay[],
+    aiSonucu: '' as TestSonucu | '',
+    aiPozitifPanel: '',
     analizGuven: 0,
     testSonucu: '' as TestSonucu | '',
+    overrideAciklamasi: '',
     tespitEdilenMadde: '',
     notlar: '',
-    labSevkIstiyor: false,
+    labSevkIstiyor: true,
   });
 
-  const setField = (k: keyof typeof form, v: unknown) => setForm(p => ({ ...p, [k]: v }));
+  // Saha personeli için lokasyon kişisel ataması (login sonrası gelmemişse de güncelle)
+  useEffect(() => {
+    if (kullanici?.varsayilanLokasyon && !form.lokasyon.includes(kullanici.varsayilanLokasyon)) {
+      setForm(p => ({
+        ...p,
+        lokasyon: kullanici.varsayilanLokasyon!,
+        kontrolNokta: kullanici.varsayilanKontrolNokta || p.kontrolNokta,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kullanici?.id]);
 
-  const availableStok = stoklar.filter(
-    s => s.kalanAdedi > 0 && s.durum !== 'Tükendi' && !s.panelTipi.includes('Sarf')
+  const setField = <K extends keyof typeof form>(k: K, v: typeof form[K]) =>
+    setForm(p => ({ ...p, [k]: v }));
+
+  const availableStok = useMemo(
+    () => stoklar.filter(s => s.kalanAdedi > 0 && s.durum !== 'Tükendi' && !s.panelTipi.includes('Sarf')),
+    [stoklar]
   );
 
-  const handleStokSec = (stokId: string) => {
-    const stok = stoklar.find(s => s.id === stokId);
-    if (!stok) return;
+  // ---- DEMO QR KULLAN ----
+  const handleDemoQR = () => {
+    if (availableStok.length === 0) return;
+    const stok = availableStok[Math.floor(Math.random() * availableStok.length)];
     setForm(p => ({
       ...p,
-      seciliStokId: stokId,
+      seciliStokId: stok.id,
       kitSeriNo: generateKitSeriNo(stok.lotSeriNo),
       kitSKT: stok.skt,
       kitPanelTipi: stok.panelTipi,
+      qrTarandi: true,
     }));
   };
 
-  const handleFotoAnalizi = () => {
+  // ---- FOTO ÇEK ----
+  const handleFotoCek = () => setField('fotografCekildi', true);
+
+  // ---- AI ANALİZ ----
+  const handleAnaliz = () => {
     setAnalizYapiliyor(true);
     setTimeout(() => {
-      const guven = Math.floor(Math.random() * 25) + 70;
       const r = Math.random();
-      const sonuc: TestSonucu = r < 0.3 ? 'Pozitif' : r < 0.42 ? 'Geçersiz' : 'Negatif';
-      setForm(p => ({ ...p, analizGuven: guven, testSonucu: sonuc }));
+      let aiSonuc: TestSonucu;
+      let pozitifPanel = '';
+      let panelSonuclari: PanelOverlay[] = PANEL_POSITIONS.map(p => ({ ...p, T: false, C: true }));
+      let guven = 0;
+
+      if (r < 0.1) {
+        // Geçersiz: bir panel C kaybetmiş
+        aiSonuc = 'Geçersiz';
+        const idx = Math.floor(Math.random() * panelSonuclari.length);
+        panelSonuclari[idx].C = false;
+        guven = 35 + Math.floor(Math.random() * 21);
+      } else if (r < 0.45) {
+        // Pozitif
+        aiSonuc = 'Pozitif';
+        const idx = Math.floor(Math.random() * panelSonuclari.length);
+        panelSonuclari[idx].T = true;
+        pozitifPanel = panelSonuclari[idx].kod;
+        guven = 80 + Math.floor(Math.random() * 16);
+      } else {
+        // Negatif
+        aiSonuc = 'Negatif';
+        guven = 88 + Math.floor(Math.random() * 10);
+      }
+
+      const tespit = pozitifPanel ? PANEL_MADDELERI[pozitifPanel] : '';
+
+      setForm(p => ({
+        ...p,
+        panelSonuclari,
+        aiSonucu: aiSonuc,
+        aiPozitifPanel: pozitifPanel,
+        analizGuven: guven,
+        testSonucu: aiSonuc,
+        tespitEdilenMadde: tespit,
+      }));
       setAnalizYapiliyor(false);
-    }, 2400);
+    }, 1900);
   };
 
+  // ---- KAYDET ----
   const handleKaydet = async () => {
+    // Son güvenlik: invariantlar
+    if (!form.numuneTuru || !form.qrTarandi || !form.kitSeriNo || !form.aiSonucu || !form.testSonucu) {
+      console.warn('[SENTEK] Eksik kayıt — kayıt iptal edildi', form);
+      return;
+    }
+    const overrideVar = form.aiSonucu !== form.testSonucu;
+    if (overrideVar && form.overrideAciklamasi.trim().length < 10) {
+      console.warn('[SENTEK] Override için yetersiz açıklama — kayıt iptal edildi');
+      return;
+    }
     const yeniTest = await testKaydiEkle({
       operasyonNo: form.operasyonNo,
       tarih: new Date().toISOString(),
@@ -247,6 +198,8 @@ export default function NewTest() {
       personelAdi: kullanici?.ad || 'Saha Personeli',
       analizGuvenSkoru: form.analizGuven,
       stokId: form.seciliStokId || undefined,
+      aiOnerisi: form.aiSonucu as TestSonucu,
+      kullaniciOverrideAciklamasi: overrideVar ? form.overrideAciklamasi : undefined,
     }, form.seciliStokId || undefined);
 
     if (form.labSevkIstiyor && form.testSonucu === 'Pozitif') {
@@ -264,49 +217,74 @@ export default function NewTest() {
         notlar: form.notlar || undefined,
       });
     }
+    setSavedKayit(yeniTest);
     setKaydedildi(true);
+
+    // PDF'i otomatik indirmeyi tetikle
+    setPdfIndiriliyor(true);
+    try {
+      await downloadTestRaporu(yeniTest);
+    } catch (e) {
+      console.error('PDF indirme hatası', e);
+    } finally {
+      setPdfIndiriliyor(false);
+    }
   };
 
+  const overrideVar = !!form.aiSonucu && form.aiSonucu !== form.testSonucu;
+  const overrideAciklamasiYeterli = form.overrideAciklamasi.trim().length >= 10;
+
   const canProceed = () => {
-    if (adim === 1) return !!form.lokasyon && !!form.kontrolNokta;
-    if (adim === 2) return !!form.numuneTuru;
-    if (adim === 3) return form.sahisAciklamasi.length >= 10;
-    if (adim === 4) return !!form.kitSeriNo;
-    if (adim === 5) return form.fotografVar;
-    if (adim === 6) return !!form.testSonucu && !analizYapiliyor;
-    if (adim === 7) return !!form.testSonucu;
+    if (adim === 0) return true;
+    if (adim === 1) return !!form.numuneTuru;
+    if (adim === 2) return true; // açıklama isteğe bağlı
+    if (adim === 3) return form.qrTarandi && !!form.kitSeriNo;
+    if (adim === 4) return form.fotografCekildi && !!form.aiSonucu && !analizYapiliyor;
+    if (adim === 5) return !!form.testSonucu && (!overrideVar || overrideAciklamasiYeterli);
     return true;
   };
 
-  if (kaydedildi) {
+  // ---------- BAŞARI EKRANI ----------
+  if (kaydedildi && savedKayit) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 px-4 text-center">
+      <div className="flex flex-col items-center justify-center h-full gap-5 px-4 text-center overflow-y-auto py-8">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
           className={`w-20 h-20 rounded-full flex items-center justify-center border-2 ${
-            form.testSonucu === 'Pozitif' ? 'bg-red-500/20 border-red-500' :
-            form.testSonucu === 'Geçersiz' ? 'bg-amber-500/20 border-amber-500' :
+            savedKayit.testSonucu === 'Pozitif' ? 'bg-red-500/20 border-red-500' :
+            savedKayit.testSonucu === 'Geçersiz' ? 'bg-amber-500/20 border-amber-500' :
             'bg-emerald-500/20 border-emerald-500'
           }`}
+          data-testid="badge-sonuc"
         >
-          {form.testSonucu === 'Geçersiz' ? <AlertTriangle className="w-8 h-8 text-amber-400" /> :
-           form.testSonucu === 'Pozitif' ? <AlertTriangle className="w-8 h-8 text-red-400" /> :
+          {savedKayit.testSonucu === 'Geçersiz' ? <AlertTriangle className="w-8 h-8 text-amber-400" /> :
+           savedKayit.testSonucu === 'Pozitif' ? <AlertTriangle className="w-8 h-8 text-red-400" /> :
            <CheckCircle className="w-8 h-8 text-emerald-400" />}
         </motion.div>
         <div>
           <h2 className="text-xl font-bold text-foreground mb-1">Kayıt Tamamlandı</h2>
-          <p className="text-sm text-muted-foreground font-mono">{form.operasyonNo}</p>
+          <p className="text-sm text-muted-foreground font-mono">{savedKayit.operasyonNo}</p>
           <div className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
-            form.testSonucu === 'Pozitif' ? 'bg-red-500/20 text-red-400' :
-            form.testSonucu === 'Geçersiz' ? 'bg-amber-500/20 text-amber-400' :
+            savedKayit.testSonucu === 'Pozitif' ? 'bg-red-500/20 text-red-400' :
+            savedKayit.testSonucu === 'Geçersiz' ? 'bg-amber-500/20 text-amber-400' :
             'bg-emerald-500/20 text-emerald-400'
           }`}>
-            {form.testSonucu === 'Pozitif' ? 'POZİTİF SONUÇ' : form.testSonucu === 'Geçersiz' ? 'GEÇERSİZ' : 'NEGATİF SONUÇ'}
+            {savedKayit.testSonucu === 'Pozitif' ? 'POZİTİF SONUÇ' : savedKayit.testSonucu === 'Geçersiz' ? 'GEÇERSİZ' : 'NEGATİF SONUÇ'}
           </div>
         </div>
-        {form.testSonucu === 'Pozitif' && form.labSevkIstiyor && (
+
+        <div className="glass-card p-3 w-full text-left">
+          <div className="flex items-center gap-2 mb-1">
+            <FileDown className="w-4 h-4 text-cyan-400" />
+            <p className="text-sm font-semibold text-cyan-400">PDF Raporu</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {pdfIndiriliyor ? 'PDF hazırlanıyor...' : 'Profesyonel rapor indirildi. Tekrar indirmek için aşağıdaki butona basın.'}
+          </p>
+        </div>
+
+        {savedKayit.testSonucu === 'Pozitif' && form.labSevkIstiyor && (
           <div className="glass-card p-3 w-full text-left">
             <div className="flex items-center gap-2 mb-1">
               <FlaskConical className="w-4 h-4 text-cyan-400" />
@@ -315,13 +293,22 @@ export default function NewTest() {
             <p className="text-xs text-muted-foreground">Numune laboratuvar takip sistemine eklendi.</p>
           </div>
         )}
-        <div className="flex flex-col gap-3 w-full">
+
+        <div className="flex flex-col gap-2 w-full">
+          <button
+            data-testid="btn-pdf-indir"
+            onClick={() => downloadTestRaporu(savedKayit)}
+            disabled={pdfIndiriliyor}
+            className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <FileDown className="w-4 h-4" /> {pdfIndiriliyor ? 'Hazırlanıyor...' : 'PDF Raporu İndir'}
+          </button>
           <button onClick={() => setLocation('/mobile/kayitlarim')}
-            className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm">
+            className="w-full py-3 glass-card border border-card-border text-foreground rounded-xl font-semibold text-sm">
             Kayıtlarımı Gör
           </button>
           <button onClick={() => setLocation('/mobile')}
-            className="w-full py-3.5 bg-secondary text-foreground rounded-xl font-semibold text-sm">
+            className="w-full py-3 text-muted-foreground rounded-xl text-sm">
             Ana Sayfa
           </button>
         </div>
@@ -329,11 +316,13 @@ export default function NewTest() {
     );
   }
 
+  // ---------- ADIM EKRANLARI ----------
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex-shrink-0">
         <button onClick={() => adim === 0 ? setLocation('/mobile') : setAdim(a => a - 1)}
+          data-testid="btn-geri"
           className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
           <ArrowLeft className="w-4 h-4" /> {adim === 0 ? 'İptal' : 'Geri'}
         </button>
@@ -358,7 +347,7 @@ export default function NewTest() {
             transition={{ duration: 0.18 }}
           >
 
-            {/* ADIM 0: Operasyon */}
+            {/* ADIM 0: Operasyon (lokasyon otomatik personelden) */}
             {adim === 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Operasyon Bilgisi</h2>
@@ -367,12 +356,14 @@ export default function NewTest() {
                     { icon: Hash, label: 'Operasyon No', val: form.operasyonNo, cls: 'font-mono text-primary font-bold' },
                     { icon: Clock, label: 'Tarih / Saat', val: new Date().toLocaleString('tr-TR'), cls: '' },
                     { icon: Shield, label: 'Personel', val: kullanici?.ad || 'Saha Personeli', cls: '' },
+                    { icon: MapPin, label: 'Lokasyon', val: form.lokasyon, cls: 'text-emerald-400 font-semibold' },
+                    { icon: ChevronRight, label: 'Kontrol Noktası', val: form.kontrolNokta, cls: '' },
                   ].map(({ icon: Icon, label, val, cls }) => (
-                    <div key={label} className="flex items-center gap-3 py-3">
+                    <div key={label} className="flex items-center gap-3 py-3" data-testid={`field-${label.toLowerCase().replace(/\s+/g, '-')}`}>
                       <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                         <Icon className="w-4 h-4 text-muted-foreground" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">{label}</p>
                         <p className={`text-sm ${cls || 'text-foreground font-medium'}`}>{val}</p>
                       </div>
@@ -381,55 +372,22 @@ export default function NewTest() {
                 </div>
                 <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
                   <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">Operasyon numarası otomatik atandı. Devam etmek için İleri'ye basın.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Lokasyon ve kontrol noktası, atanan göreviniz baz alınarak otomatik dolduruldu. Devam etmek için İleri'ye basın.
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* ADIM 1: Lokasyon */}
+            {/* ADIM 1: Numune Türü */}
             {adim === 1 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Lokasyon Bilgisi</h2>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> Kontrol Noktası
-                  </label>
-                  <div className="space-y-2">
-                    {LOKASYONLAR.map(l => (
-                      <button key={l} onClick={() => { setField('lokasyon', l); setField('kontrolNokta', ''); }}
-                        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-left transition-all ${
-                          form.lokasyon === l ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground hover:border-primary/40'
-                        }`}>
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {form.lokasyon && (
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Alt Nokta / Peron</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(KONTROL_NOKTALARI[form.lokasyon] || []).map(k => (
-                        <button key={k} onClick={() => setField('kontrolNokta', k)}
-                          className={`px-3 py-2.5 rounded-xl border text-xs font-medium text-center transition-all ${
-                            form.kontrolNokta === k ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground'
-                          }`}>
-                          {k}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ADIM 2: Numune Türü */}
-            {adim === 2 && (
-              <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Numune Türü</h2>
+                <p className="text-sm text-muted-foreground">Şüpheli materyalin türünü seçin.</p>
                 <div className="space-y-2">
                   {NUMUNE_TURLERI.map(t => (
                     <button key={t} onClick={() => setField('numuneTuru', t)}
+                      data-testid={`numune-${t}`}
                       className={`w-full px-4 py-3.5 rounded-xl border text-sm font-medium text-left transition-all ${
                         form.numuneTuru === t ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground'
                       }`}>
@@ -440,176 +398,270 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 3: Açıklama */}
-            {adim === 3 && (
+            {/* ADIM 2: Açıklama (opsiyonel) */}
+            {adim === 2 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Materyal Açıklaması</h2>
-                <p className="text-sm text-muted-foreground">Şüpheli materyali kısaca açıklayın.</p>
+                <p className="text-sm text-muted-foreground">İsteğe bağlı — şüpheli materyali kısaca açıklayın.</p>
                 <textarea
                   value={form.sahisAciklamasi}
                   onChange={e => setField('sahisAciklamasi', e.target.value)}
                   placeholder="Örn: TIR gövdesinde gizli bölme içi beyaz kristal toz..."
                   rows={5}
+                  data-testid="input-aciklama"
                   className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary/60"
                 />
-                <p className={`text-xs ${form.sahisAciklamasi.length < 10 ? 'text-muted-foreground/40' : 'text-emerald-400'}`}>
-                  {form.sahisAciklamasi.length} / en az 10 karakter
+                <p className="text-xs text-muted-foreground/60">
+                  {form.sahisAciklamasi.length} karakter — bu adım atlanabilir
                 </p>
               </div>
             )}
 
-            {/* ADIM 4: Kit Seçimi */}
+            {/* ADIM 3: KIT QR */}
+            {adim === 3 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-foreground">Kit QR Tara</h2>
+                <p className="text-sm text-muted-foreground">Test kiti üzerindeki QR kodu kameradan okutun veya demo kit kullanın.</p>
+
+                {!form.qrTarandi ? (
+                  <>
+                    <div className="glass-card rounded-2xl border border-card-border p-6 flex flex-col items-center gap-4">
+                      <div className="relative w-44 h-44 rounded-2xl bg-background/60 border border-primary/30 overflow-hidden flex items-center justify-center">
+                        <QrCode className="w-20 h-20 text-primary/30" />
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br-lg" />
+                        <motion.div
+                          animate={{ y: [0, 140, 0] }}
+                          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                          className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(0,212,255,0.8)]"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">QR'ı çerçevenin içine alın</p>
+                    </div>
+
+                    <button
+                      data-testid="btn-demo-qr"
+                      onClick={handleDemoQR}
+                      className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                    >
+                      <ScanLine className="w-4 h-4" /> Demo QR Kullan
+                    </button>
+
+                    <p className="text-xs text-muted-foreground/60 text-center">Demo modunda stoktan bir kit otomatik atanır</p>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="glass-card border border-emerald-500/30 p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-emerald-400 font-bold">Kit Tarandı</p>
+                        <p className="text-xs text-muted-foreground truncate">{form.kitPanelTipi}</p>
+                      </div>
+                    </div>
+                    <div className="glass-card p-4 space-y-2.5">
+                      {[
+                        ['Kit Seri No', form.kitSeriNo, 'font-mono text-primary'],
+                        ['Panel Tipi', form.kitPanelTipi, ''],
+                        ['SKT', form.kitSKT, ''],
+                      ].map(([k, v, c]) => (
+                        <div key={k} className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">{k}</span>
+                          <span className={`text-xs font-semibold text-foreground text-right ${c} max-w-[60%] truncate`}>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setForm(p => ({
+                        ...p,
+                        qrTarandi: false, kitSeriNo: '', kitSKT: '', kitPanelTipi: '', seciliStokId: '',
+                        // Kit değişince tüm analiz/sonuç state'i sıfırlansın — eski sonuç yeni kite yapışmasın
+                        fotografCekildi: false,
+                        panelSonuclari: [],
+                        aiSonucu: '',
+                        aiPozitifPanel: '',
+                        analizGuven: 0,
+                        testSonucu: '',
+                        overrideAciklamasi: '',
+                        tespitEdilenMadde: '',
+                      }))}
+                      className="w-full py-2.5 text-xs text-muted-foreground/70 flex items-center justify-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Tekrar Tara
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ADIM 4: FOTO + AI */}
             {adim === 4 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Test Kiti Seçimi</h2>
-                <p className="text-sm text-muted-foreground">Stoktan kullanılabilir bir kit seçin.</p>
-                <div className="space-y-2">
-                  {availableStok.map(s => {
-                    const sktInfo = getSKTDurumu(s.skt);
-                    const secili = form.seciliStokId === s.id;
-                    return (
-                      <button key={s.id} onClick={() => handleStokSec(s.id)}
-                        className={`w-full rounded-xl border text-left p-3 transition-all ${
-                          secili ? 'border-primary bg-primary/10' : 'border-border bg-card hover:border-primary/30'
-                        }`}>
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-bold truncate ${secili ? 'text-primary' : 'text-foreground'}`}>{s.urunAdi}</p>
-                            <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{s.panelTipi}</p>
-                          </div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full border flex-shrink-0 font-semibold ${sktInfo.bg} ${sktInfo.color}`}>
-                            {s.kalanAdedi} adet
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs text-muted-foreground/50 font-mono">{s.lotSeriNo}</span>
-                          <span className={`text-xs font-medium flex items-center gap-0.5 ${sktInfo.color}`}>
-                            <Calendar className="w-2.5 h-2.5" />{s.skt}
-                          </span>
-                        </div>
-                        {sktInfo.label !== 'Kullanılabilir' && (
-                          <div className={`mt-1.5 flex items-center gap-1 text-xs ${sktInfo.color}`}>
-                            <AlertTriangle className="w-3 h-3" />{sktInfo.label}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                {form.kitSeriNo && (
-                  <div className="glass-card p-3 border-primary/20">
-                    <p className="text-xs text-muted-foreground mb-0.5">Atanan Seri No</p>
-                    <p className="text-sm font-bold font-mono text-primary">{form.kitSeriNo}</p>
-                  </div>
-                )}
-              </div>
-            )}
+                <h2 className="text-lg font-bold text-foreground">Fotoğraf & AI Analizi</h2>
 
-            {/* ADIM 5: Fotoğraf */}
-            {adim === 5 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Test Fotoğrafı</h2>
-                <p className="text-sm text-muted-foreground">Kit ve numune fotoğrafını çekin veya yükleyin.</p>
-                {!form.fotografVar ? (
-                  <button onClick={() => setField('fotografVar', true)}
-                    className="w-full h-44 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors group">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                      <Camera className="w-7 h-7 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-semibold text-foreground">Fotoğraf Ekle</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Kamera veya galeri</p>
-                    </div>
-                  </button>
-                ) : (
-                  <div className="relative w-full h-44 bg-gradient-to-br from-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl flex flex-col items-center justify-center gap-2 overflow-hidden">
-                    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[size:20px_20px]" />
-                    <CheckCircle className="w-10 h-10 text-emerald-400 relative z-10" />
-                    <p className="text-sm font-semibold text-emerald-400 relative z-10">Fotoğraf Yüklendi</p>
-                    <p className="text-xs text-muted-foreground/60 relative z-10 font-mono">test_{Date.now()}.jpg</p>
-                    <button onClick={() => setField('fotografVar', false)}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors">
-                      <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
-                    </button>
-                  </div>
-                )}
-                <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
-                  <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">Net fotoğraf analiz doğruluğunu artırır. Kontrol ve test çizgilerinin görünür olmasına dikkat edin.</p>
-                </div>
-              </div>
-            )}
-
-            {/* ADIM 6: AI Analizi */}
-            {adim === 6 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">AI Görüntü Analizi</h2>
-                {!form.testSonucu && !analizYapiliyor ? (
-                  <div className="space-y-4">
-                    <div className="glass-card p-5 text-center space-y-3">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                        <FlaskConical className="w-7 h-7 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Fotoğraf hazır</p>
-                        <p className="text-xs text-muted-foreground mt-1">Analizi başlatmak için butona basın</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground/50 font-mono">{form.kitSeriNo}</p>
-                    </div>
-                    <button onClick={handleFotoAnalizi}
-                      className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                      <FlaskConical className="w-4 h-4" /> Analizi Başlat
-                    </button>
-                  </div>
-                ) : analizYapiliyor ? (
-                  <div className="glass-card p-6 text-center space-y-5">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-                      className="w-16 h-16 rounded-full border-2 border-primary border-t-transparent mx-auto flex items-center justify-center"
+                {!form.fotografCekildi ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">Kit fotoğrafını çekerek AI analizini başlatın.</p>
+                    <button
+                      data-testid="btn-foto-cek"
+                      onClick={handleFotoCek}
+                      className="w-full h-44 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors group"
                     >
-                      <FlaskConical className="w-6 h-6 text-primary" />
-                    </motion.div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Görüntü işleniyor...</p>
-                      <p className="text-xs text-muted-foreground mt-1">Çizgi tespiti ve panel analizi yapılıyor</p>
-                    </div>
-                    <div className="space-y-2 text-left">
-                      {['Kontrol çizgisi tarıyor', 'Test çizgileri analiz ediliyor', 'Güven skoru hesaplanıyor'].map((s, i) => (
-                        <motion.div key={s} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.7 }}
-                          className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Loader2 className="w-3 h-3 text-primary animate-spin flex-shrink-0" />
-                          {s}
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                        <Camera className="w-7 h-7 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-semibold text-foreground">Fotoğraf Çek</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Kit ve numuneyi çerçeveleyin</p>
+                      </div>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* KİT FOTO + Overlay */}
+                    <div className="relative w-full bg-slate-950 rounded-2xl overflow-hidden border border-cyan-500/20">
+                      <img src={sentekKitImg} alt="SENTEK Kit" className="w-full h-auto block" data-testid="img-kit-foto" />
+                      {/* Tarama overlay */}
+                      {analizYapiliyor && (
+                        <>
+                          <motion.div
+                            initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                            className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/0 via-cyan-500/5 to-cyan-500/0" />
+                        </>
+                      )}
+                      {/* Panel sonuçlarını overlay et */}
+                      {!analizYapiliyor && form.panelSonuclari.length > 0 && form.panelSonuclari.map(p => (
+                        <motion.div
+                          key={p.kod}
+                          initial={{ opacity: 0, scale: 0.7 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="absolute"
+                          style={{ left: p.pos.left, top: p.pos.top, transform: 'translate(-50%, -50%)' }}
+                        >
+                          <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold border backdrop-blur-sm ${
+                            !p.C ? 'bg-amber-500/80 text-white border-amber-300' :
+                            p.T ? 'bg-red-500/85 text-white border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.7)]' :
+                            'bg-emerald-500/70 text-white border-emerald-300'
+                          }`}>
+                            {p.kod} {!p.C ? '⚠' : p.T ? '+' : '−'}
+                          </div>
                         </motion.div>
                       ))}
                     </div>
-                  </div>
-                ) : (
-                  <AnalysisVisual guven={form.analizGuven} sonuc={form.testSonucu} />
+
+                    {!form.aiSonucu && !analizYapiliyor && (
+                      <button
+                        data-testid="btn-analiz-baslat"
+                        onClick={handleAnaliz}
+                        className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" /> AI Analizini Başlat
+                      </button>
+                    )}
+
+                    {analizYapiliyor && (
+                      <div className="glass-card p-4 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">Görüntü işleniyor</p>
+                            <p className="text-xs text-muted-foreground">6 panel taranıyor...</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {form.aiSonucu && !analizYapiliyor && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                        data-testid="ai-sonuc-card"
+                        className={`glass-card p-4 border ${
+                          form.aiSonucu === 'Pozitif' ? 'border-red-500/30' :
+                          form.aiSonucu === 'Geçersiz' ? 'border-amber-500/30' :
+                          'border-emerald-500/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Analiz Sonucu</p>
+                            <p className={`text-xl font-bold mt-1 ${
+                              form.aiSonucu === 'Pozitif' ? 'text-red-400' :
+                              form.aiSonucu === 'Geçersiz' ? 'text-amber-400' :
+                              'text-emerald-400'
+                            }`}>
+                              {form.aiSonucu}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Güven</p>
+                            <p className="text-2xl font-bold text-foreground">%{form.analizGuven}</p>
+                          </div>
+                        </div>
+                        {form.aiPozitifPanel && (
+                          <div className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                            Tespit edilen panel: <span className="font-bold">{form.aiPozitifPanel}</span> → {PANEL_MADDELERI[form.aiPozitifPanel]}
+                          </div>
+                        )}
+                        {form.aiSonucu === 'Geçersiz' && (
+                          <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                            Bir veya daha fazla panelde kontrol çizgisi (C) algılanmadı. Kit geçersiz sayılabilir.
+                          </div>
+                        )}
+                        {form.aiSonucu === 'Negatif' && (
+                          <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
+                            Tüm 6 panelde kontrol çizgisi belirgin, hiçbirinde test çizgisi yok.
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </>
                 )}
               </div>
             )}
 
-            {/* ADIM 7: Sonuç Doğrulama */}
-            {adim === 7 && (
+            {/* ADIM 5: SONUÇ DOĞRULAMA + OVERRIDE */}
+            {adim === 5 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Sonucu Doğrula</h2>
+
                 <div className="glass-card p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FlaskConical className="w-4 h-4 text-primary" />
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                    form.aiSonucu === 'Pozitif' ? 'bg-red-500/15' :
+                    form.aiSonucu === 'Geçersiz' ? 'bg-amber-500/15' : 'bg-emerald-500/15'
+                  }`}>
+                    <Sparkles className={`w-4 h-4 ${
+                      form.aiSonucu === 'Pozitif' ? 'text-red-400' :
+                      form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
+                    }`} />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-xs text-muted-foreground">AI Önerisi</p>
-                    <p className={`text-sm font-bold ${form.testSonucu === 'Pozitif' ? 'text-red-400' : form.testSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                      {form.testSonucu} — %{form.analizGuven} güven
+                    <p className={`text-sm font-bold ${
+                      form.aiSonucu === 'Pozitif' ? 'text-red-400' :
+                      form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
+                    }`}>
+                      {form.aiSonucu} — %{form.analizGuven} güven
                     </p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Yetkili olarak sonucu onaylayın veya düzeltin:</p>
-                <div className="space-y-3">
+
+                <p className="text-xs text-muted-foreground">Yetkili olarak sonucu onaylayın veya değiştirin:</p>
+                <div className="space-y-2">
                   {(['Pozitif', 'Negatif', 'Geçersiz'] as TestSonucu[]).map(s => (
-                    <button key={s} onClick={() => setField('testSonucu', s)}
-                      className={`w-full py-4 rounded-xl border-2 flex items-center justify-between px-5 transition-all ${
+                    <button key={s} onClick={() => {
+                      setField('testSonucu', s);
+                      // Override aktive olunca tespit otomatik temizlensin (negatif/geçersizde madde olmaz)
+                      if (s !== 'Pozitif') setField('tespitEdilenMadde', '');
+                    }}
+                      data-testid={`btn-sonuc-${s}`}
+                      className={`w-full py-3.5 rounded-xl border-2 flex items-center justify-between px-4 transition-all ${
                         form.testSonucu === s
                           ? s === 'Pozitif' ? 'border-red-500 bg-red-500/15 text-red-400'
                           : s === 'Negatif' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
@@ -620,23 +672,55 @@ export default function NewTest() {
                         {s === 'Pozitif' ? <AlertTriangle className="w-5 h-5" /> :
                          s === 'Negatif' ? <CheckCircle className="w-5 h-5" /> :
                          <XCircle className="w-5 h-5" />}
-                        <span className="font-bold text-base">{s}</span>
+                        <span className="font-bold text-sm">{s}</span>
+                        {form.aiSonucu === s && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">AI</span>
+                        )}
                       </div>
                       {form.testSonucu === s && <Check className="w-5 h-5" />}
                     </button>
                   ))}
                 </div>
+
+                {/* Override açıklama alanı */}
+                {overrideVar && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                    className="glass-card p-4 border border-amber-500/30 space-y-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Edit3 className="w-4 h-4 text-amber-400" />
+                      <p className="text-sm font-bold text-amber-400">AI Önerisini Değiştirdiniz</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      AI önerisi <span className="font-bold">{form.aiSonucu}</span> idi, siz <span className="font-bold">{form.testSonucu}</span> olarak işaretlediniz. Lütfen gerekçenizi yazın (en az 10 karakter):
+                    </p>
+                    <textarea
+                      value={form.overrideAciklamasi}
+                      onChange={e => setField('overrideAciklamasi', e.target.value)}
+                      placeholder="Örn: Test çizgisi gözle net görülüyor ancak AI algılayamadı..."
+                      rows={3}
+                      data-testid="input-override-aciklama"
+                      className="w-full bg-background border border-amber-500/30 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-amber-400"
+                    />
+                    <p className={`text-xs ${overrideAciklamasiYeterli ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {form.overrideAciklamasi.trim().length} / en az 10 karakter
+                    </p>
+                  </motion.div>
+                )}
+
                 <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
                   <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">Bu kayıt personel kimliğinizle imzalanacaktır.</p>
+                  <p className="text-xs text-muted-foreground">Bu kayıt personel kimliğinizle imzalanır ve PDF olarak arşivlenir.</p>
                 </div>
               </div>
             )}
 
-            {/* ADIM 8: Tespit & Notlar */}
-            {adim === 8 && (
+            {/* ADIM 6: TESPİT + NOTLAR + TAMAMLA */}
+            {adim === 6 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Tespit ve Notlar</h2>
+                <h2 className="text-lg font-bold text-foreground">Tespit, Notlar ve Tamamlama</h2>
+
                 {form.testSonucu === 'Pozitif' && (
                   <div>
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
@@ -645,6 +729,7 @@ export default function NewTest() {
                     <div className="grid grid-cols-2 gap-2">
                       {TESPITLER.map(t => (
                         <button key={t} onClick={() => setField('tespitEdilenMadde', t)}
+                          data-testid={`tespit-${t}`}
                           className={`px-3 py-2.5 rounded-xl border text-xs font-medium text-left transition-all ${
                             form.tespitEdilenMadde === t ? 'border-red-500 bg-red-500/10 text-red-400' : 'border-border bg-card text-foreground'
                           }`}>
@@ -654,74 +739,62 @@ export default function NewTest() {
                     </div>
                   </div>
                 )}
+
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Notlar (İsteğe bağlı)
+                    Saha Notları (İsteğe bağlı)
                   </label>
                   <textarea
                     value={form.notlar}
                     onChange={e => setField('notlar', e.target.value)}
                     placeholder="Ek gözlemler, özel durumlar..."
-                    rows={4}
+                    rows={3}
+                    data-testid="input-notlar"
                     className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary/60"
                   />
                 </div>
-              </div>
-            )}
 
-            {/* ADIM 9: Özet & Tamamla */}
-            {adim === 9 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-foreground">Özet ve Tamamla</h2>
+                {/* Özet */}
                 <div className="glass-card divide-y divide-border/40">
                   {[
-                    ['Operasyon No', form.operasyonNo, 'font-mono text-primary'],
-                    ['Lokasyon', `${form.lokasyon}`, ''],
-                    ['Alt Nokta', form.kontrolNokta, ''],
-                    ['Numune Türü', form.numuneTuru, ''],
-                    ['Kit Seri No', form.kitSeriNo, 'font-mono'],
-                    ['SKT', form.kitSKT, ''],
-                    ['Panel Tipi', form.kitPanelTipi, ''],
-                    ['Güven Skoru', `%${form.analizGuven}`, ''],
-                  ].map(([k, v, c]) => (
+                    ['Operasyon', form.operasyonNo],
+                    ['Lokasyon', `${form.lokasyon} / ${form.kontrolNokta}`],
+                    ['Numune', form.numuneTuru],
+                    ['Kit', form.kitSeriNo],
+                    ['AI Sonuç', `${form.aiSonucu} (%${form.analizGuven})`],
+                    ['Onay Sonuç', form.testSonucu],
+                  ].map(([k, v]) => (
                     <div key={k} className="flex justify-between items-center px-4 py-2.5">
-                      <span className="text-xs text-muted-foreground flex-shrink-0">{k}</span>
-                      <span className={`text-xs font-semibold text-foreground text-right max-w-[60%] truncate ${c}`}>{v}</span>
+                      <span className="text-xs text-muted-foreground">{k}</span>
+                      <span className="text-xs font-semibold text-foreground text-right max-w-[60%] truncate">{v}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between items-center px-4 py-3">
-                    <span className="text-xs text-muted-foreground">Sonuç</span>
-                    <span className={`text-sm font-bold ${
-                      form.testSonucu === 'Pozitif' ? 'text-red-400' :
-                      form.testSonucu === 'Negatif' ? 'text-emerald-400' : 'text-amber-400'
-                    }`}>{form.testSonucu}</span>
-                  </div>
                 </div>
 
                 {form.testSonucu === 'Pozitif' && (
-                  <div className="glass-card p-4 border-red-500/20">
+                  <div className="glass-card p-4 border border-red-500/20">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <p className="text-sm font-bold text-red-400 mb-1">Laboratuvara Sevk</p>
-                        <p className="text-xs text-muted-foreground">Pozitif numune laboraTuvara sevk edilsin mi?</p>
+                        <p className="text-xs text-muted-foreground">Pozitif numune laboratuvara sevk edilsin mi?</p>
                       </div>
-                      <button onClick={() => setField('labSevkIstiyor', !form.labSevkIstiyor)}
-                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5 ${form.labSevkIstiyor ? 'bg-primary' : 'bg-secondary'}`}>
+                      <button
+                        data-testid="toggle-lab-sevk"
+                        onClick={() => setField('labSevkIstiyor', !form.labSevkIstiyor)}
+                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5 ${form.labSevkIstiyor ? 'bg-primary' : 'bg-secondary'}`}
+                      >
                         <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form.labSevkIstiyor ? 'left-[22px]' : 'left-0.5'}`} />
                       </button>
                     </div>
-                    {form.labSevkIstiyor && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-2 flex items-center gap-1.5 text-xs text-cyan-400">
-                        <ChevronRight className="w-3.5 h-3.5" /> Sevk kaydı otomatik oluşturulacak
-                      </motion.div>
-                    )}
                   </div>
                 )}
 
-                <button onClick={handleKaydet}
-                  className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                  <Check className="w-4 h-4" /> Kaydı Tamamla
+                <button
+                  data-testid="btn-kaydi-tamamla"
+                  onClick={handleKaydet}
+                  className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                >
+                  <Check className="w-4 h-4" /> Kaydı Tamamla & PDF İndir
                 </button>
               </div>
             )}
@@ -730,19 +803,24 @@ export default function NewTest() {
         </AnimatePresence>
       </div>
 
-      {/* Footer Button */}
-      {adim < 9 && (
+      {/* Footer */}
+      {adim < 6 && (
         <div className="px-4 pb-4 pt-2 flex-shrink-0 border-t border-border/20">
           <button
+            data-testid="btn-ileri"
             onClick={() => setAdim(a => a + 1)}
             disabled={!canProceed()}
             className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
               canProceed()
                 ? 'bg-primary text-primary-foreground active:scale-[0.98]'
                 : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
-            }`}>
-            {adim === 5 && !form.fotografVar ? 'Fotoğraf gerekli' :
-             adim === 6 && !form.testSonucu ? 'Önce analizi başlat' : 'İleri'}
+            }`}
+          >
+            {adim === 3 && !form.qrTarandi ? 'Önce QR tara' :
+             adim === 4 && !form.fotografCekildi ? 'Önce fotoğraf çek' :
+             adim === 4 && !form.aiSonucu ? 'AI analizini başlat' :
+             adim === 5 && overrideVar && !overrideAciklamasiYeterli ? 'Override gerekçesi gerekli' :
+             'İleri'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

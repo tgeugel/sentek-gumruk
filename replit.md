@@ -24,8 +24,11 @@ SENTEK is a full MVP security technology platform for customs/narcotics field op
 - `src/contexts/AuthContext.tsx` — Auth state, login/logout, role-based routing
 - `src/contexts/DataContext.tsx` — Global data store: tests, lab sevkler, stok, bildirimler (Dexie)
 - `src/lib/db.ts` — Dexie.js IndexedDB schema
-- `src/data/mockData.ts` — 52 tests, 12 lab sevkler, 35 stok, bildirimler, DEMO_CREDENTIALS
-- `src/types/index.ts` — All TypeScript interfaces
+- `src/data/mockData.ts` — 52 tests, 12 lab sevkler, 35 stok, bildirimler, DEMO_CREDENTIALS. Saha personelinin (K. Yıldız → Kapıkule/Peron 3, B. Öztürk → Habur/TIR Geçiş Hattı) `varsayilanLokasyon`+`varsayilanKontrolNokta` alanları otomatik test akışı için kullanılır.
+- `src/types/index.ts` — All TypeScript interfaces. `TestKaydi` artık `aiOnerisi` + `kullaniciOverrideAciklamasi` içerir.
+- `src/pages/mobile/NewTest.tsx` — 7-adım yeni test akışı (Operasyon → Numune → Açıklama → Kit QR → Foto+AI → Sonuç+Override → Tamamla). Lokasyon personelden otomatik, kit QR'dan otomatik, AI sonucu kit görüntüsündeki simüle C/T çizgilerinden üretilir, sonuç override'i ≥10 karakter gerekçe ister, kayıt sonrası `downloadTestRaporu` ile PDF indirilir.
+- `src/lib/pdf/TestKayitRaporu.tsx` + `src/lib/pdf/downloadTestRaporu.tsx` — Profesyonel PDF rapor + browser indirme (blob + anchor click). SENTEK logo, kit görüntüsü, AI/override bölümleri, QR ve imza alanları içerir.
+- `src/assets/sentek-kit.png` + `src/assets/sentek-logo.jpg` — PDF ve mobil akışta kullanılan resmi SENTEK kit fotoğrafı ve logo.
 - `src/index.css` — 2026 premium design system (Space Grotesk, aurora blobs, glow-card system)
 - `src/main.tsx` — Mounts AuroraBackground, NoiseOverlay, MouseGlowInit (rAF mouse spotlight)
 - `src/pages/web/KomutaKontrol.tsx` — **MAIN PAGE**: Unified command center (map + KPIs + feed + charts)
