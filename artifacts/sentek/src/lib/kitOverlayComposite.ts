@@ -58,9 +58,9 @@ export async function buildKitOverlayComposite(
   ctx.textAlign = 'left';
 
   // Panel test pencereleri + C/T kırmızı çizgileri
-  // Gerçek kanalı tam saran ölçü: kanal genişliği ~4.2%, yüksekliği ~9.5%
-  const winW = W * 0.042;
-  const winH = H * 0.095;
+  // Gerçek piksel ölçümü: kanal genişliği ~2.4%, yüksekliği ~7.5% (kit görseli 1024x1536).
+  const winW = W * 0.028;
+  const winH = H * 0.078;
 
   panels.forEach((p) => {
     const cx = (parseFloat(p.pos.left) / 100) * W;
