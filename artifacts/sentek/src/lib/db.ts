@@ -28,6 +28,16 @@ class SentekDB extends Dexie {
       bildirimler: 'id, tarih, okundu, tur',
       senkronKuyrugu: 'id, tarih, durum, tur',
     });
+    // v2: TestKaydi'ye AI önerisi, kullanıcı override açıklaması ve foto+overlay
+    // alanları eklendi (additive — yeni indeks yok, mevcut kayıtlar uyumlu).
+    this.version(2).stores({
+      testKayitlari: 'id, operasyonNo, tarih, lokasyon, testSonucu, syncDurumu, personelAdi',
+      labSevkKayitlari: 'id, numuneTakipNo, operasyonNo, durum, testKaydiId',
+      stokHareketleri: 'id, lotSeriNo, durum, panelTipi',
+      auditLog: 'id, islemTipi, tarih, kullanici, kayitNo',
+      bildirimler: 'id, tarih, okundu, tur',
+      senkronKuyrugu: 'id, tarih, durum, tur',
+    });
   }
 }
 

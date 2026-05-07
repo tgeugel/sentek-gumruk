@@ -177,10 +177,14 @@ export function TestKayitRaporuDoc({ kayit, qrDataUrl }: Props) {
 
           {/* SAĞ KOLON: Kit + QR */}
           <View style={styles.colSide}>
-            <Text style={styles.sectionTitle}>Kit Görüntüsü</Text>
+            <Text style={styles.sectionTitle}>Saha Çekim Kaydı</Text>
             <View style={styles.kitCard}>
-              <Image src={sentekKit} style={styles.kitImg} />
-              <Text style={styles.kitCaption}>SENTEK Multi-Panel Test Kiti{'\n'}Saha çekim kaydı</Text>
+              <Image src={kayit.fotografOverlayUrl || sentekKit} style={styles.kitImg} />
+              <Text style={styles.kitCaption}>
+                {kayit.fotografOverlayUrl
+                  ? 'AI foto-analiz: Kit + C/T çizgi tespiti overlay\'i'
+                  : 'SENTEK Multi-Panel Test Kiti (referans görüntü)'}
+              </Text>
             </View>
 
             {qrDataUrl && (

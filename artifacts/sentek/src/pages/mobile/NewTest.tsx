@@ -1,16 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Check, MapPin, FlaskConical, Camera, AlertTriangle,
   CheckCircle, XCircle, RotateCcw, Shield, Loader2, ChevronRight, Info, Clock,
-  Hash, QrCode, ScanLine, Sparkles, FileDown, Edit3,
+  Hash, QrCode, ScanLine, Sparkles, FileDown, Edit3, CameraOff, Search,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { TestSonucu, TestKaydi } from '../../types';
 import sentekKitImg from '../../assets/sentek-kit.png';
 import { downloadTestRaporu } from '../../lib/pdf/downloadTestRaporu';
+import { buildKitOverlayComposite, type PanelOverlay } from '../../lib/kitOverlayComposite';
 
 const ADIMLAR = [
   'Operasyon', 'Numune Türü', 'Açıklama',
@@ -34,8 +35,6 @@ const PANEL_MADDELERI: Record<string, string> = {
   MET: 'Metamfetamin', MOP: 'Eroin türevi', MBP: 'Buprenorfin türevi',
 };
 
-interface PanelOverlay { kod: string; pos: { left: string; top: string }; T: boolean; C: boolean }
-
 const PANEL_POSITIONS: Array<{ kod: string; pos: { left: string; top: string } }> = [
   { kod: 'AMP', pos: { left: '12%', top: '38%' } },
   { kod: 'THC', pos: { left: '38%', top: '38%' } },
@@ -55,6 +54,55 @@ function generateKitSeriNo(lotSeriNo: string) {
   return `${lotSeriNo}-K${n}`;
 }
 
+function parseKitQR(raw: string): string | null {
+  const c = raw.trim();
+  if (c.startsWith('SENTEK:KIT:')) return c.replace('SENTEK:KIT:', '');
+  if (c.startsWith('SENTEK:')) return c.replace('SENTEK:', '');
+  return c;
+}
+
+/**
+ * Foto adımında deterministik panel paterni üret. Analiz buradan okur,
+ * yeniden hesaplama yapmaz. Tek-pozitif, çoklu-pozitif ve geçersiz
+ * paternler kapsanır.
+ */
+function generatePanelPattern(): PanelOverlay[] {
+  const r = Math.random();
+  const base: PanelOverlay[] = PANEL_POSITIONS.map(p => ({ ...p, T: false, C: true }));
+  if (r < 0.08) {
+    // Geçersiz: 1-2 panel C kaybetmiş
+    const n = Math.random() < 0.6 ? 1 : 2;
+    const idxs = pickN(base.length, n);
+    idxs.forEach(i => { base[i].C = false; });
+  } else if (r < 0.40) {
+    // Pozitif: 1 panel
+    const idx = Math.floor(Math.random() * base.length);
+    base[idx].T = true;
+  } else if (r < 0.50) {
+    // Çoklu pozitif: 2 panel
+    const idxs = pickN(base.length, 2);
+    idxs.forEach(i => { base[i].T = true; });
+  } // else: tüm C var, hiç T yok → Negatif
+  return base;
+}
+
+function pickN(max: number, n: number): number[] {
+  const out: number[] = [];
+  while (out.length < n) {
+    const i = Math.floor(Math.random() * max);
+    if (!out.includes(i)) out.push(i);
+  }
+  return out;
+}
+
+function evaluatePattern(panels: PanelOverlay[]): { sonuc: TestSonucu; pozitifPaneller: string[]; guven: number } {
+  const invalid = panels.some(p => !p.C);
+  const pozitifPaneller = panels.filter(p => p.T && p.C).map(p => p.kod);
+  if (invalid) return { sonuc: 'Geçersiz', pozitifPaneller: [], guven: 35 + Math.floor(Math.random() * 21) };
+  if (pozitifPaneller.length > 0) return { sonuc: 'Pozitif', pozitifPaneller, guven: 80 + Math.floor(Math.random() * 16) };
+  return { sonuc: 'Negatif', pozitifPaneller: [], guven: 88 + Math.floor(Math.random() * 10) };
+}
+
 export default function NewTest() {
   const [, setLocation] = useLocation();
   const { kullanici } = useAuth();
@@ -65,6 +113,16 @@ export default function NewTest() {
   const [kaydedildi, setKaydedildi] = useState(false);
   const [savedKayit, setSavedKayit] = useState<TestKaydi | null>(null);
   const [pdfIndiriliyor, setPdfIndiriliyor] = useState(false);
+
+  // QR tarayıcı state
+  const [qrMod, setQrMod] = useState<'menu' | 'kamera' | 'manuel'>('menu');
+  const [qrKameraIzni, setQrKameraIzni] = useState<'bilinmiyor' | 'verildi' | 'reddedildi'>('bilinmiyor');
+  const [qrManuelGiris, setQrManuelGiris] = useState('');
+  const [qrHataMesaji, setQrHataMesaji] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scannerRef = useRef<any>(null);
+  const mountedRef = useRef(true);
 
   const [form, setForm] = useState({
     operasyonNo: generateOpNo(),
@@ -77,10 +135,12 @@ export default function NewTest() {
     kitSKT: '',
     kitPanelTipi: '',
     qrTarandi: false,
+    qrKaynagi: '' as '' | 'kamera' | 'manuel' | 'demo',
     fotografCekildi: false,
     panelSonuclari: [] as PanelOverlay[],
+    fotografOverlayUrl: '',
     aiSonucu: '' as TestSonucu | '',
-    aiPozitifPanel: '',
+    aiPozitifPaneller: [] as string[],
     analizGuven: 0,
     testSonucu: '' as TestSonucu | '',
     overrideAciklamasi: '',
@@ -89,7 +149,14 @@ export default function NewTest() {
     labSevkIstiyor: true,
   });
 
-  // Saha personeli için lokasyon kişisel ataması (login sonrası gelmemişse de güncelle)
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      stopCamera();
+    };
+  }, []);
+
   useEffect(() => {
     if (kullanici?.varsayilanLokasyon && !form.lokasyon.includes(kullanici.varsayilanLokasyon)) {
       setForm(p => ({
@@ -109,10 +176,20 @@ export default function NewTest() {
     [stoklar]
   );
 
-  // ---- DEMO QR KULLAN ----
-  const handleDemoQR = () => {
-    if (availableStok.length === 0) return;
-    const stok = availableStok[Math.floor(Math.random() * availableStok.length)];
+  // ---- QR / Kit eşleme ----
+  const stokEsle = useCallback((qrPayload: string): { ok: boolean; stok?: typeof stoklar[number]; mesaj?: string } => {
+    const id = parseKitQR(qrPayload);
+    if (!id) return { ok: false, mesaj: 'QR boş veya tanımsız' };
+    // Önce stok id, sonra lotSeriNo, sonra panelTipi içerik eşleşmesi
+    const stok = stoklar.find(s => s.id === id)
+      || stoklar.find(s => s.lotSeriNo === id)
+      || stoklar.find(s => `${s.id}`.toUpperCase() === id.toUpperCase());
+    if (!stok) return { ok: false, mesaj: `Kit "${id}" stokta bulunamadı` };
+    if (stok.kalanAdedi <= 0 || stok.durum === 'Tükendi') return { ok: false, mesaj: 'Bu kit tükenmiş, başka kit kullanın' };
+    return { ok: true, stok };
+  }, [stoklar]);
+
+  const kitiUygula = (stok: typeof stoklar[number], kaynak: 'kamera' | 'manuel' | 'demo') => {
     setForm(p => ({
       ...p,
       seciliStokId: stok.id,
@@ -120,50 +197,129 @@ export default function NewTest() {
       kitSKT: stok.skt,
       kitPanelTipi: stok.panelTipi,
       qrTarandi: true,
+      qrKaynagi: kaynak,
+    }));
+    setQrHataMesaji('');
+    setQrMod('menu');
+    stopCamera();
+  };
+
+  // ---- Kamera başlat ----
+  const stopCamera = () => {
+    if (scannerRef.current) {
+      try { scannerRef.current.reset(); } catch {}
+      scannerRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const baslatKamera = async () => {
+    setQrHataMesaji('');
+    setQrMod('kamera');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      if (!mountedRef.current) { stream.getTracks().forEach(t => t.stop()); return; }
+      streamRef.current = stream;
+      setQrKameraIzni('verildi');
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
+      const reader = new BrowserMultiFormatReader();
+      scannerRef.current = reader;
+      if (videoRef.current) {
+        reader.decodeFromStream(stream, videoRef.current, (result: any) => {
+          if (result && mountedRef.current) {
+            const text = result.getText() as string;
+            const eslesme = stokEsle(text);
+            if (eslesme.ok && eslesme.stok) {
+              kitiUygula(eslesme.stok, 'kamera');
+            } else {
+              setQrHataMesaji(eslesme.mesaj || 'Bu QR sistemde tanımlı değil');
+            }
+          }
+        }).catch(() => {});
+      }
+    } catch (err: any) {
+      if (!mountedRef.current) return;
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setQrKameraIzni('reddedildi');
+        setQrMod('manuel');
+      } else {
+        setQrHataMesaji('Kamera başlatılamadı, manuel girişi kullanın');
+        setQrMod('manuel');
+      }
+    }
+  };
+
+  const handleManuelQRAra = () => {
+    if (!qrManuelGiris.trim()) return;
+    const eslesme = stokEsle(qrManuelGiris.trim());
+    if (eslesme.ok && eslesme.stok) {
+      kitiUygula(eslesme.stok, 'manuel');
+      setQrManuelGiris('');
+    } else {
+      setQrHataMesaji(eslesme.mesaj || 'Bu QR sistemde tanımlı değil');
+    }
+  };
+
+  const handleDemoQR = () => {
+    if (availableStok.length === 0) {
+      setQrHataMesaji('Stokta uygun kit yok');
+      return;
+    }
+    const stok = availableStok[Math.floor(Math.random() * availableStok.length)];
+    kitiUygula(stok, 'demo');
+  };
+
+  // ---- FOTO ÇEK: panel paterni + kompozit burada üretilir ----
+  const handleFotoCek = async () => {
+    const panelSonuclari = generatePanelPattern();
+    let composite = '';
+    try {
+      composite = await buildKitOverlayComposite(panelSonuclari, {
+        operasyonNo: form.operasyonNo,
+        tarih: new Date().toISOString(),
+        personel: kullanici?.ad || 'Saha Personeli',
+        kitSeri: form.kitSeriNo,
+      });
+    } catch (e) {
+      console.warn('Kompozit üretilemedi, statik fallback', e);
+    }
+    setForm(p => ({
+      ...p,
+      fotografCekildi: true,
+      panelSonuclari,
+      fotografOverlayUrl: composite,
+      // Sonuç ve onay alanları sıfır kalsın — analiz adımında doldurulacak
+      aiSonucu: '',
+      aiPozitifPaneller: [],
+      analizGuven: 0,
+      testSonucu: '',
+      overrideAciklamasi: '',
+      tespitEdilenMadde: '',
     }));
   };
 
-  // ---- FOTO ÇEK ----
-  const handleFotoCek = () => setField('fotografCekildi', true);
-
-  // ---- AI ANALİZ ----
+  // ---- AI ANALİZ: sadece okuyup yorumlar ----
   const handleAnaliz = () => {
+    if (form.panelSonuclari.length === 0) return;
     setAnalizYapiliyor(true);
     setTimeout(() => {
-      const r = Math.random();
-      let aiSonuc: TestSonucu;
-      let pozitifPanel = '';
-      let panelSonuclari: PanelOverlay[] = PANEL_POSITIONS.map(p => ({ ...p, T: false, C: true }));
-      let guven = 0;
-
-      if (r < 0.1) {
-        // Geçersiz: bir panel C kaybetmiş
-        aiSonuc = 'Geçersiz';
-        const idx = Math.floor(Math.random() * panelSonuclari.length);
-        panelSonuclari[idx].C = false;
-        guven = 35 + Math.floor(Math.random() * 21);
-      } else if (r < 0.45) {
-        // Pozitif
-        aiSonuc = 'Pozitif';
-        const idx = Math.floor(Math.random() * panelSonuclari.length);
-        panelSonuclari[idx].T = true;
-        pozitifPanel = panelSonuclari[idx].kod;
-        guven = 80 + Math.floor(Math.random() * 16);
-      } else {
-        // Negatif
-        aiSonuc = 'Negatif';
-        guven = 88 + Math.floor(Math.random() * 10);
-      }
-
-      const tespit = pozitifPanel ? PANEL_MADDELERI[pozitifPanel] : '';
-
+      const { sonuc, pozitifPaneller, guven } = evaluatePattern(form.panelSonuclari);
+      const tespit = pozitifPaneller.length > 0 ? PANEL_MADDELERI[pozitifPaneller[0]] || '' : '';
       setForm(p => ({
         ...p,
-        panelSonuclari,
-        aiSonucu: aiSonuc,
-        aiPozitifPanel: pozitifPanel,
+        aiSonucu: sonuc,
+        aiPozitifPaneller: pozitifPaneller,
         analizGuven: guven,
-        testSonucu: aiSonuc,
+        testSonucu: sonuc,
         tespitEdilenMadde: tespit,
       }));
       setAnalizYapiliyor(false);
@@ -172,7 +328,6 @@ export default function NewTest() {
 
   // ---- KAYDET ----
   const handleKaydet = async () => {
-    // Son güvenlik: invariantlar
     if (!form.numuneTuru || !form.qrTarandi || !form.kitSeriNo || !form.aiSonucu || !form.testSonucu) {
       console.warn('[SENTEK] Eksik kayıt — kayıt iptal edildi', form);
       return;
@@ -200,6 +355,7 @@ export default function NewTest() {
       stokId: form.seciliStokId || undefined,
       aiOnerisi: form.aiSonucu as TestSonucu,
       kullaniciOverrideAciklamasi: overrideVar ? form.overrideAciklamasi : undefined,
+      fotografOverlayUrl: form.fotografOverlayUrl || undefined,
     }, form.seciliStokId || undefined);
 
     if (form.labSevkIstiyor && form.testSonucu === 'Pozitif') {
@@ -219,8 +375,6 @@ export default function NewTest() {
     }
     setSavedKayit(yeniTest);
     setKaydedildi(true);
-
-    // PDF'i otomatik indirmeyi tetikle
     setPdfIndiriliyor(true);
     try {
       await downloadTestRaporu(yeniTest);
@@ -237,12 +391,22 @@ export default function NewTest() {
   const canProceed = () => {
     if (adim === 0) return true;
     if (adim === 1) return !!form.numuneTuru;
-    if (adim === 2) return true; // açıklama isteğe bağlı
+    if (adim === 2) return true;
     if (adim === 3) return form.qrTarandi && !!form.kitSeriNo;
     if (adim === 4) return form.fotografCekildi && !!form.aiSonucu && !analizYapiliyor;
     if (adim === 5) return !!form.testSonucu && (!overrideVar || overrideAciklamasiYeterli);
     return true;
   };
+
+  // Kit reset (state temizleme yardımcısı)
+  const resetKitVeAnaliz = () => setForm(p => ({
+    ...p,
+    qrTarandi: false, qrKaynagi: '',
+    seciliStokId: '', kitSeriNo: '', kitSKT: '', kitPanelTipi: '',
+    fotografCekildi: false, panelSonuclari: [], fotografOverlayUrl: '',
+    aiSonucu: '', aiPozitifPaneller: [], analizGuven: 0,
+    testSonucu: '', overrideAciklamasi: '', tespitEdilenMadde: '',
+  }));
 
   // ---------- BAŞARI EKRANI ----------
   if (kaydedildi && savedKayit) {
@@ -274,13 +438,20 @@ export default function NewTest() {
           </div>
         </div>
 
+        {savedKayit.fotografOverlayUrl && (
+          <div className="w-full glass-card p-2 rounded-xl">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 px-1">Saha Çekim Kaydı</p>
+            <img src={savedKayit.fotografOverlayUrl} alt="Kit foto+overlay" className="w-full rounded-lg" />
+          </div>
+        )}
+
         <div className="glass-card p-3 w-full text-left">
           <div className="flex items-center gap-2 mb-1">
             <FileDown className="w-4 h-4 text-cyan-400" />
             <p className="text-sm font-semibold text-cyan-400">PDF Raporu</p>
           </div>
           <p className="text-xs text-muted-foreground">
-            {pdfIndiriliyor ? 'PDF hazırlanıyor...' : 'Profesyonel rapor indirildi. Tekrar indirmek için aşağıdaki butona basın.'}
+            {pdfIndiriliyor ? 'PDF hazırlanıyor...' : 'Profesyonel rapor (kit foto+overlay dahil) indirildi.'}
           </p>
         </div>
 
@@ -316,12 +487,11 @@ export default function NewTest() {
     );
   }
 
-  // ---------- ADIM EKRANLARI ----------
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex-shrink-0">
-        <button onClick={() => adim === 0 ? setLocation('/mobile') : setAdim(a => a - 1)}
+        <button onClick={() => { stopCamera(); adim === 0 ? setLocation('/mobile') : setAdim(a => a - 1); }}
           data-testid="btn-geri"
           className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
           <ArrowLeft className="w-4 h-4" /> {adim === 0 ? 'İptal' : 'Geri'}
@@ -347,7 +517,7 @@ export default function NewTest() {
             transition={{ duration: 0.18 }}
           >
 
-            {/* ADIM 0: Operasyon (lokasyon otomatik personelden) */}
+            {/* ADIM 0: Operasyon */}
             {adim === 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Operasyon Bilgisi</h2>
@@ -373,7 +543,7 @@ export default function NewTest() {
                 <div className="flex items-start gap-2 bg-secondary/50 rounded-xl p-3">
                   <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground">
-                    Lokasyon ve kontrol noktası, atanan göreviniz baz alınarak otomatik dolduruldu. Devam etmek için İleri'ye basın.
+                    Şüpheli materyal kayıt akışı — lokasyon ve kontrol noktası saha personelinin profilinden otomatik dolduruldu.
                   </p>
                 </div>
               </div>
@@ -398,7 +568,7 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 2: Açıklama (opsiyonel) */}
+            {/* ADIM 2: Açıklama */}
             {adim === 2 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Materyal Açıklaması</h2>
@@ -417,48 +587,20 @@ export default function NewTest() {
               </div>
             )}
 
-            {/* ADIM 3: KIT QR */}
+            {/* ADIM 3: KIT QR — gerçek kamera + manuel + demo */}
             {adim === 3 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Kit QR Tara</h2>
-                <p className="text-sm text-muted-foreground">Test kiti üzerindeki QR kodu kameradan okutun veya demo kit kullanın.</p>
+                <p className="text-sm text-muted-foreground">Test kiti üzerindeki SENTEK:KIT:* QR'ı kameradan okutun, manuel girin veya demo modunu kullanın.</p>
 
-                {!form.qrTarandi ? (
-                  <>
-                    <div className="glass-card rounded-2xl border border-card-border p-6 flex flex-col items-center gap-4">
-                      <div className="relative w-44 h-44 rounded-2xl bg-background/60 border border-primary/30 overflow-hidden flex items-center justify-center">
-                        <QrCode className="w-20 h-20 text-primary/30" />
-                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary rounded-tl-lg" />
-                        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary rounded-tr-lg" />
-                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl-lg" />
-                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br-lg" />
-                        <motion.div
-                          animate={{ y: [0, 140, 0] }}
-                          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                          className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(0,212,255,0.8)]"
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center">QR'ı çerçevenin içine alın</p>
-                    </div>
-
-                    <button
-                      data-testid="btn-demo-qr"
-                      onClick={handleDemoQR}
-                      className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-                    >
-                      <ScanLine className="w-4 h-4" /> Demo QR Kullan
-                    </button>
-
-                    <p className="text-xs text-muted-foreground/60 text-center">Demo modunda stoktan bir kit otomatik atanır</p>
-                  </>
-                ) : (
+                {form.qrTarandi ? (
                   <div className="space-y-3">
                     <div className="glass-card border border-emerald-500/30 p-4 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                         <CheckCircle className="w-5 h-5 text-emerald-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-emerald-400 font-bold">Kit Tarandı</p>
+                        <p className="text-xs text-emerald-400 font-bold">Kit Tarandı ({form.qrKaynagi})</p>
                         <p className="text-xs text-muted-foreground truncate">{form.kitPanelTipi}</p>
                       </div>
                     </div>
@@ -475,22 +617,96 @@ export default function NewTest() {
                       ))}
                     </div>
                     <button
-                      onClick={() => setForm(p => ({
-                        ...p,
-                        qrTarandi: false, kitSeriNo: '', kitSKT: '', kitPanelTipi: '', seciliStokId: '',
-                        // Kit değişince tüm analiz/sonuç state'i sıfırlansın — eski sonuç yeni kite yapışmasın
-                        fotografCekildi: false,
-                        panelSonuclari: [],
-                        aiSonucu: '',
-                        aiPozitifPanel: '',
-                        analizGuven: 0,
-                        testSonucu: '',
-                        overrideAciklamasi: '',
-                        tespitEdilenMadde: '',
-                      }))}
+                      data-testid="btn-tekrar-tara"
+                      onClick={resetKitVeAnaliz}
                       className="w-full py-2.5 text-xs text-muted-foreground/70 flex items-center justify-center gap-1.5"
                     >
-                      <RotateCcw className="w-3 h-3" /> Tekrar Tara
+                      <RotateCcw className="w-3 h-3" /> Tekrar Tara (önceki analiz silinir)
+                    </button>
+                  </div>
+                ) : qrMod === 'kamera' ? (
+                  <div className="space-y-3">
+                    <div className="relative rounded-2xl overflow-hidden bg-black aspect-square">
+                      <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-56 h-56 relative">
+                          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+                          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+                          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+                          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br-lg" />
+                          <motion.div animate={{ y: [0, 192, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                            className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(0,212,255,0.8)]" />
+                        </div>
+                      </div>
+                    </div>
+                    {qrHataMesaji && (
+                      <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-300">{qrHataMesaji}</p>
+                      </div>
+                    )}
+                    <button onClick={() => { stopCamera(); setQrMod('menu'); }}
+                      className="w-full py-3 glass-card border border-card-border rounded-xl text-sm font-semibold text-muted-foreground flex items-center justify-center gap-2">
+                      <CameraOff className="w-4 h-4" /> İptal
+                    </button>
+                  </div>
+                ) : qrMod === 'manuel' ? (
+                  <div className="space-y-3">
+                    {qrKameraIzni === 'reddedildi' && (
+                      <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-300">Kamera erişimi reddedildi — manuel kod girişini kullanın.</p>
+                      </div>
+                    )}
+                    <div className="glass-card p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4 text-primary" />
+                        <p className="text-sm font-bold text-foreground">Manuel Kit QR Girişi</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">SENTEK:KIT:&lt;id&gt; veya kit ID'sini doğrudan girin.</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={qrManuelGiris}
+                          onChange={e => setQrManuelGiris(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleManuelQRAra()}
+                          placeholder="SENTEK:KIT:ST-001 veya ST-001"
+                          data-testid="input-manuel-qr"
+                          className="flex-1 bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/60"
+                        />
+                        <button onClick={handleManuelQRAra} disabled={!qrManuelGiris.trim()}
+                          data-testid="btn-manuel-qr-ara"
+                          className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm disabled:opacity-40">
+                          <Search className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {qrHataMesaji && (
+                        <p className="text-xs text-amber-400">{qrHataMesaji}</p>
+                      )}
+                    </div>
+                    <button onClick={() => setQrMod('menu')}
+                      className="w-full py-3 text-xs text-muted-foreground/80">
+                      ← Menüye dön
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <button data-testid="btn-kamera-tara" onClick={baslatKamera}
+                      className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,212,255,0.3)]">
+                      <Camera className="w-5 h-5" /> Kameradan QR Tara
+                    </button>
+                    <button data-testid="btn-manuel-qr-mod" onClick={() => { setQrMod('manuel'); setQrHataMesaji(''); }}
+                      className="w-full py-3 glass-card border border-card-border rounded-xl text-sm font-semibold text-foreground flex items-center justify-center gap-2">
+                      <Hash className="w-4 h-4 text-muted-foreground" /> Manuel Kod Gir
+                    </button>
+                    <div className="relative flex items-center gap-3">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Geliştirme / Sunum</span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                    <button data-testid="btn-demo-qr" onClick={handleDemoQR}
+                      className="w-full py-3 bg-secondary text-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
+                      <ScanLine className="w-4 h-4 text-primary" /> Demo QR Kullan
                     </button>
                   </div>
                 )}
@@ -504,7 +720,7 @@ export default function NewTest() {
 
                 {!form.fotografCekildi ? (
                   <>
-                    <p className="text-sm text-muted-foreground">Kit fotoğrafını çekerek AI analizini başlatın.</p>
+                    <p className="text-sm text-muted-foreground">Kit fotoğrafını çekin — sistem panel C/T çizgilerini eş zamanlı işaretleyecek.</p>
                     <button
                       data-testid="btn-foto-cek"
                       onClick={handleFotoCek}
@@ -521,92 +737,64 @@ export default function NewTest() {
                   </>
                 ) : (
                   <>
-                    {/* KİT FOTO + Overlay */}
+                    {/* KOMPOZİT FOTO (overlay'li) — foto adımında oluşturuldu */}
                     <div className="relative w-full bg-slate-950 rounded-2xl overflow-hidden border border-cyan-500/20">
-                      <img src={sentekKitImg} alt="SENTEK Kit" className="w-full h-auto block" data-testid="img-kit-foto" />
-                      {/* Tarama overlay */}
+                      {form.fotografOverlayUrl ? (
+                        <img src={form.fotografOverlayUrl} alt="Saha çekim kompozit" className="w-full h-auto block" data-testid="img-kit-foto" />
+                      ) : (
+                        <img src={sentekKitImg} alt="SENTEK Kit" className="w-full h-auto block" data-testid="img-kit-foto" />
+                      )}
                       {analizYapiliyor && (
                         <>
-                          <motion.div
-                            initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
+                          <motion.div initial={{ y: 0 }} animate={{ y: ['0%', '100%', '0%'] }}
                             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-                            className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]"
-                          />
+                            className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_18px_rgba(0,212,255,0.9)]" />
                           <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/0 via-cyan-500/5 to-cyan-500/0" />
                         </>
                       )}
-                      {/* Panel sonuçlarını overlay et */}
-                      {!analizYapiliyor && form.panelSonuclari.length > 0 && form.panelSonuclari.map(p => (
-                        <motion.div
-                          key={p.kod}
-                          initial={{ opacity: 0, scale: 0.7 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.3 }}
-                          className="absolute"
-                          style={{ left: p.pos.left, top: p.pos.top, transform: 'translate(-50%, -50%)' }}
-                        >
-                          <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold border backdrop-blur-sm ${
-                            !p.C ? 'bg-amber-500/80 text-white border-amber-300' :
-                            p.T ? 'bg-red-500/85 text-white border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.7)]' :
-                            'bg-emerald-500/70 text-white border-emerald-300'
-                          }`}>
-                            {p.kod} {!p.C ? '⚠' : p.T ? '+' : '−'}
-                          </div>
-                        </motion.div>
-                      ))}
                     </div>
 
                     {!form.aiSonucu && !analizYapiliyor && (
-                      <button
-                        data-testid="btn-analiz-baslat"
-                        onClick={handleAnaliz}
-                        className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-                      >
+                      <button data-testid="btn-analiz-baslat" onClick={handleAnaliz}
+                        className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
                         <Sparkles className="w-4 h-4" /> AI Analizini Başlat
                       </button>
                     )}
 
                     {analizYapiliyor && (
-                      <div className="glass-card p-4 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">Görüntü işleniyor</p>
-                            <p className="text-xs text-muted-foreground">6 panel taranıyor...</p>
-                          </div>
+                      <div className="glass-card p-4 flex items-center gap-3">
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Görüntü işleniyor</p>
+                          <p className="text-xs text-muted-foreground">6 panel C/T çizgileri taranıyor...</p>
                         </div>
                       </div>
                     )}
 
                     {form.aiSonucu && !analizYapiliyor && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                         data-testid="ai-sonuc-card"
                         className={`glass-card p-4 border ${
                           form.aiSonucu === 'Pozitif' ? 'border-red-500/30' :
                           form.aiSonucu === 'Geçersiz' ? 'border-amber-500/30' :
                           'border-emerald-500/30'
-                        }`}
-                      >
+                        }`}>
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div>
                             <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Analiz Sonucu</p>
                             <p className={`text-xl font-bold mt-1 ${
                               form.aiSonucu === 'Pozitif' ? 'text-red-400' :
-                              form.aiSonucu === 'Geçersiz' ? 'text-amber-400' :
-                              'text-emerald-400'
-                            }`}>
-                              {form.aiSonucu}
-                            </p>
+                              form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
+                            }`}>{form.aiSonucu}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-xs text-muted-foreground">Güven</p>
                             <p className="text-2xl font-bold text-foreground">%{form.analizGuven}</p>
                           </div>
                         </div>
-                        {form.aiPozitifPanel && (
+                        {form.aiPozitifPaneller.length > 0 && (
                           <div className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
-                            Tespit edilen panel: <span className="font-bold">{form.aiPozitifPanel}</span> → {PANEL_MADDELERI[form.aiPozitifPanel]}
+                            Pozitif paneller: <span className="font-bold">{form.aiPozitifPaneller.join(', ')}</span> → {form.aiPozitifPaneller.map(k => PANEL_MADDELERI[k]).join(' / ')}
                           </div>
                         )}
                         {form.aiSonucu === 'Geçersiz' && (
@@ -621,12 +809,17 @@ export default function NewTest() {
                         )}
                       </motion.div>
                     )}
+
+                    <button onClick={handleFotoCek}
+                      className="w-full py-2.5 text-xs text-muted-foreground/70 flex items-center justify-center gap-1.5">
+                      <RotateCcw className="w-3 h-3" /> Yeniden Çek (yeni patern)
+                    </button>
                   </>
                 )}
               </div>
             )}
 
-            {/* ADIM 5: SONUÇ DOĞRULAMA + OVERRIDE */}
+            {/* ADIM 5: SONUÇ + OVERRIDE */}
             {adim === 5 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold text-foreground">Sonucu Doğrula</h2>
@@ -646,9 +839,7 @@ export default function NewTest() {
                     <p className={`text-sm font-bold ${
                       form.aiSonucu === 'Pozitif' ? 'text-red-400' :
                       form.aiSonucu === 'Geçersiz' ? 'text-amber-400' : 'text-emerald-400'
-                    }`}>
-                      {form.aiSonucu} — %{form.analizGuven} güven
-                    </p>
+                    }`}>{form.aiSonucu} — %{form.analizGuven} güven</p>
                   </div>
                 </div>
 
@@ -657,7 +848,6 @@ export default function NewTest() {
                   {(['Pozitif', 'Negatif', 'Geçersiz'] as TestSonucu[]).map(s => (
                     <button key={s} onClick={() => {
                       setField('testSonucu', s);
-                      // Override aktive olunca tespit otomatik temizlensin (negatif/geçersizde madde olmaz)
                       if (s !== 'Pozitif') setField('tespitEdilenMadde', '');
                     }}
                       data-testid={`btn-sonuc-${s}`}
@@ -666,7 +856,7 @@ export default function NewTest() {
                           ? s === 'Pozitif' ? 'border-red-500 bg-red-500/15 text-red-400'
                           : s === 'Negatif' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
                           : 'border-amber-500 bg-amber-500/15 text-amber-400'
-                          : 'border-border bg-card text-foreground hover:border-border-active'
+                          : 'border-border bg-card text-foreground'
                       }`}>
                       <div className="flex items-center gap-3">
                         {s === 'Pozitif' ? <AlertTriangle className="w-5 h-5" /> :
@@ -682,18 +872,15 @@ export default function NewTest() {
                   ))}
                 </div>
 
-                {/* Override açıklama alanı */}
                 {overrideVar && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                    className="glass-card p-4 border border-amber-500/30 space-y-2"
-                  >
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                    className="glass-card p-4 border border-amber-500/30 space-y-2">
                     <div className="flex items-center gap-2">
                       <Edit3 className="w-4 h-4 text-amber-400" />
                       <p className="text-sm font-bold text-amber-400">AI Önerisini Değiştirdiniz</p>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      AI önerisi <span className="font-bold">{form.aiSonucu}</span> idi, siz <span className="font-bold">{form.testSonucu}</span> olarak işaretlediniz. Lütfen gerekçenizi yazın (en az 10 karakter):
+                      AI önerisi <span className="font-bold">{form.aiSonucu}</span>, siz <span className="font-bold">{form.testSonucu}</span> seçtiniz. Lütfen gerekçenizi yazın (en az 10 karakter):
                     </p>
                     <textarea
                       value={form.overrideAciklamasi}
@@ -744,23 +931,18 @@ export default function NewTest() {
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Saha Notları (İsteğe bağlı)
                   </label>
-                  <textarea
-                    value={form.notlar}
-                    onChange={e => setField('notlar', e.target.value)}
-                    placeholder="Ek gözlemler, özel durumlar..."
-                    rows={3}
+                  <textarea value={form.notlar} onChange={e => setField('notlar', e.target.value)}
+                    placeholder="Ek gözlemler, özel durumlar..." rows={3}
                     data-testid="input-notlar"
-                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary/60"
-                  />
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary/60" />
                 </div>
 
-                {/* Özet */}
                 <div className="glass-card divide-y divide-border/40">
                   {[
                     ['Operasyon', form.operasyonNo],
                     ['Lokasyon', `${form.lokasyon} / ${form.kontrolNokta}`],
                     ['Numune', form.numuneTuru],
-                    ['Kit', form.kitSeriNo],
+                    ['Kit', `${form.kitSeriNo} (${form.qrKaynagi})`],
                     ['AI Sonuç', `${form.aiSonucu} (%${form.analizGuven})`],
                     ['Onay Sonuç', form.testSonucu],
                   ].map(([k, v]) => (
@@ -778,22 +960,17 @@ export default function NewTest() {
                         <p className="text-sm font-bold text-red-400 mb-1">Laboratuvara Sevk</p>
                         <p className="text-xs text-muted-foreground">Pozitif numune laboratuvara sevk edilsin mi?</p>
                       </div>
-                      <button
-                        data-testid="toggle-lab-sevk"
+                      <button data-testid="toggle-lab-sevk"
                         onClick={() => setField('labSevkIstiyor', !form.labSevkIstiyor)}
-                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5 ${form.labSevkIstiyor ? 'bg-primary' : 'bg-secondary'}`}
-                      >
+                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5 ${form.labSevkIstiyor ? 'bg-primary' : 'bg-secondary'}`}>
                         <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form.labSevkIstiyor ? 'left-[22px]' : 'left-0.5'}`} />
                       </button>
                     </div>
                   </div>
                 )}
 
-                <button
-                  data-testid="btn-kaydi-tamamla"
-                  onClick={handleKaydet}
-                  className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-                >
+                <button data-testid="btn-kaydi-tamamla" onClick={handleKaydet}
+                  className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2">
                   <Check className="w-4 h-4" /> Kaydı Tamamla & PDF İndir
                 </button>
               </div>
@@ -806,17 +983,12 @@ export default function NewTest() {
       {/* Footer */}
       {adim < 6 && (
         <div className="px-4 pb-4 pt-2 flex-shrink-0 border-t border-border/20">
-          <button
-            data-testid="btn-ileri"
-            onClick={() => setAdim(a => a + 1)}
-            disabled={!canProceed()}
+          <button data-testid="btn-ileri" onClick={() => setAdim(a => a + 1)} disabled={!canProceed()}
             className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-              canProceed()
-                ? 'bg-primary text-primary-foreground active:scale-[0.98]'
-                : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
-            }`}
-          >
-            {adim === 3 && !form.qrTarandi ? 'Önce QR tara' :
+              canProceed() ? 'bg-primary text-primary-foreground active:scale-[0.98]'
+              : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+            }`}>
+            {adim === 3 && !form.qrTarandi ? 'Önce kit QR tara' :
              adim === 4 && !form.fotografCekildi ? 'Önce fotoğraf çek' :
              adim === 4 && !form.aiSonucu ? 'AI analizini başlat' :
              adim === 5 && overrideVar && !overrideAciklamasiYeterli ? 'Override gerekçesi gerekli' :
