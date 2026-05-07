@@ -32,18 +32,18 @@ const TESPITLER = [
 
 const PANEL_MADDELERI: Record<string, string> = {
   AMP: 'Amfetamin grubu', THC: 'Esrar türevi', COC: 'Kokain',
-  MET: 'Metamfetamin', MOP: 'Eroin türevi', MBP: 'Buprenorfin türevi',
+  MET: 'Metamfetamin', MOP: 'Eroin türevi', MTD: 'Metadon',
 };
 
-// SENTEK kit görselindeki 6 dikey test kanalı tek sırada — gerçek kanal merkezlerine oturtulmuş.
-// Image 1024x1536; kanal merkezleri x≈295..705, y merkezi ≈840 (~%54.7).
+// SENTEK kit görselindeki 6 dikey test kanalı tek sırada — gerçek kanal merkezlerine pikseli pikseline oturtulmuş.
+// Image 1024x1536; kanallar sola hizalanıp ~8.2% eşit aralıklarla yayıldı, en sağ panel = MTD (Metadon).
 const PANEL_POSITIONS: Array<{ kod: string; pos: { left: string; top: string } }> = [
-  { kod: 'AMP', pos: { left: '28.8%', top: '54.7%' } },
-  { kod: 'THC', pos: { left: '36.6%', top: '54.7%' } },
-  { kod: 'COC', pos: { left: '44.4%', top: '54.7%' } },
-  { kod: 'MET', pos: { left: '52.2%', top: '54.7%' } },
-  { kod: 'MOP', pos: { left: '60.0%', top: '54.7%' } },
-  { kod: 'MBP', pos: { left: '67.8%', top: '54.7%' } },
+  { kod: 'AMP', pos: { left: '27.0%', top: '54.7%' } },
+  { kod: 'THC', pos: { left: '35.2%', top: '54.7%' } },
+  { kod: 'COC', pos: { left: '43.4%', top: '54.7%' } },
+  { kod: 'MET', pos: { left: '51.6%', top: '54.7%' } },
+  { kod: 'MOP', pos: { left: '59.8%', top: '54.7%' } },
+  { kod: 'MTD', pos: { left: '68.0%', top: '54.7%' } },
 ];
 
 function generateOpNo() {
