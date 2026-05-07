@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { TestKaydi, RaporAyarlari, RaporRenkTema } from '../../types';
-import sentekLogo from '../../assets/sentek-logo.jpg';
+import sentekLogo from '../../assets/sentek-icon.png';
 import sentekKit from '../../assets/sentek-kit.png';
 import gmgmLogo from '../../assets/gmgm-logo.png';
 import RobotoRegular from '../../assets/fonts/Roboto-Regular.ttf';

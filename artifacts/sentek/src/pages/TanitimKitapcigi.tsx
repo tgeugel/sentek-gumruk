@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import sentekLogo from '../assets/sentek-logo.jpg';
+import sentekIcon from '../assets/sentek-icon.png';
 import gmgmLogo from '../assets/gmgm-logo.png';
 import sentekKit from '../assets/sentek-kit.png';
 
@@ -168,7 +168,7 @@ function PageHeader({ chapter, title }: { chapter: string; title: string }) {
       <div className="b-logos">
         <img src={gmgmLogo} alt="GMGM" style={{ height: 32, width: 32, objectFit: 'contain' }} />
         <div style={{ height: 24, width: 1, background: '#cbd5e1' }} />
-        <img src={sentekLogo} alt="SENTEK" style={{ height: 32, width: 32, objectFit: 'contain', borderRadius: 6 }} />
+        <img src={sentekIcon} alt="SENTEK" style={{ height: 32, width: 32, objectFit: 'contain' }} />
       </div>
     </div>
   );
@@ -215,7 +215,7 @@ export default function TanitimKitapcigi() {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <img src={sentekLogo} alt="SENTEK" style={{ height: 56, width: 56, objectFit: 'contain', borderRadius: 12 }} />
+                <img src={sentekIcon} alt="SENTEK" style={{ height: 56, width: 56, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(0,212,255,0.4))' }} />
               </div>
             </div>
 

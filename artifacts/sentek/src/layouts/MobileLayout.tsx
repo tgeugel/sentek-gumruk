@@ -4,6 +4,7 @@ import { Home, Plus, ClipboardList, Truck, User, Shield, QrCode } from 'lucide-r
 import { useAuth } from '../contexts/AuthContext';
 import { NotificationBell } from '../components/sentek/NotificationBell';
 import { OfflineBar } from '../components/sentek/OfflineBar';
+import sentekIcon from '../assets/sentek-icon.png';
 
 const NAV_ITEMS = [
   { path: '/mobile', label: 'Ana Ekran', icon: Home, exact: true },
@@ -30,9 +31,8 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       <header className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between"
         style={{ background: 'hsl(var(--background) / 0.96)', backdropFilter: 'blur(24px) saturate(1.5)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.22) 0%, rgba(0,136,204,0.1) 100%)', border: '1px solid rgba(0,212,255,0.28)' }}>
-            <Shield className="w-3.5 h-3.5 text-primary" />
+          <div className="w-7 h-7 flex items-center justify-center">
+            <img src={sentekIcon} alt="SENTEK" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.55))' }} />
           </div>
           <div>
             <span className="text-sm font-bold tracking-tight">

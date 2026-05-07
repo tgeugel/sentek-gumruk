@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import sentekLogo from '../assets/sentek-logo.jpg';
+import sentekIcon from '../assets/sentek-icon.png';
 import gmgmLogo from '../assets/gmgm-logo.png';
 import sentekKit from '../assets/sentek-kit.png';
 
@@ -84,7 +84,7 @@ const slides = [
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <img src={gmgmLogo} alt="GMGM" style={{ height: 72, width: 72, objectFit: 'contain' }} />
           <div style={{ width: 1, height: 48, background: 'rgba(255,255,255,0.15)' }} />
-          <img src={sentekLogo} alt="SENTEK" style={{ height: 72, width: 72, objectFit: 'contain', borderRadius: 14 }} />
+          <img src={sentekIcon} alt="SENTEK" style={{ height: 72, width: 72, objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(0,212,255,0.5))' }} />
         </div>
         <div>
           <div style={{ fontFamily: 'Space Grotesk,sans-serif', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#00D4FF', marginBottom: '0.8rem' }}>T.C. Gümrükler Muhafaza Genel Müdürlüğü</div>
@@ -340,7 +340,7 @@ const slides = [
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
           <img src={gmgmLogo} alt="GMGM" style={{ height: 48, width: 48, objectFit: 'contain' }} />
           <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.15)' }} />
-          <img src={sentekLogo} alt="SENTEK" style={{ height: 48, width: 48, objectFit: 'contain', borderRadius: 10 }} />
+          <img src={sentekIcon} alt="SENTEK" style={{ height: 48, width: 48, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(0,212,255,0.45))' }} />
         </div>
         <div style={{ fontSize: '0.75rem', color: '#334155', letterSpacing: '0.2em', textTransform: 'uppercase' }}>SENTEK · MVP 1.0 · 2026</div>
       </div>
@@ -409,7 +409,7 @@ export default function Sunum() {
       {/* Top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 28px 0', zIndex: 10, pointerEvents: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src={sentekLogo} alt="SENTEK" style={{ height: 28, width: 28, objectFit: 'contain', borderRadius: 6 }} />
+          <img src={sentekIcon} alt="SENTEK" style={{ height: 28, width: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.5))' }} />
           <span style={{ fontFamily: 'Space Grotesk,sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '0.88rem', letterSpacing: '0.06em' }}>SENTEK</span>
         </div>
         <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600, letterSpacing: '0.14em' }}>
