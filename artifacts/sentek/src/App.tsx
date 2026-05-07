@@ -7,6 +7,7 @@ import { DataProvider } from "./contexts/DataContext";
 
 import Login from "./pages/Login";
 import TanitimKitapcigi from "./pages/TanitimKitapcigi";
+import Sunum from "./pages/Sunum";
 import MobileLayout from "./layouts/MobileLayout";
 import WebPanelLayout from "./layouts/WebPanelLayout";
 
@@ -93,6 +94,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/tanitim-kitapcigi" component={TanitimKitapcigi} />
       <Route path="/tanitim" component={TanitimKitapcigi} />
+      <Route path="/sunum" component={Sunum} />
 
       {/* ── Mobile Routes ── */}
       <Route path="/mobile">
