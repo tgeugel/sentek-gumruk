@@ -346,7 +346,7 @@ export default function NewTest() {
       setAnalizYapiliyor(false);
       // Acceptance kriteri: simülasyon tamamlanır tamamlanmaz Sonuç adımına geç
       setAdim(5);
-    }, 1900);
+    }, 1500 + Math.floor(Math.random() * 900)); // 1500-2400 ms aralığı
   };
 
   // ---- KAYDET ----
