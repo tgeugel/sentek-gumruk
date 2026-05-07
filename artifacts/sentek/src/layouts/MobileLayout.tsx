@@ -1,11 +1,10 @@
 import { useLocation, Link } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Plus, ClipboardList, Truck, User, Shield, QrCode } from 'lucide-react';
+
 import { useAuth } from '../contexts/AuthContext';
 import { NotificationBell } from '../components/sentek/NotificationBell';
 import { OfflineBar } from '../components/sentek/OfflineBar';
-import sentekIcon from '../assets/sentek-icon.png';
-
 const NAV_ITEMS = [
   { path: '/mobile', label: 'Ana Ekran', icon: Home, exact: true },
   { path: '/mobile/kayitlarim', label: 'Kayıtlarım', icon: ClipboardList },
@@ -31,11 +30,11 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       <header className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between"
         style={{ background: 'hsl(var(--background) / 0.96)', backdropFilter: 'blur(24px) saturate(1.5)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 flex items-center justify-center">
-            <img src={sentekIcon} alt="SENTEK" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.55))' }} />
+          <div className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(0,136,204,0.06) 100%)', border: '1px solid rgba(0,212,255,0.3)' }}>
+            <Shield className="w-4 h-4 text-primary" style={{ filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.65))' }} />
           </div>
           <div>
-            <span className="text-sm font-bold tracking-tight">
+            <span className="text-sm font-bold" style={{ fontFamily: "'Neon Zone', sans-serif", letterSpacing: '0.05em' }}>
               SEN<span className="text-primary">TEK</span>
             </span>
             <span className="text-[10px] text-muted-foreground/60 ml-2">Saha</span>

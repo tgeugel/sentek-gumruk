@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, AlertCircle, Zap } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Zap, Shield } from 'lucide-react';
 import { useAuth, rolRouteAl } from '../contexts/AuthContext';
-import sentekIcon from '../assets/sentek-icon.png';
 import { Role } from '../types';
 
 const DEMO_ROLES: { label: string; email: string; sifre: string; rol: Role; renk: string; bg: string; border: string }[] = [
@@ -75,19 +74,20 @@ export default function Login() {
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex items-center justify-center w-20 h-20 mb-5"
+            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-5 relative"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,212,255,0.18) 0%, rgba(0,136,204,0.08) 100%)',
+              border: '1px solid rgba(0,212,255,0.35)',
+              boxShadow: '0 0 50px rgba(0,212,255,0.2), 0 0 100px rgba(0,212,255,0.06), inset 0 1px 0 rgba(0,212,255,0.15)'
+            }}
           >
-            <img
-              src={sentekIcon}
-              alt="SENTEK"
-              style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 0 18px rgba(0,212,255,0.65)) drop-shadow(0 0 40px rgba(0,212,255,0.25))' }}
-            />
+            <Shield className="w-9 h-9 text-primary" style={{ filter: 'drop-shadow(0 0 12px rgba(0,212,255,0.7))' }} />
+            <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(circle at 40% 35%, rgba(0,212,255,0.12) 0%, transparent 60%)' }} />
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }}>
-            <h1 className="text-4xl font-bold tracking-tight mb-1.5 display-title" style={{ fontFamily: 'var(--font-display)' }}>
-              <span className="text-gradient-white">SEN</span>
-              <span className="text-gradient-cyan">TEK</span>
+            <h1 className="text-4xl font-bold mb-1.5" style={{ fontFamily: "'Neon Zone', sans-serif", letterSpacing: '0.06em' }}>
+              <span className="text-gradient-white">SEN</span><span className="text-gradient-cyan">TEK</span>
             </h1>
             <p className="text-[10px] text-muted-foreground/60 tracking-[0.22em] uppercase">
               Saha Entegre Narkotik Test Yazılımı

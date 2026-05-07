@@ -10,7 +10,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { Role } from '../types';
 import { NotificationBell } from '../components/sentek/NotificationBell';
-import sentekIcon from '../assets/sentek-icon.png';
 
 interface NavItem {
   path: string;
@@ -166,14 +165,13 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
       {/* Logo */}
       <div className={`flex-shrink-0 border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-            <img src={sentekIcon} alt="SENTEK" style={{ width: 32, height: 32, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.55))' }} />
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.18) 0%, rgba(0,136,204,0.08) 100%)', border: '1px solid rgba(0,212,255,0.35)' }}>
+            <Shield className="w-4 h-4 text-primary" style={{ filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.7))' }} />
           </div>
           {!collapsed && (
             <div>
-              <p className="text-sm font-bold leading-tight tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-                <span style={{ background: 'linear-gradient(135deg, #fff 0%, #e0f7ff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>SEN</span>
-                <span className="text-primary">TEK</span>
+              <p className="text-sm font-bold leading-tight" style={{ fontFamily: "'Neon Zone', sans-serif", letterSpacing: '0.05em' }}>
+                <span style={{ color: '#fff' }}>SEN</span><span className="text-primary">TEK</span>
               </p>
               <p className="text-[9px] text-muted-foreground/50 leading-tight uppercase tracking-[0.15em] mt-0.5">Operasyon Paneli</p>
             </div>
@@ -291,10 +289,9 @@ export default function WebPanelLayout({ children }: { children: React.ReactNode
             <Menu className="w-5 h-5" />
           </button>
           <div className="md:hidden flex items-center gap-2">
-            <img src={sentekIcon} alt="SENTEK" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.5))' }} />
-            <span className="font-bold text-sm tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-              <span className="text-white">SEN</span>
-              <span className="text-primary">TEK</span>
+            <Shield className="w-5 h-5 text-primary" style={{ filter: 'drop-shadow(0 0 5px rgba(0,212,255,0.6))' }} />
+            <span className="font-bold text-sm" style={{ fontFamily: "'Neon Zone', sans-serif", letterSpacing: '0.05em' }}>
+              <span className="text-white">SEN</span><span className="text-primary">TEK</span>
             </span>
           </div>
 
